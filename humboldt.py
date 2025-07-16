@@ -7,13 +7,7 @@ from openai import OpenAI
 from geocode import geocode_locations  # import our geocoding tool
 
 def main():
-    # Initialize OpenAI client
     client = OpenAI(base_url="http://localhost:5272/v1/", api_key="unused")
-
-    # Prompt the user for their request
-    user_input = input(
-        "Hello, I am Humboldt, your GeoAI Agent. How can I assist you today?\n"
-    )
 
     # System prompt describing the agent's role
     system_prompt = (
@@ -23,12 +17,9 @@ def main():
         "take user needs, call upon specialized tools (like geocoding), and "
         "manage their inputs and outputs to fulfill the request."
     )
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_input}
-    ]
 
-    # Define available tool functions
+    # Initialize chat history and tool schema once
+    messages = [{"role": "system", "content": system_prompt}]
     functions = [
         {
             "name": "geocode_locations",
@@ -46,36 +37,60 @@ def main():
         }
     ]
 
-    # First LLM call with function support
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    message = response.choices[0].message
+    # REPL loop
+    while True:
+        user_input = input("Humboldt> (type 'exit' to quit)\n")
+        if user_input.lower() in ("exit", "quit"):
+            print("Exiting Humboldt. Goodbye!")
+            break
 
-    # If the LLM chooses to call a function, execute it
-    if message.function_call:
-        args = json.loads(message.function_call.arguments)
-        # Only one function now, geocode_locations
-        table = geocode_locations(args["locations"])
-        # Append the function call and result
-        messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
-        messages.append({"role": "function", "name": message.function_call.name, "content": table})
-        # Send back to LLM for final answer
-        second_resp = client.chat.completions.create(
+        # Add user message to history
+        messages.append({"role": "user", "content": user_input})
+        print("[DEBUG] Sending to LLM:", messages)
+
+        # First call (possibly function)
+        response = client.chat.completions.create(
             model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
             messages=messages,
+            functions=functions,
+            function_call="auto",
             max_tokens=1000,
             frequency_penalty=1,
         )
-        print(second_resp.choices[0].message.content)
-    else:
-        # No function call: just print the assistant message
-        print(message.content)
+        message = response.choices[0].message
+        print("[DEBUG] LLM response:", message)
+
+        # If LLM requested our geocode tool
+        if message.function_call:
+            args = json.loads(message.function_call.arguments)
+            print(f"[DEBUG] Calling {message.function_call.name} with args:", args)
+            table = geocode_locations(args["locations"])
+            print("[DEBUG] geocode_locations output:\n", table)
+
+            # Append the function call and its result to history
+            messages.append({
+                "role": "assistant",
+                "content": None,
+                "function_call": message.function_call
+            })
+            messages.append({
+                "role": "function",
+                "name": message.function_call.name,
+                "content": table
+            })
+
+            # Second call to get the final assistant answer
+            second_resp = client.chat.completions.create(
+                model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            print(second_resp.choices[0].message.content)
+
+        else:
+            # No tool call, just print the assistant reply
+            print(message.content)
 
 if __name__ == "__main__":
     main()
