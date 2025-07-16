@@ -4,8 +4,13 @@ AI agents for GIS and Remote Sensing workflows.
 ## Requirements
 
 - Python 3.8 or higher
-- geopy (`pip install geopy`)
-- openai Python SDK (`pip install openai`)
+- geopy >=2.0
+- openai >=1.0
+
+Install the dependencies with:
+```bash
+pip install -r requirements.txt
+```
 
 ## Scripts
 
