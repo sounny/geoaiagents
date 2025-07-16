@@ -5,6 +5,8 @@
 """
 # Standard library imports
 import json  # to parse and format JSON for function arguments
+import argparse
+import os
 # Third-party imports
 from openai import OpenAI  # OpenAI client for LLM interaction
 from geopy.geocoders import Nominatim  # Nominatim geocoder for OpenStreetMap
@@ -71,8 +73,20 @@ def main():
       4. Execute function calls or fallback locally
       5. Display results and datum
     """
-    # Initialize OpenAI client with dummy API key
-    client = OpenAI(base_url="http://localhost:5272/v1/", api_key="unused")
+    parser = argparse.ArgumentParser(description="LLM-driven geocoder")
+    parser.add_argument(
+        "--base-url",
+        default=os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/"),
+        help="OpenAI API base URL",
+    )
+    parser.add_argument(
+        "--api-key",
+        default=os.getenv("OPENAI_API_KEY", "unused"),
+        help="OpenAI API key",
+    )
+    args = parser.parse_args()
+
+    client = OpenAI(base_url=args.base_url, api_key=args.api_key)
 
     # Prompt the user for location input
     user_input = input(
