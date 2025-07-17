@@ -3,6 +3,8 @@
 > pip install openai
 """
 import json
+import argparse
+import os
 from openai import OpenAI
 
 """
@@ -73,8 +75,21 @@ def convert_dd_to_dms(coordinates_str: str) -> str:
     return "\n".join(table)
 
 def main():
+    parser = argparse.ArgumentParser(description="DD to DMS converter")
+    parser.add_argument(
+        "--base-url",
+        default=os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/"),
+        help="OpenAI API base URL",
+    )
+    parser.add_argument(
+        "--api-key",
+        default=os.getenv("OPENAI_API_KEY", "unused"),
+        help="OpenAI API key",
+    )
+    args = parser.parse_args()
+
     # Initialize OpenAI client
-    client = OpenAI(base_url="http://localhost:5272/v1/", api_key="unused")
+    client = OpenAI(base_url=args.base_url, api_key=args.api_key)
 
     # Read user input
     user_input = input("Enter decimal-degree coordinates (newline or semicolon separated):\n")

@@ -3,12 +3,27 @@
 > pip install openai
 """
 import json
+import argparse
+import os
 from openai import OpenAI
 from geocode import geocode_locations  # import our geocoding tool
 from dd2dms import convert_dd_to_dms  # import DD→DMS conversion tool
 
 def main():
-    client = OpenAI(base_url="http://localhost:5272/v1/", api_key="unused")
+    parser = argparse.ArgumentParser(description="Interactive GeoAI agent")
+    parser.add_argument(
+        "--base-url",
+        default=os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/"),
+        help="OpenAI API base URL",
+    )
+    parser.add_argument(
+        "--api-key",
+        default=os.getenv("OPENAI_API_KEY", "unused"),
+        help="OpenAI API key",
+    )
+    args = parser.parse_args()
+
+    client = OpenAI(base_url=args.base_url, api_key=args.api_key)
 
     # System prompt describing the agent's role and tool‐calling instructions
     system_prompt = (
