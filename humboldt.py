@@ -6,7 +6,7 @@ import json
 import argparse
 import os
 from openai import OpenAI
-from geocode import geocode_locations  # import our geocoding tool
+from geocode import geocode_locations, reverse_geocode_coordinates  # import geocoding tools
 from dd2dms import convert_dd_to_dms  # import DD→DMS conversion tool
 
 def main():
@@ -64,6 +64,20 @@ def main():
                 },
                 "required": ["coordinates"]
             }
+        },
+        {
+            "name": "reverse_geocode_coordinates",
+            "description": "Reverse geocode lat/lon pairs to addresses",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "coordinates": {
+                        "type": "string",
+                        "description": "Newline- or semicolon-delimited DD lat,lon pairs"
+                    }
+                },
+                "required": ["coordinates"]
+            }
         }
     ]
 
@@ -102,6 +116,9 @@ def main():
             elif message.function_call.name == "convert_dd_to_dms":
                 print("Status: Invoking DD to DMS conversion agent...")
                 table = convert_dd_to_dms(args["coordinates"])
+            elif message.function_call.name == "reverse_geocode_coordinates":
+                print("Status: Invoking reverse geocoding agent...")
+                table = reverse_geocode_coordinates(args["coordinates"])
             # Log tool output
             print("[DEBUG] Tool output:\n", table)
 

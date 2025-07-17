@@ -65,6 +65,12 @@ Humboldt> Geocode Austin, TX; Paris, France
 ```
 Humboldt will call the geocode tool and return a formatted table.
 
+You can also ask Humboldt to convert coordinates into an address:
+```
+Humboldt> Reverse geocode 40.6892,-74.0445
+```
+Humboldt will look up the nearest location and print the address.
+
 ## Extending with New Tools
 
 Future agents and tools can be added by defining function schemas in `humboldt.py` and implementing the corresponding Python functions.
