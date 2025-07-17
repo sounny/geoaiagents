@@ -39,6 +39,36 @@ def parse_locations(locations_str):
     return [line.strip() for line in re.split(r'\n|;', locations_str) if line.strip()]
 
 
+def reverse_geocode_coordinates(coordinates_str: str) -> str:
+    """Reverse geocode lat/lon pairs to the nearest address."""
+    import re
+    lines = [line.strip() for line in re.split(r'\n|;', coordinates_str) if line.strip()]
+    geolocator = Nominatim(user_agent="my_geocoder_app")
+    rows = []
+    for line in lines:
+        parts = re.split(r'[,\s]+', line)
+        try:
+            lat = float(parts[0]); lon = float(parts[1])
+        except Exception:
+            rows.append(("", "", "Invalid coordinate"))
+            continue
+        try:
+            location = geolocator.reverse((lat, lon))
+            address = location.address if location else "Not found"
+        except (GeocoderTimedOut, GeocoderServiceError, Exception):
+            address = "Not found"
+        rows.append((lat, lon, address))
+    table = [
+        "| Latitude | Longitude | Address |",
+        "|---------:|----------:|---------|",
+    ]
+    for lat, lon, addr in rows:
+        lat_disp = f"{lat}" if isinstance(lat, float) else lat
+        lon_disp = f"{lon}" if isinstance(lon, float) else lon
+        table.append(f"| {lat_disp} | {lon_disp} | {addr} |")
+    return "\n".join(table)
+
+
 def geocode_locations(locations_str: str) -> str:
     """
     Geocode multiple locations and return a markdown-formatted table.
