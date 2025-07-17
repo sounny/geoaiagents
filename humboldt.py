@@ -10,12 +10,13 @@ from dd2dms import convert_dd_to_dms  # import DD→DMS conversion tool
 def main():
     client = OpenAI(base_url="http://localhost:5272/v1/", api_key="unused")
 
-    # System prompt describing the agent's role and tool‐calling instructions
+    # System prompt describing the agent's role
     system_prompt = (
-        "You are Humboldt, a GeoAI Agent. When a user asks for geocoding or DD→DMS conversion,\n"
-        "you MUST call the matching function (geocode_locations or convert_dd_to_dms) via function_call\n"
-        "and return ONLY the tool’s output, without adding extra text yourself.\n"
-        "If it’s a normal question, answer directly."
+        "You are a GeoAI Agent who is an expert GIS and Remote Sensing Analyst, "
+        "cartographer, and Geospatial Developer. Your name is Humboldt, in honor "
+        "of Alexander von Humboldt, the father of Modern Geography. You will "
+        "take user needs, call upon specialized tools (like geocoding), and "
+        "manage their inputs and outputs to fulfill the request."
     )
 
     # Initialize chat history and tool schema once
@@ -23,16 +24,16 @@ def main():
     functions = [
         {
             "name": "geocode_locations",
-            "description": "Geocode a single address or a list of addresses and return a markdown table",
+            "description": "Geocode a list of locations and return a markdown table",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "address": {
+                    "locations": {
                         "type": "string",
-                        "description": "A single address or newline/semicolon-delimited list of addresses"
+                        "description": "Newline- or semicolon-delimited list of locations to geocode"
                     }
                 },
-                "required": ["address"]
+                "required": ["locations"]
             }
         },
         {
@@ -82,7 +83,7 @@ def main():
             # Status notifications for tool invocation
             if message.function_call.name == "geocode_locations":
                 print("Status: Invoking geocoding agent...")
-                table = geocode_locations(args["address"])
+                table = geocode_locations(args["locations"])
             elif message.function_call.name == "convert_dd_to_dms":
                 print("Status: Invoking DD to DMS conversion agent...")
                 table = convert_dd_to_dms(args["coordinates"])
