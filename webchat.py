@@ -106,7 +106,7 @@ def respond(message: str, history: list[tuple[str, str]]):
 
 
 def main():
-    iface = gr.ChatInterface(respond, title="Humboldt Web Chat")
+    iface = gr.ChatInterface(respond, title="Humboldt GeoAI Agent")
     iface.launch()
 
 
