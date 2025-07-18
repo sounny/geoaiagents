@@ -5,6 +5,7 @@
 import json
 import argparse
 import os
+import logging
 from openai import OpenAI
 from geocode import geocode_locations, reverse_geocode_coordinates  # import geocoding tools
 from dd2dms import convert_dd_to_dms  # import DD→DMS conversion tool
@@ -21,9 +22,20 @@ def main():
         default=os.getenv("OPENAI_API_KEY", "unused"),
         help="OpenAI API key",
     )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        default=os.getenv("HUMBOLDT_DEBUG", "0") in ("1", "true", "True"),
+        help="Enable debug logging",
+    )
     args = parser.parse_args()
 
     client = OpenAI(base_url=args.base_url, api_key=args.api_key)
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
 
     # System prompt describing the agent's role
     system_prompt = (
@@ -92,7 +104,7 @@ def main():
 
         # Add user message to history
         messages.append({"role": "user", "content": user_input})
-        print("[DEBUG] Sending to LLM:", messages)
+        logging.debug("Sending to LLM: %s", messages)
 
         # First call (possibly function)
         response = client.chat.completions.create(
@@ -104,7 +116,7 @@ def main():
             frequency_penalty=1,
         )
         message = response.choices[0].message
-        print("[DEBUG] LLM response:", message)
+        logging.debug("LLM response: %s", message)
 
         # If LLM requested our geocode tool
         if message.function_call:
@@ -120,7 +132,7 @@ def main():
                 print("Status: Invoking reverse geocoding agent...")
                 table = reverse_geocode_coordinates(args["coordinates"])
             # Log tool output
-            print("[DEBUG] Tool output:\n", table)
+            logging.debug("Tool output:\n%s", table)
 
             # Append the function call and its result to history
             messages.append({
