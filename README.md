@@ -71,6 +71,18 @@ Humboldt> Reverse geocode 40.6892,-74.0445
 ```
 Humboldt will look up the nearest location and print the address.
 
+### webchat.py
+
+`webchat.py` launches a simple Gradio interface that exposes Humboldt in your
+browser. It reuses the same tools as the REPL but provides a chat box for
+interaction.
+
+**Usage:**
+```bash
+python webchat.py
+```
+Gradio will print a local URL that you can open in your web browser.
+
 ## Extending with New Tools
 
 Future agents and tools can be added by defining function schemas in `humboldt.py` and implementing the corresponding Python functions.
