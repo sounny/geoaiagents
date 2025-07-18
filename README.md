@@ -47,6 +47,12 @@ Add `--debug` (or set `HUMBOLDT_DEBUG=1`) to enable debug output.
 This script uses the `geopy` library to geocode locations via OpenStreetMap's Nominatim API.
 It also demonstrates OpenAI function-calling by returning results in a markdown table.
 
+The helper functions `get_coordinates` and `reverse_geocode_coordinates` now
+accept optional parameters for the Nominatim requests. You can tweak the
+`timeout` (default `1` second), specify a `bounding_box` in the form
+`(west, south, east, north)` to confine results, and set the response
+`language` (default `"en"`).
+
 **Usage:**
 ```bash
 python geocode.py
