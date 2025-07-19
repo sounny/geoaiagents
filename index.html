@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Humboldt - GeoAI Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 60px 0;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hero h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero .subtitle {
+            font-size: 1.3em;
+            color: #666;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+        
+        .about {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+        }
+        
+        .contributors {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            margin: 40px 0;
+        }
+        
+        .contributor {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .contributor-info {
+            margin-left: 20px;
+        }
+        
+        .contributor h3 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .contributor a {
+            color: #764ba2;
+            text-decoration: none;
+        }
+        
+        .contributor a:hover {
+            text-decoration: underline;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5em;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .contributor {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .contributor-info {
+                margin-left: 0;
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <h1>Humboldt</h1>
+            <p class="subtitle">
+                A revolutionary AI agent specialized in geospatial analysis and GIS workflows. 
+                Experience the future of geographic intelligence.
+            </p>
+            <div class="cta-buttons">
+                <a href="https://github.com/sounny/geoaiagents" class="btn btn-primary">Explore Repository</a>
+                <a href="https://sounny.github.io" class="btn btn-secondary">Project Home</a>
+            </div>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🗺️</div>
+                <h3>Intelligent Geocoding</h3>
+                <p>Transform addresses and place names into precise coordinates using advanced AI-powered geocoding with natural language understanding.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Coordinate Conversion</h3>
+                <p>Seamlessly convert between decimal degrees and degrees-minutes-seconds formats with mathematical precision and intelligent formatting.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🌐</div>
+                <h3>Interactive Maps</h3>
+                <p>Visualize your geospatial data instantly with dynamic, interactive maps that bring your coordinates to life in your browser.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">💬</div>
+                <h3>Natural Language Interface</h3>
+                <p>Interact with GIS tools using plain English. No complex commands or syntax - just describe what you need and Humboldt delivers.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📁</div>
+                <h3>Multi-Format Support</h3>
+                <p>Process GeoJSON, KML, and CSV files effortlessly. Upload your data and let Humboldt extract meaningful geospatial insights.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔧</div>
+                <h3>Extensible Architecture</h3>
+                <p>Built with modularity in mind. Add new geospatial tools and capabilities to expand Humboldt's analytical power.</p>
+            </div>
+        </div>
+
+        <div class="about">
+            <h2>Redefining Geospatial Analysis</h2>
+            <p>
+                Just as ChatGPT revolutionized conversational AI, Humboldt is transforming how we interact with geospatial data. 
+                Named after Alexander von Humboldt, the father of modern geography, this AI agent brings the power of advanced 
+                GIS and remote sensing to everyone through intuitive natural language conversations.
+            </p>
+            <br>
+            <p>
+                Whether you're a seasoned GIS professional, a researcher, or someone just starting with geospatial analysis, 
+                Humboldt makes complex geographic operations as simple as having a conversation. From geocoding addresses 
+                to analyzing spatial datasets, Humboldt is your intelligent companion for all things geospatial.
+            </p>
+            <br>
+            <p>
+                Experience the next generation of geographic intelligence - where cutting-edge AI meets the rich tradition 
+                of geographic exploration and analysis.
+            </p>
+        </div>
+
+        <div class="contributors">
+            <h2>Contributors</h2>
+            <div class="contributor">
+                <div class="feature-icon">👨‍💻</div>
+                <div class="contributor-info">
+                    <h3>Moulay Anwar Sounny-Slitine</h3>
+                    <p>Project Creator & Lead Developer</p>
+                    <a href="https://sounny.github.io">Visit Homepage</a>
+                </div>
+            </div>
+            
+            <div class="contributor">
+                <div class="feature-icon">🎓</div>
+                <div class="contributor-info">
+                    <h3>Mashoukur Rahaman</h3>
+                    <p>Contributor & GIS Specialist</p>
+                    <a href="https://geog.ufl.edu/grad-students/rahaman/">University of Florida Profile</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Humboldt GeoAI Agent. Advancing the frontiers of geographic intelligence.</p>
+    </footer>
+</body>
+</html>
