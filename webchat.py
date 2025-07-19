@@ -3,6 +3,7 @@ import os
 import logging
 from openai import OpenAI
 import gradio as gr
+import folium
 from geocode import geocode_locations, reverse_geocode_coordinates
 from dd2dms import convert_dd_to_dms
 
@@ -20,6 +21,33 @@ logging.basicConfig(
 
 # Store log entries for display in the UI
 log_history: list[str] = []
+
+
+def create_map_html(points: list[tuple[float, float]]) -> str:
+    """Return HTML for a folium map with given points."""
+    if not points:
+        return ""
+    m = folium.Map(location=points[0], zoom_start=4)
+    for lat, lon in points:
+        folium.Marker([lat, lon]).add_to(m)
+    return m._repr_html_()
+
+
+def parse_table_coordinates(table: str, lat_index: int, lon_index: int) -> list[tuple[float, float]]:
+    """Parse coordinate pairs from a markdown table."""
+    coords: list[tuple[float, float]] = []
+    lines = table.splitlines()[2:]
+    for line in lines:
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) <= max(lat_index, lon_index):
+            continue
+        try:
+            lat = float(cells[lat_index])
+            lon = float(cells[lon_index])
+        except ValueError:
+            continue
+        coords.append((lat, lon))
+    return coords
 
 
 class GradioLogHandler(logging.Handler):
@@ -103,17 +131,24 @@ def respond(message: str, history: list[tuple[str, str]]):
     )
     msg = response.choices[0].message
     logging.debug("LLM response: %s", msg)
+    map_html = ""
     if msg.function_call:
         args = json.loads(msg.function_call.arguments)
         if msg.function_call.name == "geocode_locations":
             logging.info("Invoking geocode_locations...")
             table = geocode_locations(args["locations"])
+            coords = parse_table_coordinates(table, 2, 3)
+            map_html = create_map_html(coords)
         elif msg.function_call.name == "convert_dd_to_dms":
             logging.info("Invoking convert_dd_to_dms...")
             table = convert_dd_to_dms(args["coordinates"])
+            coords = parse_table_coordinates(table, 0, 1)
+            map_html = create_map_html(coords)
         elif msg.function_call.name == "reverse_geocode_coordinates":
             logging.info("Invoking reverse_geocode_coordinates...")
             table = reverse_geocode_coordinates(args["coordinates"])
+            coords = parse_table_coordinates(table, 0, 1)
+            map_html = create_map_html(coords)
         else:
             table = ""
         messages.append({"role": "assistant", "content": None, "function_call": msg.function_call})
@@ -130,17 +165,19 @@ def respond(message: str, history: list[tuple[str, str]]):
         reply = msg.content
         logging.info("LLM response received")
     messages.append({"role": "assistant", "content": reply})
-    return reply, "\n".join(log_history)
+    return reply, map_html, "\n".join(log_history)
 
 
 def main():
-    log_box = gr.Textbox(label="Logs", lines=10, interactive=False)
-    iface = gr.ChatInterface(
-        respond,
-        title="Humboldt GeoAI Agent",
-        additional_outputs=[log_box],
-    )
-    iface.launch()
+    with gr.Blocks() as demo:
+        map_box = gr.HTML(label="Map")
+        log_box = gr.Textbox(label="Logs", lines=10, interactive=False)
+        gr.ChatInterface(
+            respond,
+            title="Humboldt GeoAI Agent",
+            additional_outputs=[map_box, log_box],
+        )
+    demo.launch()
 
 
 if __name__ == "__main__":
