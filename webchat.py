@@ -218,17 +218,42 @@ def respond(message: str, history: list[dict], upload_file=None):
     return reply, map_html, "\n".join(log_history)
 
 
+def chat(message, history, upload_file):
+    """Wrapper for respond() that formats history for gr.Chatbot."""
+    reply, map_html, logs = respond(message, history, upload_file)
+    history = history + [(message, reply)]
+    return history, map_html, logs
+
+
 def main():
     with gr.Blocks() as demo:
-        upload = gr.File(label="Upload Data", file_types=[".geojson", ".json", ".kml", ".csv"])
-        map_box = gr.HTML(label="Map")
-        log_box = gr.Textbox(label="Logs", lines=10, interactive=False)
-        gr.ChatInterface(
-            respond,
-            title="Humboldt GeoAI Agent",
-            additional_inputs=[upload],
-            additional_outputs=[map_box, log_box],
-            chatbot=gr.Chatbot(type="messages"),
+        with gr.Row():
+            with gr.Column(scale=3):
+                map_box = gr.HTML(
+                    create_map_html([(0.0, 0.0)]), label="Map"
+                )
+                chatbot = gr.Chatbot(type="messages")
+                message = gr.Textbox(label="Message")
+                send_btn = gr.Button("Send")
+            with gr.Column(scale=1):
+                with gr.Accordion("Upload & Logs", open=False):
+                    upload = gr.File(
+                        label="Upload Data",
+                        file_types=[".geojson", ".json", ".kml", ".csv"],
+                    )
+                    log_box = gr.Textbox(
+                        label="Logs", lines=10, interactive=False
+                    )
+
+        send_btn.click(
+            chat,
+            inputs=[message, chatbot, upload],
+            outputs=[chatbot, map_box, log_box],
+        )
+        message.submit(
+            chat,
+            inputs=[message, chatbot, upload],
+            outputs=[chatbot, map_box, log_box],
         )
     demo.launch()
 
