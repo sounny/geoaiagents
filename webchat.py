@@ -145,7 +145,7 @@ functions = [
     }
 ]
 
-def respond(message: str, history: list[tuple[str, str]], upload_file=None):
+def respond(message: str, history: list[dict], upload_file=None):
     """Handle a chat message and return the agent's reply."""
     if upload_file is not None:
         try:
@@ -228,6 +228,7 @@ def main():
             title="Humboldt GeoAI Agent",
             additional_inputs=[upload],
             additional_outputs=[map_box, log_box],
+            chatbot=gr.Chatbot(type="messages"),
         )
     demo.launch()
 
