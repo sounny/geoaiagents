@@ -2,6 +2,7 @@ import json
 import os
 from openai import OpenAI
 import gradio as gr
+import folium
 from geocode import geocode_locations, reverse_geocode_coordinates
 from dd2dms import convert_dd_to_dms
 
@@ -68,8 +69,38 @@ functions = [
     }
 ]
 
-def respond(message: str, history: list[tuple[str, str]]):
-    """Handle a chat message and return the agent's reply."""
+# --- Map helpers -----------------------------------------------------------
+def _extract_coords(table: str):
+    """Parse markdown table rows and return list of (lat, lon, label)."""
+    coords = []
+    lines = table.splitlines()[2:]  # skip header
+    for line in lines:
+        parts = [p.strip() for p in line.strip().strip('|').split('|')]
+        if len(parts) >= 4:
+            try:
+                lat = float(parts[2])
+                lon = float(parts[3])
+            except Exception:
+                continue
+            label = parts[0]
+            coords.append((lat, lon, label))
+    return coords
+
+
+def _render_map(markers):
+    """Return HTML for a folium map with markers."""
+    if markers:
+        avg_lat = sum(m[0] for m in markers) / len(markers)
+        avg_lon = sum(m[1] for m in markers) / len(markers)
+        m = folium.Map(location=[avg_lat, avg_lon], zoom_start=4)
+    else:
+        m = folium.Map(location=[0, 0], zoom_start=2)
+    for lat, lon, label in markers:
+        folium.Marker([lat, lon], popup=label).add_to(m)
+    return m._repr_html_()
+
+def respond(message: str, history: list[tuple[str, str]], markers: list):
+    """Handle a chat message, update map markers and return reply."""
     messages.append({"role": "user", "content": message})
     response = client.chat.completions.create(
         model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
@@ -80,10 +111,12 @@ def respond(message: str, history: list[tuple[str, str]]):
         frequency_penalty=1,
     )
     msg = response.choices[0].message
+    new_markers = []
     if msg.function_call:
         args = json.loads(msg.function_call.arguments)
         if msg.function_call.name == "geocode_locations":
             table = geocode_locations(args["locations"])
+            new_markers = _extract_coords(table)
         elif msg.function_call.name == "convert_dd_to_dms":
             table = convert_dd_to_dms(args["coordinates"])
         elif msg.function_call.name == "reverse_geocode_coordinates":
@@ -102,12 +135,27 @@ def respond(message: str, history: list[tuple[str, str]]):
     else:
         reply = msg.content
     messages.append({"role": "assistant", "content": reply})
-    return reply
+    history.append((message, reply))
+    markers.extend(new_markers)
+    map_html = _render_map(markers)
+    return history, map_html, markers
 
 
 def main():
-    iface = gr.ChatInterface(respond, title="Humboldt GeoAI Agent")
-    iface.launch()
+    with gr.Blocks() as demo:
+        gr.Markdown("# Humboldt GeoAI Agent")
+        with gr.Row():
+            with gr.Column(scale=2):
+                chatbot = gr.Chatbot()
+                msg = gr.Textbox(placeholder="Enter a message and press Enter")
+            with gr.Column():
+                map_html = gr.HTML()
+        markers = gr.State([])
+
+        msg.submit(respond, [msg, chatbot, markers], [chatbot, map_html, markers])
+        msg.submit(lambda: "", None, msg)
+
+    demo.launch()
 
 
 if __name__ == "__main__":
