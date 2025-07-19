@@ -2,8 +2,10 @@ import json
 import os
 from openai import OpenAI
 import gradio as gr
+import folium
 from geocode import geocode_locations, reverse_geocode_coordinates
 from dd2dms import convert_dd_to_dms
+from parsers import load_geojson, load_kml, load_csv
 
 # Initialize OpenAI client using environment variables or defaults
 BASE_URL = os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/")
@@ -65,11 +67,80 @@ functions = [
             },
             "required": ["coordinates"]
         }
+    },
+    {
+        "name": "load_geojson",
+        "description": "Load a GeoJSON file and return its contents",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Path to the GeoJSON file"
+                }
+            },
+            "required": ["path"]
+        }
+    },
+    {
+        "name": "load_kml",
+        "description": "Load a KML file and return it as GeoJSON",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Path to the KML file"
+                }
+            },
+            "required": ["path"]
+        }
+    },
+    {
+        "name": "load_csv",
+        "description": "Load a CSV with lat/lon columns as GeoJSON",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Path to the CSV file"
+                }
+            },
+            "required": ["path"]
+        }
     }
 ]
 
-def respond(message: str, history: list[tuple[str, str]]):
-    """Handle a chat message and return the agent's reply."""
+def geojson_map_html(data):
+    """Render GeoJSON data on a Leaflet map returned as HTML."""
+    m = folium.Map(location=[0, 0], zoom_start=2)
+    if data and data.get("features"):
+        lats, lons = [], []
+        for f in data["features"]:
+            geom = f.get("geometry", {})
+            if geom.get("type") == "Point":
+                lon, lat = geom.get("coordinates", [0, 0])
+                folium.Marker([lat, lon], tooltip=f.get("properties", {}).get("name", "")).add_to(m)
+                lats.append(lat); lons.append(lon)
+            else:
+                folium.GeoJson(f).add_to(m)
+        if lats and lons:
+            m.fit_bounds([[min(lats), min(lons)], [max(lats), max(lons)]])
+    return m._repr_html_()
+
+
+def respond(message: str, history: list[tuple[str, str]], file, geojson_state):
+    """Handle a chat message with optional file upload."""
+    if file is not None:
+        ext = os.path.splitext(file.name).lower()
+        if ext.endswith(".geojson") or ext.endswith(".json"):
+            geojson_state = load_geojson(file.name)
+        elif ext.endswith(".kml"):
+            geojson_state = load_kml(file.name)
+        elif ext.endswith(".csv"):
+            geojson_state = load_csv(file.name)
+
     messages.append({"role": "user", "content": message})
     response = client.chat.completions.create(
         model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
@@ -88,6 +159,15 @@ def respond(message: str, history: list[tuple[str, str]]):
             table = convert_dd_to_dms(args["coordinates"])
         elif msg.function_call.name == "reverse_geocode_coordinates":
             table = reverse_geocode_coordinates(args["coordinates"])
+        elif msg.function_call.name == "load_geojson":
+            geojson_state = load_geojson(args["path"])
+            table = f"Loaded {len(geojson_state.get('features', []))} features"
+        elif msg.function_call.name == "load_kml":
+            geojson_state = load_kml(args["path"])
+            table = f"Loaded {len(geojson_state.get('features', []))} features"
+        elif msg.function_call.name == "load_csv":
+            geojson_state = load_csv(args["path"])
+            table = f"Loaded {len(geojson_state.get('features', []))} features"
         else:
             table = ""
         messages.append({"role": "assistant", "content": None, "function_call": msg.function_call})
@@ -102,12 +182,29 @@ def respond(message: str, history: list[tuple[str, str]]):
     else:
         reply = msg.content
     messages.append({"role": "assistant", "content": reply})
-    return reply
+    map_html = geojson_map_html(geojson_state) if geojson_state else ""
+    return reply, geojson_state, map_html
 
 
 def main():
-    iface = gr.ChatInterface(respond, title="Humboldt GeoAI Agent")
-    iface.launch()
+    with gr.Blocks() as demo:
+        chatbot = gr.Chatbot(type="messages")
+        msg = gr.Textbox()
+        file_input = gr.File(label="Upload data")
+        map_output = gr.HTML()
+        state = gr.State(None)
+
+        def submit(user_message, file, chat_history, geojson_state):
+            reply, geojson_state, map_html = respond(user_message, chat_history, file, geojson_state)
+            chat_history = chat_history + [(user_message, reply)]
+            return "", chat_history, geojson_state, map_html
+
+        msg.submit(
+            submit,
+            inputs=[msg, file_input, chatbot, state],
+            outputs=[msg, chatbot, state, map_output],
+        )
+        demo.launch()
 
 
 if __name__ == "__main__":
