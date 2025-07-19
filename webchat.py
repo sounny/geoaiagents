@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from openai import OpenAI
 import gradio as gr
 from geocode import geocode_locations, reverse_geocode_coordinates
@@ -9,6 +10,26 @@ from dd2dms import convert_dd_to_dms
 BASE_URL = os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/")
 API_KEY = os.getenv("OPENAI_API_KEY", "unused")
 client = OpenAI(base_url=BASE_URL, api_key=API_KEY)
+
+# Configure logging similarly to humboldt.py
+DEBUG = os.getenv("HUMBOLDT_DEBUG", "0") in ("1", "true", "True")
+logging.basicConfig(
+    level=logging.DEBUG if DEBUG else logging.INFO,
+    format="%(levelname)s: %(message)s",
+)
+
+# Store log entries for display in the UI
+log_history: list[str] = []
+
+
+class GradioLogHandler(logging.Handler):
+    """Logging handler that appends formatted records to log_history."""
+
+    def emit(self, record: logging.LogRecord) -> None:
+        log_history.append(self.format(record))
+
+
+logging.getLogger().addHandler(GradioLogHandler())
 
 # System prompt mirrors the one in humboldt.py
 system_prompt = (
@@ -71,6 +92,7 @@ functions = [
 def respond(message: str, history: list[tuple[str, str]]):
     """Handle a chat message and return the agent's reply."""
     messages.append({"role": "user", "content": message})
+    logging.debug("Sending to LLM: %s", messages)
     response = client.chat.completions.create(
         model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
         messages=messages,
@@ -80,13 +102,17 @@ def respond(message: str, history: list[tuple[str, str]]):
         frequency_penalty=1,
     )
     msg = response.choices[0].message
+    logging.debug("LLM response: %s", msg)
     if msg.function_call:
         args = json.loads(msg.function_call.arguments)
         if msg.function_call.name == "geocode_locations":
+            logging.info("Invoking geocode_locations...")
             table = geocode_locations(args["locations"])
         elif msg.function_call.name == "convert_dd_to_dms":
+            logging.info("Invoking convert_dd_to_dms...")
             table = convert_dd_to_dms(args["coordinates"])
         elif msg.function_call.name == "reverse_geocode_coordinates":
+            logging.info("Invoking reverse_geocode_coordinates...")
             table = reverse_geocode_coordinates(args["coordinates"])
         else:
             table = ""
@@ -99,14 +125,21 @@ def respond(message: str, history: list[tuple[str, str]]):
             frequency_penalty=1,
         )
         reply = second.choices[0].message.content
+        logging.info("LLM response received")
     else:
         reply = msg.content
+        logging.info("LLM response received")
     messages.append({"role": "assistant", "content": reply})
-    return reply
+    return reply, "\n".join(log_history)
 
 
 def main():
-    iface = gr.ChatInterface(respond, title="Humboldt GeoAI Agent")
+    log_box = gr.Textbox(label="Logs", lines=10, interactive=False)
+    iface = gr.ChatInterface(
+        respond,
+        title="Humboldt GeoAI Agent",
+        additional_outputs=[log_box],
+    )
     iface.launch()
 
 
