@@ -82,16 +82,20 @@ def respond(message: str, history: list[tuple[str, str]]):
     msg = response.choices[0].message
     if msg.function_call:
         args = json.loads(msg.function_call.arguments)
-        if msg.function_call.name == "geocode_locations":
+        tool = msg.function_call.name
+        yield f"Calling `{tool}`..."
+        if tool == "geocode_locations":
             table = geocode_locations(args["locations"])
-        elif msg.function_call.name == "convert_dd_to_dms":
+        elif tool == "convert_dd_to_dms":
             table = convert_dd_to_dms(args["coordinates"])
-        elif msg.function_call.name == "reverse_geocode_coordinates":
+        elif tool == "reverse_geocode_coordinates":
             table = reverse_geocode_coordinates(args["coordinates"])
         else:
             table = ""
+        yield f"`{tool}` finished."
         messages.append({"role": "assistant", "content": None, "function_call": msg.function_call})
-        messages.append({"role": "function", "name": msg.function_call.name, "content": table})
+        messages.append({"role": "function", "name": tool, "content": table})
+        yield "Summarizing results..."
         second = client.chat.completions.create(
             model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
             messages=messages,
@@ -102,7 +106,7 @@ def respond(message: str, history: list[tuple[str, str]]):
     else:
         reply = msg.content
     messages.append({"role": "assistant", "content": reply})
-    return reply
+    yield reply
 
 
 def main():
