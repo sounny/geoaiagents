@@ -46,6 +46,10 @@ Keep entries concise but informative. Include the date and a brief description o
 - Switched `webchat.py` to use `gr.Chatbot(type="messages")` to avoid deprecated tuple format
 - Updated `respond` signature to accept message history as a list of dictionaries
 
+### 2025-07-19 - Webchat Layout Update
+- Moved upload and log panels into a collapsible sidebar using `gr.Accordion`
+- Added default map display on startup
+
 ---
 
 ## Guidelines for Future Development
