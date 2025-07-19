@@ -6,6 +6,7 @@ import gradio as gr
 import folium
 from geocode import geocode_locations, reverse_geocode_coordinates
 from dd2dms import convert_dd_to_dms
+from file_loaders import load_geojson, load_kml, load_csv
 
 # Initialize OpenAI client using environment variables or defaults
 BASE_URL = os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/")
@@ -114,11 +115,45 @@ functions = [
             },
             "required": ["coordinates"]
         }
+    },
+    {
+        "name": "load_geojson",
+        "description": "Load GeoJSON text and return a coordinate table",
+        "parameters": {
+            "type": "object",
+            "properties": {"geojson": {"type": "string", "description": "Contents of a GeoJSON file"}},
+            "required": ["geojson"]
+        }
+    },
+    {
+        "name": "load_kml",
+        "description": "Load KML text and return a coordinate table",
+        "parameters": {
+            "type": "object",
+            "properties": {"kml": {"type": "string", "description": "Contents of a KML file"}},
+            "required": ["kml"]
+        }
+    },
+    {
+        "name": "load_csv",
+        "description": "Load CSV text with latitude/longitude columns",
+        "parameters": {
+            "type": "object",
+            "properties": {"csv": {"type": "string", "description": "Contents of a CSV file"}},
+            "required": ["csv"]
+        }
     }
 ]
 
-def respond(message: str, history: list[tuple[str, str]]):
+def respond(message: str, history: list[tuple[str, str]], upload_file=None):
     """Handle a chat message and return the agent's reply."""
+    if upload_file is not None:
+        try:
+            with open(upload_file.name, "r", encoding="utf-8", errors="ignore") as f:
+                file_text = f.read(10000)
+            message = f"{message}\n\nUploaded file `{os.path.basename(upload_file.name)}`:\n{file_text}"
+        except Exception:
+            pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
     response = client.chat.completions.create(
@@ -149,6 +184,21 @@ def respond(message: str, history: list[tuple[str, str]]):
             table = reverse_geocode_coordinates(args["coordinates"])
             coords = parse_table_coordinates(table, 0, 1)
             map_html = create_map_html(coords)
+        elif msg.function_call.name == "load_geojson":
+            logging.info("Invoking load_geojson...")
+            table = load_geojson(args["geojson"])
+            coords = parse_table_coordinates(table, 0, 1)
+            map_html = create_map_html(coords)
+        elif msg.function_call.name == "load_kml":
+            logging.info("Invoking load_kml...")
+            table = load_kml(args["kml"])
+            coords = parse_table_coordinates(table, 0, 1)
+            map_html = create_map_html(coords)
+        elif msg.function_call.name == "load_csv":
+            logging.info("Invoking load_csv...")
+            table = load_csv(args["csv"])
+            coords = parse_table_coordinates(table, 0, 1)
+            map_html = create_map_html(coords)
         else:
             table = ""
         messages.append({"role": "assistant", "content": None, "function_call": msg.function_call})
@@ -170,11 +220,13 @@ def respond(message: str, history: list[tuple[str, str]]):
 
 def main():
     with gr.Blocks() as demo:
+        upload = gr.File(label="Upload Data", file_types=[".geojson", ".json", ".kml", ".csv"])
         map_box = gr.HTML(label="Map")
         log_box = gr.Textbox(label="Logs", lines=10, interactive=False)
         gr.ChatInterface(
             respond,
             title="Humboldt GeoAI Agent",
+            additional_inputs=[upload],
             additional_outputs=[map_box, log_box],
         )
     demo.launch()

@@ -9,6 +9,7 @@ import logging
 from openai import OpenAI
 from geocode import geocode_locations, reverse_geocode_coordinates  # import geocoding tools
 from dd2dms import convert_dd_to_dms  # import DD→DMS conversion tool
+from file_loaders import load_geojson, load_kml, load_csv  # new data loading tools
 
 def main():
     parser = argparse.ArgumentParser(description="Interactive GeoAI agent")
@@ -90,6 +91,39 @@ def main():
                 },
                 "required": ["coordinates"]
             }
+        },
+        {
+            "name": "load_geojson",
+            "description": "Load GeoJSON text and return a coordinate table",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "geojson": {"type": "string", "description": "Contents of a GeoJSON file"}
+                },
+                "required": ["geojson"]
+            }
+        },
+        {
+            "name": "load_kml",
+            "description": "Load KML text and return a coordinate table",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "kml": {"type": "string", "description": "Contents of a KML file"}
+                },
+                "required": ["kml"]
+            }
+        },
+        {
+            "name": "load_csv",
+            "description": "Load CSV text with latitude/longitude columns",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "csv": {"type": "string", "description": "Contents of a CSV file"}
+                },
+                "required": ["csv"]
+            }
         }
     ]
 
@@ -131,6 +165,15 @@ def main():
             elif message.function_call.name == "reverse_geocode_coordinates":
                 print("Status: Invoking reverse geocoding agent...")
                 table = reverse_geocode_coordinates(args["coordinates"])
+            elif message.function_call.name == "load_geojson":
+                print("Status: Loading GeoJSON data...")
+                table = load_geojson(args["geojson"])
+            elif message.function_call.name == "load_kml":
+                print("Status: Loading KML data...")
+                table = load_kml(args["kml"])
+            elif message.function_call.name == "load_csv":
+                print("Status: Loading CSV data...")
+                table = load_csv(args["csv"])
             # Log tool output
             logging.debug("Tool output:\n%s", table)
 
