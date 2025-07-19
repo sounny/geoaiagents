@@ -42,6 +42,10 @@ Keep entries concise but informative. Include the date and a brief description o
 - **Technical Notes**: Map coordinates extracted from table parsing, markers auto-generated
 - **Limitations**: Limited to 10KB file uploads, basic coordinate extraction
 
+### 2025-07-19 - Webchat Update for Gradio
+- Switched `webchat.py` to use `gr.Chatbot(type="messages")` to avoid deprecated tuple format
+- Updated `respond` signature to accept message history as a list of dictionaries
+
 ---
 
 ## Guidelines for Future Development
