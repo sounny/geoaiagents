@@ -45,11 +45,12 @@ Keep entries concise but informative. Include the date and a brief description o
 ### 2025-07-19 - Webchat Update for Gradio
 - Switched `webchat.py` to use `gr.Chatbot(type="messages")` to avoid deprecated tuple format
 - Updated `respond` signature to accept message history as a list of dictionaries
-
 ### 2025-07-19 - Webchat Layout Update
 - Moved upload and log panels into a collapsible sidebar using `gr.Accordion`
 - Added default map display on startup
-
+### 2025-07-19 - Landing Page Restyle
+- Redesigned index.html with a dark theme and teal accents
+- Updated buttons and feature cards for modern look
 ---
 
 ## Guidelines for Future Development
