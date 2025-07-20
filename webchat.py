@@ -244,7 +244,11 @@ def respond(message: str, history: list[dict], upload_file=None):
 def chat(message, history, upload_file):
     """Wrapper for respond() that formats history for gr.Chatbot."""
     reply, map_html, logs, table = respond(message, history, upload_file)
-    history = history + [(message, reply)]
+    # Format history for gr.Chatbot with type="messages"
+    history = history + [
+        {"role": "user", "content": message},
+        {"role": "assistant", "content": reply}
+    ]
     return history, map_html, logs, table
 
 

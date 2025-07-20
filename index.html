@@ -11,148 +11,265 @@
             box-sizing: border-box;
         }
 
-        .navbar {
-            background: #202123;
-            color: #fff;
-            padding: 10px 20px;
-            text-align: center;
-            font-weight: 600;
+        :root {
+            --uf-orange: #FA4616;
+            --uf-blue: #0021A5;
+            --gray-50: #fafafa;
+            --gray-100: #f5f5f5;
+            --gray-200: #e5e5e5;
+            --gray-300: #d4d4d4;
+            --gray-600: #525252;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
         }
-        
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
             line-height: 1.6;
-            color: #e4e4e4;
-            background: linear-gradient(135deg, #0021A5 0%, #FA4616 100%);
+            color: var(--gray-900);
+            background: var(--gray-50);
+        }
+
+        .navbar {
+            background: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 16px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .navbar .logo .humboldt {
+            color: var(--uf-blue);
+        }
+
+        .navbar .logo .geoai {
+            color: var(--uf-orange);
         }
         
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 20px;
+            padding: 0 20px;
         }
         
         .hero {
             text-align: center;
-            padding: 60px 0;
-            background: #0021A5;
-            border-radius: 20px;
-            margin-bottom: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 80px 0;
+            background: white;
         }
         
         .hero h1 {
-            font-size: 3.5em;
-            margin-bottom: 20px;
-            background: linear-gradient(45deg, #FA4616, #0021A5);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 24px;
+            color: var(--gray-900);
+            letter-spacing: -0.02em;
+        }
+
+        .hero .accent {
+            color: var(--uf-orange);
+        }
+
+        .hero .humboldt {
+            color: var(--uf-blue);
         }
         
         .hero .subtitle {
-            font-size: 1.3em;
-            color: #bbb;
-            margin-bottom: 30px;
-            max-width: 600px;
+            font-size: 1.25rem;
+            color: var(--gray-600);
+            margin-bottom: 40px;
+            max-width: 640px;
             margin-left: auto;
             margin-right: auto;
+            font-weight: 400;
         }
         
         .cta-buttons {
             display: flex;
-            gap: 20px;
+            gap: 16px;
             justify-content: center;
             flex-wrap: wrap;
-            margin-top: 30px;
         }
         
         .btn {
-            padding: 15px 30px;
+            padding: 12px 32px;
             text-decoration: none;
-            border-radius: 50px;
+            border-radius: 8px;
             font-weight: 600;
-            transition: all 0.3s ease;
+            font-size: 16px;
+            transition: all 0.2s ease;
             display: inline-block;
         }
         
         .btn-primary {
-            background: linear-gradient(45deg, #FA4616, #0021A5);
+            background: var(--uf-orange);
             color: white;
+            border: 2px solid var(--uf-orange);
         }
         
         .btn-secondary {
             background: transparent;
-            color: #FA4616;
-            border: 2px solid #FA4616;
+            color: var(--uf-blue);
+            border: 2px solid var(--uf-blue);
         }
         
         .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-primary:hover {
+            background: #e63e14;
+            border-color: #e63e14;
+        }
+
+        .btn-secondary:hover {
+            background: var(--uf-blue);
+            color: white;
         }
         
         .features {
+            padding: 80px 0;
+            background: var(--gray-100);
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--gray-900);
+        }
+
+        .features .section-subtitle {
+            text-align: center;
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            margin-bottom: 64px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 30px;
-            margin: 40px 0;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 32px;
         }
         
         .feature-card {
-            background: #202123;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border: 1px solid #393a3c;
-            transition: transform 0.3s ease;
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--gray-200);
+            transition: all 0.2s ease;
         }
         
         .feature-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
         }
         
         .feature-icon {
-            font-size: 3em;
+            font-size: 2.5rem;
             margin-bottom: 20px;
+            display: block;
+        }
+
+        .feature-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--gray-900);
+        }
+
+        .feature-card p {
+            color: var(--gray-600);
+            line-height: 1.6;
         }
         
         .about {
-            background: #0021A5;
-            padding: 40px;
-            border-radius: 20px;
-            margin: 40px 0;
+            padding: 80px 0;
+            background: white;
+        }
+
+        .about h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 32px;
+            color: var(--gray-900);
+            text-align: center;
+        }
+
+        .about p {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            max-width: 800px;
+            margin: 0 auto 24px;
+            text-align: center;
         }
         
         .contributors {
-            background: #0021A5;
-            padding: 40px;
-            border-radius: 20px;
-            margin: 40px 0;
+            padding: 80px 0;
+            background: var(--gray-100);
+        }
+
+        .contributors h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 48px;
+            color: var(--gray-900);
+            text-align: center;
         }
         
         .contributor {
             display: flex;
             align-items: center;
-            margin: 20px 0;
-            padding: 20px;
-            background: #202123;
-            border-radius: 10px;
+            margin: 32px 0;
+            padding: 32px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--gray-200);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
         }
         
         .contributor-info {
-            margin-left: 20px;
+            margin-left: 24px;
         }
         
         .contributor h3 {
-            color: #FA4616;
-            margin-bottom: 5px;
+            color: var(--gray-900);
+            margin-bottom: 8px;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .contributor p {
+            color: var(--gray-600);
+            margin-bottom: 8px;
         }
         
         .contributor a {
-            color: #0021A5;
+            color: var(--uf-orange);
             text-decoration: none;
+            font-weight: 500;
         }
         
         .contributor a:hover {
@@ -161,13 +278,14 @@
         
         footer {
             text-align: center;
-            padding: 40px;
-            color: rgba(255, 255, 255, 0.8);
+            padding: 48px 0;
+            background: var(--gray-900);
+            color: var(--gray-300);
         }
         
         @media (max-width: 768px) {
             .hero h1 {
-                font-size: 2.5em;
+                font-size: 2.5rem;
             }
             
             .cta-buttons {
@@ -182,84 +300,104 @@
             
             .contributor-info {
                 margin-left: 0;
-                margin-top: 15px;
+                margin-top: 16px;
+            }
+
+            .features h2,
+            .about h2,
+            .contributors h2 {
+                font-size: 2rem;
             }
         }
     </style>
 </head>
 <body>
-    <nav class="navbar">Humboldt GeoAI Agent</nav>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <span class="humboldt">Humboldt</span> <span class="geoai">GeoAI</span>
+            </div>
+        </div>
+    </nav>
+    
     <div class="container">
         <div class="hero">
-            <h1>Humboldt</h1>
+            <h1><span class="humboldt">Humboldt</span> <span class="accent">GeoAI</span></h1>
             <p class="subtitle">
                 A revolutionary AI agent specialized in geospatial analysis and GIS workflows. 
                 Experience the future of geographic intelligence.
             </p>
             <div class="cta-buttons">
                 <a href="https://github.com/sounny/geoaiagents" class="btn btn-primary">Explore Repository</a>
+                <a href="#features" class="btn btn-secondary">Learn More</a>
             </div>
         </div>
+    </div>
 
-        <div class="features">
-            <div class="feature-card">
-                <div class="feature-icon">🗺️</div>
-                <h3>Intelligent Geocoding</h3>
-                <p>Transform addresses and place names into precise coordinates using advanced AI-powered geocoding with natural language understanding.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📊</div>
-                <h3>Coordinate Conversion</h3>
-                <p>Seamlessly convert between decimal degrees and degrees-minutes-seconds formats with mathematical precision and intelligent formatting.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🌐</div>
-                <h3>Interactive Maps</h3>
-                <p>Visualize your geospatial data instantly with dynamic, interactive maps that bring your coordinates to life in your browser.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">💬</div>
-                <h3>Natural Language Interface</h3>
-                <p>Interact with GIS tools using plain English. No complex commands or syntax - just describe what you need and Humboldt delivers.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">📁</div>
-                <h3>Multi-Format Support</h3>
-                <p>Process GeoJSON, KML, and CSV files effortlessly. Upload your data and let Humboldt extract meaningful geospatial insights.</p>
-            </div>
-            
-            <div class="feature-card">
-                <div class="feature-icon">🔧</div>
-                <h3>Extensible Architecture</h3>
-                <p>Built with modularity in mind. Add new geospatial tools and capabilities to expand Humboldt's analytical power.</p>
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Powerful Features</h2>
+            <p class="section-subtitle">
+                Advanced geospatial capabilities powered by artificial intelligence
+            </p>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🗺️</div>
+                    <h3>Intelligent Geocoding</h3>
+                    <p>Transform addresses and place names into precise coordinates using advanced AI-powered geocoding with natural language understanding.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Coordinate Conversion</h3>
+                    <p>Seamlessly convert between decimal degrees and degrees-minutes-seconds formats with mathematical precision and intelligent formatting.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>Interactive Maps</h3>
+                    <p>Visualize your geospatial data instantly with dynamic, interactive maps that bring your coordinates to life in your browser.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>Natural Language Interface</h3>
+                    <p>Interact with GIS tools using plain English. No complex commands or syntax - just describe what you need and Humboldt delivers.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📁</div>
+                    <h3>Multi-Format Support</h3>
+                    <p>Process GeoJSON, KML, and CSV files effortlessly. Upload your data and let Humboldt extract meaningful geospatial insights.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔧</div>
+                    <h3>Extensible Architecture</h3>
+                    <p>Built with modularity in mind. Add new geospatial tools and capabilities to expand Humboldt's analytical power.</p>
+                </div>
             </div>
         </div>
+    </section>
 
-        <div class="about">
+    <section class="about">
+        <div class="container">
             <h2>Redefining Geospatial Analysis</h2>
             <p>
                 Just as ChatGPT revolutionized conversational AI, Humboldt is transforming how we interact with geospatial data. 
                 Named after Alexander von Humboldt, the father of modern geography, this AI agent brings the power of advanced 
                 GIS and remote sensing to everyone through intuitive natural language conversations.
             </p>
-            <br>
             <p>
                 Whether you're a seasoned GIS professional, a researcher, or someone just starting with geospatial analysis, 
                 Humboldt makes complex geographic operations as simple as having a conversation. From geocoding addresses 
                 to analyzing spatial datasets, Humboldt is your intelligent companion for all things geospatial.
             </p>
-            <br>
-            <p>
-                Experience the next generation of geographic intelligence - where cutting-edge AI meets the rich tradition 
-                of geographic exploration and analysis.
-            </p>
         </div>
+    </section>
 
-        <div class="contributors">
+    <section class="contributors">
+        <div class="container">
             <h2>Contributors</h2>
             <div class="contributor">
                 <div class="feature-icon">🐊</div>
@@ -279,7 +417,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 
     <footer>
         <p>&copy; 2025 Humboldt GeoAI Agent. Advancing the frontiers of geographic intelligence.</p>
