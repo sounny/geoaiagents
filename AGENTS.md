@@ -51,6 +51,12 @@ Keep entries concise but informative. Include the date and a brief description o
 ### 2025-07-19 - Landing Page Restyle
 - Redesigned index.html with a dark theme and teal accents
 - Updated buttons and feature cards for modern look
+
+### 2025-07-20 - Boundary Fetch Tool
+- Added `fetch_geo_boundaries` function to download GeoJSON from geoBoundaries API
+- Integrated new tool into Humboldt REPL and webchat with map display
+- Side panel now shows dataset table from uploads or API
+- Added `requests` dependency and updated documentation
 ---
 
 ## Guidelines for Future Development

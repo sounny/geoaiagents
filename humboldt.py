@@ -9,7 +9,12 @@ import logging
 from openai import OpenAI
 from geocode import geocode_locations, reverse_geocode_coordinates  # import geocoding tools
 from dd2dms import convert_dd_to_dms  # import DD→DMS conversion tool
-from file_loaders import load_geojson, load_kml, load_csv  # new data loading tools
+from file_loaders import (
+    load_geojson,
+    load_kml,
+    load_csv,
+    fetch_geo_boundaries,
+)
 
 def main():
     parser = argparse.ArgumentParser(description="Interactive GeoAI agent")
@@ -124,6 +129,18 @@ def main():
                 },
                 "required": ["csv"]
             }
+        },
+        {
+            "name": "fetch_geo_boundaries",
+            "description": "Download simplified political boundaries from geoBoundaries",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "iso": {"type": "string", "description": "ISO 3166-1 alpha-3 code"},
+                    "adm": {"type": "string", "description": "Administrative level", "default": "ADM0"}
+                },
+                "required": ["iso"]
+            }
         }
     ]
 
@@ -174,6 +191,9 @@ def main():
             elif message.function_call.name == "load_csv":
                 print("Status: Loading CSV data...")
                 table = load_csv(args["csv"])
+            elif message.function_call.name == "fetch_geo_boundaries":
+                print("Status: Downloading boundaries...")
+                table = fetch_geo_boundaries(args["iso"], args.get("adm", "ADM0"))
             # Log tool output
             logging.debug("Tool output:\n%s", table)
 

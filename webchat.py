@@ -6,7 +6,12 @@ import gradio as gr
 import folium
 from geocode import geocode_locations, reverse_geocode_coordinates
 from dd2dms import convert_dd_to_dms
-from file_loaders import load_geojson, load_kml, load_csv
+from file_loaders import (
+    load_geojson,
+    load_kml,
+    load_csv,
+    fetch_geo_boundaries,
+)
 
 # Initialize OpenAI client using environment variables or defaults
 BASE_URL = os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/")
@@ -142,6 +147,18 @@ functions = [
             "properties": {"csv": {"type": "string", "description": "Contents of a CSV file"}},
             "required": ["csv"]
         }
+    },
+    {
+        "name": "fetch_geo_boundaries",
+        "description": "Download simplified political boundaries from geoBoundaries",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "iso": {"type": "string", "description": "ISO 3166-1 alpha-3 code"},
+                "adm": {"type": "string", "description": "Administrative level", "default": "ADM0"}
+            },
+            "required": ["iso"]
+        }
     }
 ]
 
@@ -167,6 +184,7 @@ def respond(message: str, history: list[dict], upload_file=None):
     msg = response.choices[0].message
     logging.debug("LLM response: %s", msg)
     map_html = ""
+    table = ""
     if msg.function_call:
         args = json.loads(msg.function_call.arguments)
         if msg.function_call.name == "geocode_locations":
@@ -199,6 +217,11 @@ def respond(message: str, history: list[dict], upload_file=None):
             table = load_csv(args["csv"])
             coords = parse_table_coordinates(table, 0, 1)
             map_html = create_map_html(coords)
+        elif msg.function_call.name == "fetch_geo_boundaries":
+            logging.info("Invoking fetch_geo_boundaries...")
+            table = fetch_geo_boundaries(args["iso"], args.get("adm", "ADM0"))
+            coords = parse_table_coordinates(table, 0, 1)
+            map_html = create_map_html(coords)
         else:
             table = ""
         messages.append({"role": "assistant", "content": None, "function_call": msg.function_call})
@@ -215,14 +238,14 @@ def respond(message: str, history: list[dict], upload_file=None):
         reply = msg.content
         logging.info("LLM response received")
     messages.append({"role": "assistant", "content": reply})
-    return reply, map_html, "\n".join(log_history)
+    return reply, map_html, "\n".join(log_history), table
 
 
 def chat(message, history, upload_file):
     """Wrapper for respond() that formats history for gr.Chatbot."""
-    reply, map_html, logs = respond(message, history, upload_file)
+    reply, map_html, logs, table = respond(message, history, upload_file)
     history = history + [(message, reply)]
-    return history, map_html, logs
+    return history, map_html, logs, table
 
 
 def main():
@@ -244,16 +267,19 @@ def main():
                     log_box = gr.Textbox(
                         label="Logs", lines=10, interactive=False
                     )
+                    data_box = gr.Textbox(
+                        label="Data Table", lines=10, interactive=False
+                    )
 
         send_btn.click(
             chat,
             inputs=[message, chatbot, upload],
-            outputs=[chatbot, map_box, log_box],
+            outputs=[chatbot, map_box, log_box, data_box],
         )
         message.submit(
             chat,
             inputs=[message, chatbot, upload],
-            outputs=[chatbot, map_box, log_box],
+            outputs=[chatbot, map_box, log_box, data_box],
         )
     demo.launch()
 

@@ -2,6 +2,7 @@ import json
 import csv
 import io
 import xml.etree.ElementTree as ET
+import requests
 
 
 def _table(coords):
@@ -35,8 +36,12 @@ def load_geojson(geojson: str) -> str:
                 for v in obj.values():
                     extract(v)
         elif isinstance(obj, list):
-            for v in obj:
-                extract(v)
+            if len(obj) >= 2 and all(isinstance(n, (int, float)) for n in obj[:2]):
+                lon, lat = obj[:2]
+                coords.append((lat, lon))
+            else:
+                for v in obj:
+                    extract(v)
 
     extract(data)
     return _table(coords)
@@ -91,3 +96,20 @@ def load_csv(csv_text: str) -> str:
             continue
         coords.append((lat, lon))
     return _table(coords)
+
+
+def fetch_geo_boundaries(iso: str, adm: str = "ADM0") -> str:
+    """Download simplified boundaries from geoBoundaries and return a table."""
+    url = f"https://www.geoboundaries.org/api/current/gbOpen/{iso.upper()}/{adm}/"
+    try:
+        info = requests.get(url, timeout=10)
+        info.raise_for_status()
+        data = info.json()
+        g_url = data.get("simplifiedGeometryGeoJSON")
+        if not g_url:
+            return _table([])
+        geo = requests.get(g_url, timeout=10)
+        geo.raise_for_status()
+    except Exception:
+        return _table([])
+    return load_geojson(geo.text)

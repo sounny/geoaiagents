@@ -6,6 +6,7 @@ AI agents for GIS and Remote Sensing workflows.
 - Python 3.8 or higher
 - geopy >=2.0
 - openai >=1.0
+- requests >=2.0
 
 Install the dependencies with:
 ```bash
@@ -78,6 +79,13 @@ You can also ask Humboldt to convert coordinates into an address:
 Humboldt> Reverse geocode 40.6892,-74.0445
 ```
 Humboldt will look up the nearest location and print the address.
+
+### Fetching Political Boundaries
+
+Humboldt can retrieve simplified boundary data from the
+[geoBoundaries](https://www.geoboundaries.org) API. Use the
+`fetch_geo_boundaries` tool with an ISO country code to download GeoJSON
+boundaries and display them on the map.
 
 ### webchat.py
 
