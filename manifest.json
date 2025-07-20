@@ -1,0 +1,8 @@
+{
+  "name": "Humboldt GeoAI Agent",
+  "short_name": "Humboldt",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0021A5",
+  "theme_color": "#0021A5"
+}

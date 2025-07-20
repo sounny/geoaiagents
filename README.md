@@ -97,7 +97,7 @@ interaction.
 ```bash
 python webchat.py
 ```
-Gradio will print a local URL that you can open in your web browser.
+Gradio will print a local URL that you can open in your browser. A small `manifest.json` is included to avoid 404 errors in the console.
 
 ## Extending with New Tools
 

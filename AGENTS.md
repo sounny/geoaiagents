@@ -86,3 +86,8 @@ Keep entries concise but informative. Include the date and a brief description o
 - Add raster data processing capabilities
 - Create batch processing workflows
 - Add user authentication and session management
+### 2025-07-21 - Manifest Fix and Navbar
+- Added manifest.json to stop browser 404 errors
+- Added navbar with project name on index.html
+- Mentioned manifest in README
+
