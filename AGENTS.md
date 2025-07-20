@@ -57,6 +57,11 @@ Keep entries concise but informative. Include the date and a brief description o
 - Integrated new tool into Humboldt REPL and webchat with map display
 - Side panel now shows dataset table from uploads or API
 - Added `requests` dependency and updated documentation
+
+### 2025-07-20 - Landing Page Gator Theme
+- Updated index.html with University of Florida blue (#0021A5) and orange (#FA4616)
+- Removed the "Project Home" button
+- Switched lead developer icon to an alligator
 ---
 
 ## Guidelines for Future Development
