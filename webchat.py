@@ -16,6 +16,9 @@ from file_loaders import (
 # Initialize OpenAI client using environment variables or defaults
 BASE_URL = os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/")
 API_KEY = os.getenv("OPENAI_API_KEY", "unused")
+MODEL_NAME = os.getenv(
+    "OPENAI_MODEL", "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
+)
 client = OpenAI(base_url=BASE_URL, api_key=API_KEY)
 
 # Configure logging similarly to humboldt.py
@@ -39,7 +42,13 @@ def create_map_html(points: list[tuple[float, float]]) -> str:
     return m._repr_html_()
 
 
-def parse_table_coordinates(table: str, lat_index: int, lon_index: int) -> list[tuple[float, float]]:
+# Last rendered map HTML so the map persists when no new data is returned
+LAST_MAP_HTML = create_map_html([(0.0, 0.0)])
+
+
+def parse_table_coordinates(
+    table: str, lat_index: int, lon_index: int
+) -> list[tuple[float, float]]:
     """Parse coordinate pairs from a markdown table."""
     coords: list[tuple[float, float]] = []
     lines = table.splitlines()[2:]
@@ -69,9 +78,10 @@ logging.getLogger().addHandler(GradioLogHandler())
 system_prompt = (
     "You are a GeoAI Agent who is an expert GIS and Remote Sensing Analyst, "
     "cartographer, and Geospatial Developer. Your name is Humboldt, in honor "
-    "of Alexander von Humboldt, the father of Modern Geography. You will "
-    "take user needs, call upon specialized tools (like geocoding), and "
-    "manage their inputs and outputs to fulfill the request."
+    "of Alexander von Humboldt, the father of Modern Geography. You must "
+    "always use the provided function tools to perform geospatial tasks and "
+    "never guess results. When you invoke a tool it will be logged for the "
+    "user to see."
 )
 
 # Conversation state shared across requests
@@ -87,11 +97,11 @@ functions = [
             "properties": {
                 "locations": {
                     "type": "string",
-                    "description": "Newline- or semicolon-delimited list of locations to geocode"
+                    "description": "Newline- or semicolon-delimited list of locations to geocode",
                 }
             },
-            "required": ["locations"]
-        }
+            "required": ["locations"],
+        },
     },
     {
         "name": "convert_dd_to_dms",
@@ -101,11 +111,11 @@ functions = [
             "properties": {
                 "coordinates": {
                     "type": "string",
-                    "description": "Newline- or semicolon-delimited DD lat,lon pairs"
+                    "description": "Newline- or semicolon-delimited DD lat,lon pairs",
                 }
             },
-            "required": ["coordinates"]
-        }
+            "required": ["coordinates"],
+        },
     },
     {
         "name": "reverse_geocode_coordinates",
@@ -115,38 +125,47 @@ functions = [
             "properties": {
                 "coordinates": {
                     "type": "string",
-                    "description": "Newline- or semicolon-delimited DD lat,lon pairs"
+                    "description": "Newline- or semicolon-delimited DD lat,lon pairs",
                 }
             },
-            "required": ["coordinates"]
-        }
+            "required": ["coordinates"],
+        },
     },
     {
         "name": "load_geojson",
         "description": "Load GeoJSON text and return a coordinate table",
         "parameters": {
             "type": "object",
-            "properties": {"geojson": {"type": "string", "description": "Contents of a GeoJSON file"}},
-            "required": ["geojson"]
-        }
+            "properties": {
+                "geojson": {
+                    "type": "string",
+                    "description": "Contents of a GeoJSON file",
+                }
+            },
+            "required": ["geojson"],
+        },
     },
     {
         "name": "load_kml",
         "description": "Load KML text and return a coordinate table",
         "parameters": {
             "type": "object",
-            "properties": {"kml": {"type": "string", "description": "Contents of a KML file"}},
-            "required": ["kml"]
-        }
+            "properties": {
+                "kml": {"type": "string", "description": "Contents of a KML file"}
+            },
+            "required": ["kml"],
+        },
     },
     {
         "name": "load_csv",
         "description": "Load CSV text with latitude/longitude columns",
         "parameters": {
             "type": "object",
-            "properties": {"csv": {"type": "string", "description": "Contents of a CSV file"}},
-            "required": ["csv"]
-        }
+            "properties": {
+                "csv": {"type": "string", "description": "Contents of a CSV file"}
+            },
+            "required": ["csv"],
+        },
     },
     {
         "name": "fetch_geo_boundaries",
@@ -155,12 +174,17 @@ functions = [
             "type": "object",
             "properties": {
                 "iso": {"type": "string", "description": "ISO 3166-1 alpha-3 code"},
-                "adm": {"type": "string", "description": "Administrative level", "default": "ADM0"}
+                "adm": {
+                    "type": "string",
+                    "description": "Administrative level",
+                    "default": "ADM0",
+                },
             },
-            "required": ["iso"]
-        }
-    }
+            "required": ["iso"],
+        },
+    },
 ]
+
 
 def respond(message: str, history: list[dict], upload_file=None):
     """Handle a chat message and return the agent's reply."""
@@ -174,7 +198,7 @@ def respond(message: str, history: list[dict], upload_file=None):
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
     response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+        model=MODEL_NAME,
         messages=messages,
         functions=functions,
         function_call="auto",
@@ -183,6 +207,7 @@ def respond(message: str, history: list[dict], upload_file=None):
     )
     msg = response.choices[0].message
     logging.debug("LLM response: %s", msg)
+    global LAST_MAP_HTML
     map_html = ""
     table = ""
     if msg.function_call:
@@ -224,10 +249,14 @@ def respond(message: str, history: list[dict], upload_file=None):
             map_html = create_map_html(coords)
         else:
             table = ""
-        messages.append({"role": "assistant", "content": None, "function_call": msg.function_call})
-        messages.append({"role": "function", "name": msg.function_call.name, "content": table})
+        messages.append(
+            {"role": "assistant", "content": None, "function_call": msg.function_call}
+        )
+        messages.append(
+            {"role": "function", "name": msg.function_call.name, "content": table}
+        )
         second = client.chat.completions.create(
-            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+            model=MODEL_NAME,
             messages=messages,
             max_tokens=1000,
             frequency_penalty=1,
@@ -237,6 +266,10 @@ def respond(message: str, history: list[dict], upload_file=None):
     else:
         reply = msg.content
         logging.info("LLM response received")
+    if map_html:
+        LAST_MAP_HTML = map_html
+    else:
+        map_html = LAST_MAP_HTML
     messages.append({"role": "assistant", "content": reply})
     return reply, map_html, "\n".join(log_history), table
 
@@ -247,7 +280,7 @@ def chat(message, history, upload_file):
     # Format history for gr.Chatbot with type="messages"
     history = history + [
         {"role": "user", "content": message},
-        {"role": "assistant", "content": reply}
+        {"role": "assistant", "content": reply},
     ]
     return history, map_html, logs, table
 
@@ -256,9 +289,7 @@ def main():
     with gr.Blocks() as demo:
         with gr.Row():
             with gr.Column(scale=3):
-                map_box = gr.HTML(
-                    create_map_html([(0.0, 0.0)]), label="Map"
-                )
+                map_box = gr.HTML(LAST_MAP_HTML, label="Map")
                 chatbot = gr.Chatbot(type="messages")
                 message = gr.Textbox(label="Message")
                 send_btn = gr.Button("Send")
@@ -268,9 +299,7 @@ def main():
                         label="Upload Data",
                         file_types=[".geojson", ".json", ".kml", ".csv"],
                     )
-                    log_box = gr.Textbox(
-                        label="Logs", lines=10, interactive=False
-                    )
+                    log_box = gr.Textbox(label="Logs", lines=10, interactive=False)
                     data_box = gr.Textbox(
                         label="Data Table", lines=10, interactive=False
                     )

@@ -91,3 +91,8 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added navbar with project name on index.html
 - Mentioned manifest in README
 
+### 2025-07-22 - Webchat Improvements and Model Config
+- Added `OPENAI_MODEL` env var and `--model` CLI flag
+- Updated prompts to require tool usage and log invocations
+- Webchat now preserves map display when LLM doesn't return coordinates
+

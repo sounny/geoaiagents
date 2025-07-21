@@ -2,12 +2,16 @@
 
 > pip install openai
 """
+
 import json
 import argparse
 import os
 import logging
 from openai import OpenAI
-from geocode import geocode_locations, reverse_geocode_coordinates  # import geocoding tools
+from geocode import (
+    geocode_locations,
+    reverse_geocode_coordinates,
+)  # import geocoding tools
 from dd2dms import convert_dd_to_dms  # import DD→DMS conversion tool
 from file_loaders import (
     load_geojson,
@@ -15,6 +19,7 @@ from file_loaders import (
     load_csv,
     fetch_geo_boundaries,
 )
+
 
 def main():
     parser = argparse.ArgumentParser(description="Interactive GeoAI agent")
@@ -27,6 +32,13 @@ def main():
         "--api-key",
         default=os.getenv("OPENAI_API_KEY", "unused"),
         help="OpenAI API key",
+    )
+    parser.add_argument(
+        "--model",
+        default=os.getenv(
+            "OPENAI_MODEL", "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
+        ),
+        help="LLM model name",
     )
     parser.add_argument(
         "--debug",
@@ -47,9 +59,10 @@ def main():
     system_prompt = (
         "You are a GeoAI Agent who is an expert GIS and Remote Sensing Analyst, "
         "cartographer, and Geospatial Developer. Your name is Humboldt, in honor "
-        "of Alexander von Humboldt, the father of Modern Geography. You will "
-        "take user needs, call upon specialized tools (like geocoding), and "
-        "manage their inputs and outputs to fulfill the request."
+        "of Alexander von Humboldt, the father of Modern Geography. You must "
+        "always use the provided function tools to perform geospatial tasks and "
+        "never guess results. When you invoke a tool it will be logged for the "
+        "user to see."
     )
 
     # Initialize chat history and tool schema once
@@ -63,11 +76,11 @@ def main():
                 "properties": {
                     "locations": {
                         "type": "string",
-                        "description": "Newline- or semicolon-delimited list of locations to geocode"
+                        "description": "Newline- or semicolon-delimited list of locations to geocode",
                     }
                 },
-                "required": ["locations"]
-            }
+                "required": ["locations"],
+            },
         },
         {
             "name": "convert_dd_to_dms",
@@ -77,11 +90,11 @@ def main():
                 "properties": {
                     "coordinates": {
                         "type": "string",
-                        "description": "Newline- or semicolon-delimited DD lat,lon pairs"
+                        "description": "Newline- or semicolon-delimited DD lat,lon pairs",
                     }
                 },
-                "required": ["coordinates"]
-            }
+                "required": ["coordinates"],
+            },
         },
         {
             "name": "reverse_geocode_coordinates",
@@ -91,11 +104,11 @@ def main():
                 "properties": {
                     "coordinates": {
                         "type": "string",
-                        "description": "Newline- or semicolon-delimited DD lat,lon pairs"
+                        "description": "Newline- or semicolon-delimited DD lat,lon pairs",
                     }
                 },
-                "required": ["coordinates"]
-            }
+                "required": ["coordinates"],
+            },
         },
         {
             "name": "load_geojson",
@@ -103,10 +116,13 @@ def main():
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "geojson": {"type": "string", "description": "Contents of a GeoJSON file"}
+                    "geojson": {
+                        "type": "string",
+                        "description": "Contents of a GeoJSON file",
+                    }
                 },
-                "required": ["geojson"]
-            }
+                "required": ["geojson"],
+            },
         },
         {
             "name": "load_kml",
@@ -116,8 +132,8 @@ def main():
                 "properties": {
                     "kml": {"type": "string", "description": "Contents of a KML file"}
                 },
-                "required": ["kml"]
-            }
+                "required": ["kml"],
+            },
         },
         {
             "name": "load_csv",
@@ -127,8 +143,8 @@ def main():
                 "properties": {
                     "csv": {"type": "string", "description": "Contents of a CSV file"}
                 },
-                "required": ["csv"]
-            }
+                "required": ["csv"],
+            },
         },
         {
             "name": "fetch_geo_boundaries",
@@ -137,11 +153,15 @@ def main():
                 "type": "object",
                 "properties": {
                     "iso": {"type": "string", "description": "ISO 3166-1 alpha-3 code"},
-                    "adm": {"type": "string", "description": "Administrative level", "default": "ADM0"}
+                    "adm": {
+                        "type": "string",
+                        "description": "Administrative level",
+                        "default": "ADM0",
+                    },
                 },
-                "required": ["iso"]
-            }
-        }
+                "required": ["iso"],
+            },
+        },
     ]
 
     # Greet the user
@@ -159,7 +179,7 @@ def main():
 
         # First call (possibly function)
         response = client.chat.completions.create(
-            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+            model=args.model,
             messages=messages,
             functions=functions,
             function_call="auto",
@@ -198,20 +218,24 @@ def main():
             logging.debug("Tool output:\n%s", table)
 
             # Append the function call and its result to history
-            messages.append({
-                "role": "assistant",
-                "content": None,
-                "function_call": message.function_call
-            })
-            messages.append({
-                "role": "function",
-                "name": message.function_call.name,
-                "content": table
-            })
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": None,
+                    "function_call": message.function_call,
+                }
+            )
+            messages.append(
+                {
+                    "role": "function",
+                    "name": message.function_call.name,
+                    "content": table,
+                }
+            )
 
             # Second call to get the final assistant answer
             second_resp = client.chat.completions.create(
-                model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+                model=args.model,
                 messages=messages,
                 max_tokens=1000,
                 frequency_penalty=1,
@@ -221,6 +245,7 @@ def main():
         else:
             # No tool call, just print the assistant reply
             print(message.content)
+
 
 if __name__ == "__main__":
     main()
