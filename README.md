@@ -22,6 +22,7 @@ line flags.
 - `OPENAI_BASE_URL` – base URL of the API (default `http://localhost:5272/v1/`)
 - `OPENAI_API_KEY` – API key (default `unused`)
 - `HUMBOLDT_DEBUG` – set to `1` to enable debug logging
+- `OPENAI_MODEL` – LLM model name used by Humboldt and the web chat
 
 Command line flags `--base-url`, `--api-key` and `--debug` override the environment
 variables.
@@ -31,13 +32,15 @@ Example using environment variables:
 ```bash
 export OPENAI_BASE_URL=http://localhost:5272/v1/
 export OPENAI_API_KEY=my-key
+export OPENAI_MODEL=Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx
 python geocode.py
 ```
 
 Or overriding on the command line:
 
 ```bash
-python humboldt.py --base-url https://api.example.com/v1 --api-key sk-...
+python humboldt.py --base-url https://api.example.com/v1 --api-key sk-... \
+    --model Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx
 ```
 Add `--debug` (or set `HUMBOLDT_DEBUG=1`) to enable debug output.
 
