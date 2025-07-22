@@ -1,6 +1,7 @@
 import json
 import os
 import logging
+import re
 from openai import OpenAI
 import gradio as gr
 import folium
@@ -30,6 +31,14 @@ logging.basicConfig(
 
 # Store log entries for display in the UI
 log_history: list[str] = []
+
+
+def infer_location(message: str) -> str | None:
+    """Return a location string if message looks like a map request."""
+    m = re.search(r"for ([A-Za-z0-9, ]+)", message, re.IGNORECASE)
+    if m:
+        return m.group(1).strip()
+    return None
 
 
 def create_map_html(points: list[tuple[float, float]]) -> str:
@@ -81,7 +90,8 @@ system_prompt = (
     "of Alexander von Humboldt, the father of Modern Geography. You must "
     "always use the provided function tools to perform geospatial tasks and "
     "never guess results. When you invoke a tool it will be logged for the "
-    "user to see."
+    "user to see. If the user requests a map marker or location to be shown, "
+    "call `geocode_locations` first so the interface can display the point."
 )
 
 # Conversation state shared across requests
@@ -266,6 +276,32 @@ def respond(message: str, history: list[dict], upload_file=None):
     else:
         reply = msg.content
         logging.info("LLM response received")
+        location = infer_location(message)
+        if location:
+            logging.info("Auto geocoding: %s", location)
+            table = geocode_locations(location)
+            coords = parse_table_coordinates(table, 2, 3)
+            map_html = create_map_html(coords)
+            messages.append(
+                {
+                    "role": "assistant",
+                    "content": None,
+                    "function_call": {
+                        "name": "geocode_locations",
+                        "arguments": json.dumps({"locations": location}),
+                    },
+                }
+            )
+            messages.append(
+                {"role": "function", "name": "geocode_locations", "content": table}
+            )
+            second = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            reply = second.choices[0].message.content
     if map_html:
         LAST_MAP_HTML = map_html
     else:
