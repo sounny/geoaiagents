@@ -62,7 +62,8 @@ def main():
         "of Alexander von Humboldt, the father of Modern Geography. You must "
         "always use the provided function tools to perform geospatial tasks and "
         "never guess results. When you invoke a tool it will be logged for the "
-        "user to see."
+        "user to see. If the user requests a map marker or location to be shown, "
+        "call `geocode_locations` first so the interface can display the point."
     )
 
     # Initialize chat history and tool schema once

@@ -96,3 +96,8 @@ Keep entries concise but informative. Include the date and a brief description o
 - Updated prompts to require tool usage and log invocations
 - Webchat now preserves map display when LLM doesn't return coordinates
 
+### 2025-07-22 - Auto Geocoding for Map Requests
+- Enhanced prompts to instruct calling `geocode_locations` when a user asks for a marker
+- Added fallback in `webchat.py` that automatically geocodes phrases like "add a point for X"
+- README updated with note about automatic map markers
+

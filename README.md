@@ -102,6 +102,8 @@ python webchat.py
 ```
 Gradio will print a local URL that you can open in your browser. A small `manifest.json` is included to avoid 404 errors in the console.
 
+When you ask Humboldt to add a marker such as "add a point for Austin, Texas," the chat interface automatically geocodes the location and updates the Leaflet map with the new point.
+
 ## Extending with New Tools
 
 Future agents and tools can be added by defining function schemas in `humboldt.py` and implementing the corresponding Python functions.
