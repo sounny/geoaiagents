@@ -63,7 +63,9 @@ def main():
         "always use the provided function tools to perform geospatial tasks and "
         "never guess results. When you invoke a tool it will be logged for the "
         "user to see. If the user requests a map marker or location to be shown, "
-        "call `geocode_locations` first so the interface can display the point."
+        "call `geocode_locations` first so the interface can display the point. "
+        "Do not claim you are unable to manipulate maps or geospatial data; use "
+        "the provided tools and let the interface handle map updates."
     )
 
     # Initialize chat history and tool schema once
