@@ -101,3 +101,7 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added fallback in `webchat.py` that automatically geocodes phrases like "add a point for X"
 - README updated with note about automatic map markers
 
+### 2025-07-23 - Prompt Update to Remove Disclaimers
+- Modified system prompts in `humboldt.py` and `webchat.py` to clarify that the agent
+  can manipulate geospatial data using the provided tools and should not claim inability.
+
