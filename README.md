@@ -8,10 +8,51 @@ AI agents for GIS and Remote Sensing workflows.
 - openai >=1.0
 - requests >=2.0
 
-Install the dependencies with:
+## Installation
+
+### Automatic Installation (Recommended)
+The `humboldt.py` script now automatically checks and installs missing dependencies when you run it:
+```bash
+python3 humboldt.py
+```
+
+If you want to skip the automatic dependency checking, use:
+```bash
+python3 humboldt.py --skip-deps
+```
+
+### Manual Installation
+You can also install dependencies manually:
 ```bash
 pip install -r requirements.txt
 ```
+
+Or for systems with externally managed Python environments:
+```bash
+pip install --user -r requirements.txt
+```
+
+## Humboldt usage
+
+Run the interactive agent:
+```bash
+python3 humboldt.py
+```
+
+Options:
+```bash
+python3 humboldt.py --help
+```
+
+Useful flags:
+- `--model <name>`: choose the chat model
+- `--max-steps <n>`: cap consecutive tool calls (default 3)
+- `--debug`: print internal debug messages
+
+Direct tool shortcuts (bypass LLM and call tools directly):
+- `/geocode <locations>` where locations are separated by semicolons or newlines
+- `/reverse <lat,lon; ...>` reverse geocoding of DD pairs
+- `/dms <lat,lon; ...>` convert DD pairs to DMS
 
 ## Configuration
 
