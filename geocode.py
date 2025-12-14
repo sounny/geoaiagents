@@ -13,6 +13,8 @@ from geopy.geocoders import Nominatim  # Nominatim geocoder for OpenStreetMap
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError  # handle geocoding errors
 from geopy.extra.rate_limiter import RateLimiter  # throttle requests
 
+from validation import format_invalid_notes, parse_coordinate_pairs
+
 # Geocoding helper functions
 
 def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en"):
@@ -72,18 +74,11 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
     language : str, optional
         Preferred language for address results (default ``"en"``).
     """
-    import re
-    lines = [line.strip() for line in re.split(r'\n|;', coordinates_str) if line.strip()]
+    pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
     geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
     reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
     rows = []
-    for line in lines:
-        parts = re.split(r'[,\s]+', line)
-        try:
-            lat = float(parts[0]); lon = float(parts[1])
-        except Exception:
-            rows.append(("", "", "Invalid coordinate"))
-            continue
+    for lat, lon in pairs:
         try:
             location = reverse((lat, lon), language=language)
             address = location.address if location else "Not found"
@@ -98,7 +93,7 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         lat_disp = f"{lat}" if isinstance(lat, float) else lat
         lon_disp = f"{lon}" if isinstance(lon, float) else lon
         table.append(f"| {lat_disp} | {lon_disp} | {addr} |")
-    return "\n".join(table)
+    return "\n".join(table) + format_invalid_notes(invalid_entries)
 
 
 def geocode_locations(locations_str: str) -> str:

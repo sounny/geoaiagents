@@ -96,7 +96,8 @@ The helper functions `get_coordinates` and `reverse_geocode_coordinates` now
 accept optional parameters for the Nominatim requests. You can tweak the
 `timeout` (default `1` second), specify a `bounding_box` in the form
 `(west, south, east, north)` to confine results, and set the response
-`language` (default `"en"`).
+`language` (default `"en"`). Inputs outside valid latitude/longitude ranges
+are skipped and noted beneath the returned table.
 
 **Usage:**
 ```bash
