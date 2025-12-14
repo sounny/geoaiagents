@@ -105,3 +105,7 @@ Keep entries concise but informative. Include the date and a brief description o
 - Modified system prompts in `humboldt.py` and `webchat.py` to clarify that the agent
   can manipulate geospatial data using the provided tools and should not claim inability.
 
+### 2025-07-24 - Coordinate Validation Utilities
+- Added shared validation helpers for coordinate parsing and bounds checks
+- Updated DD→DMS and reverse geocoding tools to surface skipped invalid inputs
+

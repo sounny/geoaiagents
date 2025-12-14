@@ -7,6 +7,8 @@ import argparse
 import os
 from openai import OpenAI
 
+from validation import format_invalid_notes, parse_coordinate_pairs
+
 """
 Convert Decimal Degrees (DD) to Degrees-Minutes-Seconds (DMS) via Python math,
 using OpenAI function-calling to pass data through the LLM.
@@ -51,15 +53,9 @@ def convert_dd_to_dms(coordinates_str: str) -> str:
     """
     Convert newline- or semicolon-delimited DD lat,lon pairs to a markdown table of DMS.
     """
-    import re
-    lines = [line.strip() for line in re.split(r'\n|;', coordinates_str) if line.strip()]
+    pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
     rows = []
-    for line in lines:
-        parts = re.split(r'[,\s]+', line)
-        try:
-            lat_dd = float(parts[0]); lon_dd = float(parts[1])
-        except:
-            continue
+    for lat_dd, lon_dd in pairs:
         lat_d, lat_m, lat_s = dd_to_dms_value(lat_dd)
         lon_d, lon_m, lon_s = dd_to_dms_value(lon_dd)
         lat_dms = format_dms(lat_d, lat_m, lat_s, True)
@@ -72,7 +68,7 @@ def convert_dd_to_dms(coordinates_str: str) -> str:
     ]
     for lat_dd, lon_dd, lat_dms, lon_dms in rows:
         table.append(f"| {lat_dd:14.6f} | {lon_dd:15.6f} | {lat_dms:13} | {lon_dms:13} |")
-    return "\n".join(table)
+    return "\n".join(table) + format_invalid_notes(invalid_entries)
 
 def main():
     parser = argparse.ArgumentParser(description="DD to DMS converter")
