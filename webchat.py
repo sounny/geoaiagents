@@ -7,6 +7,7 @@ import gradio as gr
 import folium
 from geocode import geocode_locations, reverse_geocode_coordinates
 from dd2dms import convert_dd_to_dms
+from distance import calculate_distance
 from file_loaders import (
     load_geojson,
     load_kml,
@@ -74,6 +75,25 @@ def parse_table_coordinates(
     return coords
 
 
+def parse_distance_table(table: str) -> list[tuple[float, float]]:
+    """Parse point A/B coordinate pairs from a distance markdown table."""
+    coords: list[tuple[float, float]] = []
+    lines = table.splitlines()[2:]
+    for line in lines:
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 4:
+            continue
+        try:
+            lat1 = float(cells[0])
+            lon1 = float(cells[1])
+            lat2 = float(cells[2])
+            lon2 = float(cells[3])
+        except ValueError:
+            continue
+        coords.extend([(lat1, lon1), (lat2, lon2)])
+    return coords
+
+
 class GradioLogHandler(logging.Handler):
     """Logging handler that appends formatted records to log_history."""
 
@@ -138,6 +158,20 @@ functions = [
                 "coordinates": {
                     "type": "string",
                     "description": "Newline- or semicolon-delimited DD lat,lon pairs",
+                }
+            },
+            "required": ["coordinates"],
+        },
+    },
+    {
+        "name": "calculate_distance",
+        "description": "Calculate great-circle distance between coordinate pairs",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "coordinates": {
+                    "type": "string",
+                    "description": "Newline- or semicolon-delimited lat1,lon1,lat2,lon2 pairs",
                 }
             },
             "required": ["coordinates"],
@@ -258,6 +292,11 @@ def respond(message: str, history: list[dict], upload_file=None):
             logging.info("Invoking fetch_geo_boundaries...")
             table = fetch_geo_boundaries(args["iso"], args.get("adm", "ADM0"))
             coords = parse_table_coordinates(table, 0, 1)
+            map_html = create_map_html(coords)
+        elif msg.function_call.name == "calculate_distance":
+            logging.info("Invoking calculate_distance...")
+            table = calculate_distance(args["coordinates"])
+            coords = parse_distance_table(table)
             map_html = create_map_html(coords)
         else:
             table = ""

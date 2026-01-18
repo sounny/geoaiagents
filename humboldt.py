@@ -134,6 +134,7 @@ def main():
         from openai import OpenAI
         from geocode import geocode_locations, reverse_geocode_coordinates
         from dd2dms import convert_dd_to_dms
+        from distance import calculate_distance
         try:
             from file_loaders import (
                 load_geojson,
@@ -213,6 +214,20 @@ def main():
                 "required": ["coordinates"],
             },
         },
+        {
+            "name": "calculate_distance",
+            "description": "Calculate great-circle distance between coordinate pairs",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "coordinates": {
+                        "type": "string",
+                        "description": "Newline- or semicolon-delimited lat1,lon1,lat2,lon2 pairs",
+                    }
+                },
+                "required": ["coordinates"],
+            },
+        },
     ]
 
     if 'loaders_available' in locals() and loaders_available:
@@ -281,10 +296,14 @@ def main():
     def tool_reverse_geocode_coordinates(arguments: Dict[str, Any]) -> str:
         return reverse_geocode_coordinates(arguments.get("coordinates", ""))
 
+    def tool_calculate_distance(arguments: Dict[str, Any]) -> str:
+        return calculate_distance(arguments.get("coordinates", ""))
+
     tool_registry: Dict[str, Any] = {
         "geocode_locations": tool_geocode_locations,
         "convert_dd_to_dms": tool_convert_dd_to_dms,
         "reverse_geocode_coordinates": tool_reverse_geocode_coordinates,
+        "calculate_distance": tool_calculate_distance,
     }
 
     if 'loaders_available' in locals() and loaders_available:
@@ -360,6 +379,10 @@ def main():
         if user_input.startswith("/dms "):
             payload = user_input[len("/dms "):]
             print(tool_convert_dd_to_dms({"coordinates": payload}))
+            continue
+        if user_input.startswith("/distance "):
+            payload = user_input[len("/distance "):]
+            print(tool_calculate_distance({"coordinates": payload}))
             continue
 
         messages.append({"role": "user", "content": user_input})

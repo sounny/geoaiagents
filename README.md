@@ -53,6 +53,7 @@ Direct tool shortcuts (bypass LLM and call tools directly):
 - `/geocode <locations>` where locations are separated by semicolons or newlines
 - `/reverse <lat,lon; ...>` reverse geocoding of DD pairs
 - `/dms <lat,lon; ...>` convert DD pairs to DMS
+- `/distance <lat1,lon1,lat2,lon2; ...>` calculate great-circle distances
 
 ## Configuration
 
@@ -104,6 +105,16 @@ are skipped and noted beneath the returned table.
 python geocode.py
 ```
 You will be prompted to enter locations (semicolon-separated). The script outputs a table of inputs and their coordinates (WGS84, Decimal Degrees).
+
+### distance.py
+
+This script calculates great-circle distances between coordinate pairs using the haversine formula.
+
+**Usage:**
+```bash
+python distance.py
+```
+Input newline- or semicolon-delimited pairs in the form `lat1,lon1,lat2,lon2` to receive a distance table in kilometers and miles.
 
 ### humboldt.py
 
