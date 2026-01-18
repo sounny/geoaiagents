@@ -109,3 +109,7 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added shared validation helpers for coordinate parsing and bounds checks
 - Updated DD→DMS and reverse geocoding tools to surface skipped invalid inputs
 
+### 2025-07-25 - Distance Tool Expansion
+- Added a haversine-based distance tool with CLI helper
+- Wired distance calculations into Humboldt and the webchat UI for map display
+- Documented the new shortcut and script usage in README
