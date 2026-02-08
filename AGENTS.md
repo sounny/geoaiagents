@@ -113,3 +113,10 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added a haversine-based distance tool with CLI helper
 - Wired distance calculations into Humboldt and the webchat UI for map display
 - Documented the new shortcut and script usage in README
+
+### 2026-02-08 - Shared Tool Registry and Plugin Scaffolding
+- Added a new `tool_registry.py` module to centralize tool schemas + handlers for both CLI and webchat.
+- Refactored `humboldt.py` and `webchat.py` to use the shared registry so tool behavior stays consistent.
+- Added plugin loading through `GEOAI_PLUGIN_MODULES` with a `register_tools(registry)` contract to make external API integrations easier.
+- Included `plugins/example_plugin.py` as a starter for adding custom API-backed tools.
+- **Technical Notes**: This follows a registry pattern similar to extensible agent frameworks; map parsing logic in webchat is now keyed by tool name.

@@ -159,7 +159,29 @@ When you ask Humboldt to add a marker such as "add a point for Austin, Texas," t
 
 ## Extending with New Tools
 
-Future agents and tools can be added by defining function schemas in `humboldt.py` and implementing the corresponding Python functions.
+Tools are now centralized in `tool_registry.py`, which is shared by both `humboldt.py` and `webchat.py`.
+
+### Add a built-in tool
+1. Register it in `_register_builtin_tools()` in `tool_registry.py`.
+2. Provide a JSON schema (`parameters`) and a `handler(arguments)` function.
+3. Optionally add coordinate parsing behavior in `DEFAULT_TOOL_COORD_PARSERS` if the tool returns mappable table output.
+
+### Add plugin tools (OpenCode-style extensibility)
+Set the `GEOAI_PLUGIN_MODULES` environment variable to one or more comma-delimited Python module paths.
+Each module should expose:
+
+```python
+def register_tools(registry):
+    registry.register_tool(...)
+```
+
+Example:
+```bash
+export GEOAI_PLUGIN_MODULES=plugins.example_plugin
+python humboldt.py
+```
+
+A starter module is included at `plugins/example_plugin.py`.
 
 ## Contributing
 
