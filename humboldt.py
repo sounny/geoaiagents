@@ -3,14 +3,12 @@
 > pip install openai
 """
 
-import json
 import argparse
 import os
 import logging
 import subprocess
 import sys
 import importlib.util
-from typing import Any, Dict, Optional
 
 
 def check_and_install_dependencies():
@@ -132,19 +130,7 @@ def main():
     # Import modules after dependency checking
     try:
         from openai import OpenAI
-        from geocode import geocode_locations, reverse_geocode_coordinates
-        from dd2dms import convert_dd_to_dms
-        from distance import calculate_distance
-        try:
-            from file_loaders import (
-                load_geojson,
-                load_kml,
-                load_csv,
-                fetch_geo_boundaries,
-            )
-            loaders_available = True
-        except Exception:
-            loaders_available = False
+        from tool_registry import create_registry
     except ImportError as e:
         print(f"Error importing required modules: {e}")
         print("Please ensure all dependencies are installed by running:")
@@ -171,189 +157,16 @@ def main():
     )
 
     messages = [{"role": "system", "content": system_prompt}]
-    functions = [
-        {
-            "name": "geocode_locations",
-            "description": "Geocode a list of locations and return a markdown table",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "locations": {
-                        "type": "string",
-                        "description": "Newline- or semicolon-delimited list of locations to geocode",
-                    }
-                },
-                "required": ["locations"],
-            },
-        },
-        {
-            "name": "convert_dd_to_dms",
-            "description": "Convert decimal-degree coordinates to DMS table",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "coordinates": {
-                        "type": "string",
-                        "description": "Newline- or semicolon-delimited DD lat,lon pairs",
-                    }
-                },
-                "required": ["coordinates"],
-            },
-        },
-        {
-            "name": "reverse_geocode_coordinates",
-            "description": "Reverse geocode lat/lon pairs to addresses",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "coordinates": {
-                        "type": "string",
-                        "description": "Newline- or semicolon-delimited DD lat,lon pairs",
-                    }
-                },
-                "required": ["coordinates"],
-            },
-        },
-        {
-            "name": "calculate_distance",
-            "description": "Calculate great-circle distance between coordinate pairs",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "coordinates": {
-                        "type": "string",
-                        "description": "Newline- or semicolon-delimited lat1,lon1,lat2,lon2 pairs",
-                    }
-                },
-                "required": ["coordinates"],
-            },
-        },
-    ]
+    tool_registry = create_registry()
+    functions = tool_registry.openai_functions()
 
-    if 'loaders_available' in locals() and loaders_available:
-        functions.extend([
-            {
-                "name": "load_geojson",
-                "description": "Load GeoJSON text and return a coordinate table",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "geojson": {
-                            "type": "string",
-                            "description": "Contents of a GeoJSON file",
-                        }
-                    },
-                    "required": ["geojson"],
-                },
-            },
-            {
-                "name": "load_kml",
-                "description": "Load KML text and return a coordinate table",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "kml": {"type": "string", "description": "Contents of a KML file"}
-                    },
-                    "required": ["kml"],
-                },
-            },
-            {
-                "name": "load_csv",
-                "description": "Load CSV text with latitude/longitude columns",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "csv": {"type": "string", "description": "Contents of a CSV file"}
-                    },
-                    "required": ["csv"],
-                },
-            },
-            {
-                "name": "fetch_geo_boundaries",
-                "description": "Download simplified political boundaries from geoBoundaries",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "iso": {"type": "string", "description": "ISO 3166-1 alpha-3 code"},
-                        "adm": {
-                            "type": "string",
-                            "description": "Administrative level",
-                            "default": "ADM0",
-                        },
-                    },
-                    "required": ["iso"],
-                },
-            },
-        ])
-
-    # Tool registry
-    def tool_geocode_locations(arguments: Dict[str, Any]) -> str:
-        return geocode_locations(arguments.get("locations", ""))
-
-    def tool_convert_dd_to_dms(arguments: Dict[str, Any]) -> str:
-        return convert_dd_to_dms(arguments.get("coordinates", ""))
-
-    def tool_reverse_geocode_coordinates(arguments: Dict[str, Any]) -> str:
-        return reverse_geocode_coordinates(arguments.get("coordinates", ""))
-
-    def tool_calculate_distance(arguments: Dict[str, Any]) -> str:
-        return calculate_distance(arguments.get("coordinates", ""))
-
-    tool_registry: Dict[str, Any] = {
-        "geocode_locations": tool_geocode_locations,
-        "convert_dd_to_dms": tool_convert_dd_to_dms,
-        "reverse_geocode_coordinates": tool_reverse_geocode_coordinates,
-        "calculate_distance": tool_calculate_distance,
-    }
-
-    if 'loaders_available' in locals() and loaders_available:
-        def tool_load_geojson(arguments: Dict[str, Any]) -> str:
-            return load_geojson(arguments.get("geojson", ""))
-
-        def tool_load_kml(arguments: Dict[str, Any]) -> str:
-            return load_kml(arguments.get("kml", ""))
-
-        def tool_load_csv(arguments: Dict[str, Any]) -> str:
-            return load_csv(arguments.get("csv", ""))
-
-        def tool_fetch_geo_boundaries(arguments: Dict[str, Any]) -> str:
-            return fetch_geo_boundaries(arguments.get("iso", ""), arguments.get("adm", "ADM0"))
-
-        tool_registry.update({
-            "load_geojson": tool_load_geojson,
-            "load_kml": tool_load_kml,
-            "load_csv": tool_load_csv,
-            "fetch_geo_boundaries": tool_fetch_geo_boundaries,
-        })
-
-    def safe_json_loads(s: str) -> Optional[Dict[str, Any]]:
-        try:
-            return json.loads(s or "{}")
-        except Exception:
-            return None
-
-    def run_tool_call(tool_name: str, raw_args: Any) -> Optional[str]:
+    def run_tool_call(tool_name: str, raw_args):
         if args.debug:
             print(f"[DEBUG] Requested tool: {tool_name} with args: {raw_args}")
-        fn = tool_registry.get(tool_name)
-        if not fn:
+        if not tool_registry.has_tool(tool_name):
             print(f"[WARN] Unknown tool requested: {tool_name}")
             return None
-        # raw_args may already be a dict; if string try to parse JSON
-        if isinstance(raw_args, str):
-            parsed = safe_json_loads(raw_args)
-        elif isinstance(raw_args, dict):
-            parsed = raw_args
-        else:
-            parsed = {}
-        if parsed is None:
-            print("[WARN] Could not parse tool arguments; using empty args.")
-            parsed = {}
-        try:
-            return fn(parsed)
-        except Exception as e:
-            print(f"[ERROR] Tool '{tool_name}' failed: {e}")
-            return None
+        return tool_registry.invoke(tool_name, raw_args)
 
     # Greet the user
     print("Hi, I'm Humboldt, your GeoAI Agent. How can I assist you today?")
@@ -370,19 +183,19 @@ def main():
         # Direct tool invocations
         if user_input.startswith("/geocode "):
             payload = user_input[len("/geocode "):]
-            print(tool_geocode_locations({"locations": payload}))
+            print(tool_registry.invoke("geocode_locations", {"locations": payload}))
             continue
         if user_input.startswith("/reverse "):
             payload = user_input[len("/reverse "):]
-            print(tool_reverse_geocode_coordinates({"coordinates": payload}))
+            print(tool_registry.invoke("reverse_geocode_coordinates", {"coordinates": payload}))
             continue
         if user_input.startswith("/dms "):
             payload = user_input[len("/dms "):]
-            print(tool_convert_dd_to_dms({"coordinates": payload}))
+            print(tool_registry.invoke("convert_dd_to_dms", {"coordinates": payload}))
             continue
         if user_input.startswith("/distance "):
             payload = user_input[len("/distance "):]
-            print(tool_calculate_distance({"coordinates": payload}))
+            print(tool_registry.invoke("calculate_distance", {"coordinates": payload}))
             continue
 
         messages.append({"role": "user", "content": user_input})

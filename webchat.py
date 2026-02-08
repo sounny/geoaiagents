@@ -1,19 +1,13 @@
 import json
-import os
 import logging
+import os
 import re
-from openai import OpenAI
-import gradio as gr
+
 import folium
-from geocode import geocode_locations, reverse_geocode_coordinates
-from dd2dms import convert_dd_to_dms
-from distance import calculate_distance
-from file_loaders import (
-    load_geojson,
-    load_kml,
-    load_csv,
-    fetch_geo_boundaries,
-)
+import gradio as gr
+from openai import OpenAI
+
+from tool_registry import DEFAULT_TOOL_COORD_PARSERS, create_registry, parse_tool_args
 
 # Initialize OpenAI client using environment variables or defaults
 BASE_URL = os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/")
@@ -94,6 +88,15 @@ def parse_distance_table(table: str) -> list[tuple[float, float]]:
     return coords
 
 
+def extract_map_coords(tool_name: str, table: str) -> list[tuple[float, float]]:
+    parser = DEFAULT_TOOL_COORD_PARSERS.get(tool_name)
+    if parser == "distance":
+        return parse_distance_table(table)
+    if isinstance(parser, tuple):
+        return parse_table_coordinates(table, parser[0], parser[1])
+    return []
+
+
 class GradioLogHandler(logging.Handler):
     """Logging handler that appends formatted records to log_history."""
 
@@ -118,118 +121,16 @@ system_prompt = (
 
 # Conversation state shared across requests
 messages = [{"role": "system", "content": system_prompt}]
+registry = create_registry()
+functions = registry.openai_functions()
 
-# Function schema for tool calls
-functions = [
-    {
-        "name": "geocode_locations",
-        "description": "Geocode a list of locations and return a markdown table",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "locations": {
-                    "type": "string",
-                    "description": "Newline- or semicolon-delimited list of locations to geocode",
-                }
-            },
-            "required": ["locations"],
-        },
-    },
-    {
-        "name": "convert_dd_to_dms",
-        "description": "Convert decimal-degree coordinates to DMS table",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "coordinates": {
-                    "type": "string",
-                    "description": "Newline- or semicolon-delimited DD lat,lon pairs",
-                }
-            },
-            "required": ["coordinates"],
-        },
-    },
-    {
-        "name": "reverse_geocode_coordinates",
-        "description": "Reverse geocode lat/lon pairs to addresses",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "coordinates": {
-                    "type": "string",
-                    "description": "Newline- or semicolon-delimited DD lat,lon pairs",
-                }
-            },
-            "required": ["coordinates"],
-        },
-    },
-    {
-        "name": "calculate_distance",
-        "description": "Calculate great-circle distance between coordinate pairs",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "coordinates": {
-                    "type": "string",
-                    "description": "Newline- or semicolon-delimited lat1,lon1,lat2,lon2 pairs",
-                }
-            },
-            "required": ["coordinates"],
-        },
-    },
-    {
-        "name": "load_geojson",
-        "description": "Load GeoJSON text and return a coordinate table",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "geojson": {
-                    "type": "string",
-                    "description": "Contents of a GeoJSON file",
-                }
-            },
-            "required": ["geojson"],
-        },
-    },
-    {
-        "name": "load_kml",
-        "description": "Load KML text and return a coordinate table",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "kml": {"type": "string", "description": "Contents of a KML file"}
-            },
-            "required": ["kml"],
-        },
-    },
-    {
-        "name": "load_csv",
-        "description": "Load CSV text with latitude/longitude columns",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "csv": {"type": "string", "description": "Contents of a CSV file"}
-            },
-            "required": ["csv"],
-        },
-    },
-    {
-        "name": "fetch_geo_boundaries",
-        "description": "Download simplified political boundaries from geoBoundaries",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "iso": {"type": "string", "description": "ISO 3166-1 alpha-3 code"},
-                "adm": {
-                    "type": "string",
-                    "description": "Administrative level",
-                    "default": "ADM0",
-                },
-            },
-            "required": ["iso"],
-        },
-    },
-]
+
+def run_tool(function_call) -> tuple[str, str]:
+    args = parse_tool_args(function_call.arguments)
+    tool_name = function_call.name
+    logging.info("Invoking %s...", tool_name)
+    table = registry.invoke(tool_name, args) or ""
+    return tool_name, table
 
 
 def respond(message: str, history: list[dict], upload_file=None):
@@ -257,49 +158,10 @@ def respond(message: str, history: list[dict], upload_file=None):
     map_html = ""
     table = ""
     if msg.function_call:
-        args = json.loads(msg.function_call.arguments)
-        if msg.function_call.name == "geocode_locations":
-            logging.info("Invoking geocode_locations...")
-            table = geocode_locations(args["locations"])
-            coords = parse_table_coordinates(table, 2, 3)
-            map_html = create_map_html(coords)
-        elif msg.function_call.name == "convert_dd_to_dms":
-            logging.info("Invoking convert_dd_to_dms...")
-            table = convert_dd_to_dms(args["coordinates"])
-            coords = parse_table_coordinates(table, 0, 1)
-            map_html = create_map_html(coords)
-        elif msg.function_call.name == "reverse_geocode_coordinates":
-            logging.info("Invoking reverse_geocode_coordinates...")
-            table = reverse_geocode_coordinates(args["coordinates"])
-            coords = parse_table_coordinates(table, 0, 1)
-            map_html = create_map_html(coords)
-        elif msg.function_call.name == "load_geojson":
-            logging.info("Invoking load_geojson...")
-            table = load_geojson(args["geojson"])
-            coords = parse_table_coordinates(table, 0, 1)
-            map_html = create_map_html(coords)
-        elif msg.function_call.name == "load_kml":
-            logging.info("Invoking load_kml...")
-            table = load_kml(args["kml"])
-            coords = parse_table_coordinates(table, 0, 1)
-            map_html = create_map_html(coords)
-        elif msg.function_call.name == "load_csv":
-            logging.info("Invoking load_csv...")
-            table = load_csv(args["csv"])
-            coords = parse_table_coordinates(table, 0, 1)
-            map_html = create_map_html(coords)
-        elif msg.function_call.name == "fetch_geo_boundaries":
-            logging.info("Invoking fetch_geo_boundaries...")
-            table = fetch_geo_boundaries(args["iso"], args.get("adm", "ADM0"))
-            coords = parse_table_coordinates(table, 0, 1)
-            map_html = create_map_html(coords)
-        elif msg.function_call.name == "calculate_distance":
-            logging.info("Invoking calculate_distance...")
-            table = calculate_distance(args["coordinates"])
-            coords = parse_distance_table(table)
-            map_html = create_map_html(coords)
-        else:
-            table = ""
+        tool_name, table = run_tool(msg.function_call)
+        coords = extract_map_coords(tool_name, table)
+        map_html = create_map_html(coords)
+
         messages.append(
             {"role": "assistant", "content": None, "function_call": msg.function_call}
         )
@@ -320,7 +182,7 @@ def respond(message: str, history: list[dict], upload_file=None):
         location = infer_location(message)
         if location:
             logging.info("Auto geocoding: %s", location)
-            table = geocode_locations(location)
+            table = registry.invoke("geocode_locations", {"locations": location}) or ""
             coords = parse_table_coordinates(table, 2, 3)
             map_html = create_map_html(coords)
             messages.append(
