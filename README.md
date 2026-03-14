@@ -55,6 +55,30 @@ Direct tool shortcuts (bypass LLM and call tools directly):
 - `/dms <lat,lon; ...>` convert DD pairs to DMS
 - `/distance <lat1,lon1,lat2,lon2; ...>` calculate great-circle distances
 
+## GeoAI CLI (new unified terminal app)
+
+Use the new multi-command CLI for direct tool execution or interactive chat:
+
+```bash
+python3 geoai_cli.py --help
+```
+
+Common commands:
+
+```bash
+python3 geoai_cli.py list-tools
+python3 geoai_cli.py geocode "Gainesville, FL; Paris, France"
+python3 geoai_cli.py distance "29.6516,-82.3248,28.5383,-81.3792"
+python3 geoai_cli.py boundaries USA --adm ADM1
+python3 geoai_cli.py chat --model Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx
+```
+
+`run-tool` can invoke any registered tool (including plugins), and reads from stdin when `--payload` is omitted:
+
+```bash
+cat sample.geojson | python3 geoai_cli.py run-tool load_geojson
+```
+
 ## Configuration
 
 The scripts use the OpenAI client, which defaults to a local test server. You
