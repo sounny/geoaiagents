@@ -64,6 +64,12 @@ Keep entries concise but informative. Include the date and a brief description o
 - Switched lead developer icon to an alligator
 ---
 
+### 2026-03-14 - Unified GeoAI CLI
+- Added `geoai_cli.py` as a multi-command terminal interface with subcommands for geocoding, reverse geocoding, DD→DMS, distance, boundary fetches, and generic `run-tool` execution.
+- Added a `chat` subcommand that keeps Humboldt-style interactive tool-calling in the terminal while sharing the central tool registry.
+- Updated README with examples for direct command usage and stdin-based workflows for file-oriented tools.
+
+
 ## Guidelines for Future Development
 
 1. **Tool Design**: Each tool should be self-contained with clear input/output formats
