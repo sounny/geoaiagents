@@ -1,5 +1,12 @@
 # geoaiagents
-AI agents for GIS and Remote Sensing workflows.
+Autonomous AI agents for GIS, Remote Sensing, and Planetary Spatial Workflows.
+
+[![Live Web Portal](https://img.shields.io/badge/Live%20Web%20Playground-sounny.github.io%2Fgeoaiagents-38bdf8?style=for-the-badge&logo=leaflet&logoColor=white)](https://sounny.github.io/geoaiagents/)
+[![The 6th Component of GIS](https://img.shields.io/badge/Architecture-The%206th%20Component%20of%20GIS-818cf8?style=for-the-badge)](https://sounny.github.io/geoaiagents/#architecture)
+[![License: MIT](https://img.shields.io/badge/License-MIT-emerald?style=for-the-badge)](LICENSE)
+
+> **Live Interactive Web App**: You can now test Humboldt directly in your browser without local installation at [**https://sounny.github.io/geoaiagents/**](https://sounny.github.io/geoaiagents/) with live Leaflet cartography, batch geocoding, geodesic distance calculation, and interactive vector inspection.
+
 
 ## Requirements
 

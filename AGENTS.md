@@ -126,3 +126,15 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added plugin loading through `GEOAI_PLUGIN_MODULES` with a `register_tools(registry)` contract to make external API integrations easier.
 - Included `plugins/example_plugin.py` as a starter for adding custom API-backed tools.
 - **Technical Notes**: This follows a registry pattern similar to extensible agent frameworks; map parsing logic in webchat is now keyed by tool name.
+
+### 2026-09-20 - Interactive Web Portal & 6th Component Modernization
+- Completely modernized `index.html` into a standalone, interactive cyber-cartographic web application deployed to GitHub Pages (`https://sounny.github.io/geoaiagents/`).
+- Added live in-browser GeoAI Agent Playground:
+  - Dual modes: Fast Client Engine (zero-config, offline-capable client-side Nominatim + Haversine + DMS engine) and BYO LLM Key mode.
+  - Interactive Leaflet.js mapping with multi-source base cartography (Carto Dark Matter, Esri World Imagery Satellite, OSM, OpenTopoMap).
+  - Dynamic geodesic distance calculation with haversine polyline rendering and metric outputs.
+  - Real-time cursor coordinates HUD, spatial bounding box zoom-to-fit, and GeoJSON export.
+- Integrated "The 6th Component of GIS" architectural framework, articulating Humboldt as the cognitive tissue linking Hardware, Software, Data, People, and Methods.
+- Added interactive terminal emulator for `geoai_cli.py`, `humboldt.py`, stdin piping, and custom STAC plugins.
+- Updated academic credentials and affiliations across ISU Strasbourg, UW-Madison, Texas State University, and UF.
+
