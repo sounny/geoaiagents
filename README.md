@@ -214,6 +214,27 @@ python humboldt.py
 
 A starter module is included at `plugins/example_plugin.py`.
 
+## Developer Documentation
+
+Dependencies for the project are managed in `requirements.txt`.
+
+### Running Automated Tests
+Automated testing is performed using `pytest` and `pytest-mock`.
+You can run the tests by executing:
+```bash
+pytest tests/
+```
+or
+```bash
+python -m pytest
+```
+
+### Running Key Workflows
+The project includes several key workflows:
+- **Humboldt Terminal Agent:** Run `python humboldt.py` to start the interactive terminal-based agent.
+- **Web Interface:** Run `python webchat.py` to launch the Gradio-based web interface.
+- **Unified CLI:** Run `python geoai_cli.py chat` to use the newer command-line interface.
+
 ## Contributing
 
 Contributions are welcome! Please open issues or pull requests on GitHub.
