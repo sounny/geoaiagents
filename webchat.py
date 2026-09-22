@@ -12,8 +12,8 @@ from tool_registry import DEFAULT_TOOL_COORD_PARSERS, create_registry, parse_too
 # Initialize OpenAI client using environment variables or defaults
 BASE_URL = os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/")
 API_KEY = os.getenv("OPENAI_API_KEY", "unused")
-MODEL_NAME = os.getenv(
-    "OPENAI_MODEL", "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
+MODEL_NAME = (
+    os.getenv("OPENAI_MODEL") or os.getenv("HUMBOLDT_MODEL") or "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
 )
 client = OpenAI(base_url=BASE_URL, api_key=API_KEY)
 
