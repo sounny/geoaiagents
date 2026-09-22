@@ -30,13 +30,14 @@ def dd_to_dms_value(dd: float):
     # Remaining seconds after minutes
     seconds = rem - minutes * 60
 
-    # Handle roll-over at seconds >= 59.9995 → increment minute
-    if seconds >= 59.9995:
-        seconds = 0.0
+    # Handle roll-over at seconds >= 59.995 (since we round to 2 decimal places later)
+    seconds = round(seconds, 2)
+    if seconds >= 60.0:
+        seconds -= 60.0
         minutes += 1
-    # Handle roll-over at minutes == 60 → increment degree
-    if minutes == 60:
-        minutes = 0
+    # Handle roll-over at minutes >= 60 → increment degree
+    if minutes >= 60:
+        minutes -= 60
         deg += 1
 
     return deg * sign, minutes, seconds
