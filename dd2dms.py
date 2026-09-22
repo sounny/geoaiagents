@@ -41,12 +41,14 @@ def dd_to_dms_value(dd: float):
 
     return deg * sign, minutes, seconds
 
-def format_dms(deg: int, minutes: int, seconds: float, is_lat: bool):
+def format_dms(deg: int, minutes: int, seconds: float, is_lat: bool, original_dd: float = None):
     """Format DMS components into a string with two decimal places for seconds."""
+    if original_dd is None:
+        original_dd = deg
     if is_lat:
-        direction = 'N' if deg >= 0 else 'S'
+        direction = 'N' if original_dd >= 0 else 'S'
     else:
-        direction = 'E' if deg >= 0 else 'W'
+        direction = 'E' if original_dd >= 0 else 'W'
     return f"{abs(deg)}°{minutes:02d}'{seconds:05.2f}\" {direction}"
 
 def convert_dd_to_dms(coordinates_str: str) -> str:
@@ -58,8 +60,8 @@ def convert_dd_to_dms(coordinates_str: str) -> str:
     for lat_dd, lon_dd in pairs:
         lat_d, lat_m, lat_s = dd_to_dms_value(lat_dd)
         lon_d, lon_m, lon_s = dd_to_dms_value(lon_dd)
-        lat_dms = format_dms(lat_d, lat_m, lat_s, True)
-        lon_dms = format_dms(lon_d, lon_m, lon_s, False)
+        lat_dms = format_dms(lat_d, lat_m, lat_s, True, lat_dd)
+        lon_dms = format_dms(lon_d, lon_m, lon_s, False, lon_dd)
         rows.append((lat_dd, lon_dd, lat_dms, lon_dms))
     # Build markdown table
     table = [
