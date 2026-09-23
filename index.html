@@ -534,6 +534,17 @@
             transition: border-color 0.2s ease;
         }
 
+
+        /* WCAG: Visible focus indicator for interactive elements */
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible,
+        a:focus-visible {
+            outline: 2px solid var(--brand-primary);
+            outline-offset: 2px;
+        }
+
         .prompt-textarea:focus {
             border-color: var(--brand-primary);
             box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
@@ -1174,7 +1185,7 @@
 
                         <!-- Prompt Input -->
                         <div class="prompt-box">
-                            <textarea id="agent-prompt" class="prompt-textarea" placeholder="Describe your geospatial task (e.g., 'Geocode Austin, TX; Paris, France and compute the distance between them')..."></textarea>
+                            <textarea id="agent-prompt" aria-label="Describe your geospatial task" class="prompt-textarea" placeholder="Describe your geospatial task (e.g., 'Geocode Austin, TX; Paris, France and compute the distance between them')..."></textarea>
                             <div class="prompt-controls">
                                 <button id="btn-run-agent" class="btn-run" onclick="executeAgentPrompt()">
                                     <span>Execute Toolchain</span>
@@ -1187,9 +1198,9 @@
                         <!-- Optional BYO LLM Settings (Hidden by default) -->
                         <div id="llm-settings-box" style="display: none; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 12px;">
                             <div style="font-size: 0.78rem; font-weight: 600; color: var(--brand-primary); margin-bottom: 6px;">Connect LLM (Stored Locally Only)</div>
-                            <input id="llm-api-key" type="password" placeholder="OpenAI / OpenRouter API Key (sk-...)" style="width: 100%; padding: 6px 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; font-size: 0.75rem; font-family: var(--font-mono); margin-bottom: 6px;">
+                            <input id="llm-api-key" aria-label="API Key" type="password" placeholder="OpenAI / OpenRouter API Key (sk-...)" style="width: 100%; padding: 6px 10px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; font-size: 0.75rem; font-family: var(--font-mono); margin-bottom: 6px;">
                             <div style="display: flex; gap: 8px;">
-                                <select id="llm-model" style="flex: 1; padding: 4px 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; font-size: 0.75rem;">
+                                <select id="llm-model" aria-label="Select LLM Model" style="flex: 1; padding: 4px 8px; background: var(--bg-tertiary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; font-size: 0.75rem;">
                                     <option value="gpt-4o-mini">gpt-4o-mini</option>
                                     <option value="gpt-4o">gpt-4o</option>
                                     <option value="meta-llama/llama-3.1-8b-instruct:free">Llama 3.1 8B (OpenRouter)</option>
@@ -1236,7 +1247,7 @@
                     
                     <!-- Floating Map Controls -->
                     <div class="map-floating-bar">
-                        <select id="layer-select" class="map-select" onchange="switchBaseLayer(this.value)">
+                        <select id="layer-select" aria-label="Select Map Base Layer" class="map-select" onchange="switchBaseLayer(this.value)">
                             <option value="light" selected>Carto Positron (Light)</option>
                             <option value="osm">OpenStreetMap</option>
                             <option value="dark">Carto Dark Matter</option>
