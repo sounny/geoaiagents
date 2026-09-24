@@ -15,6 +15,12 @@ from geopy.extra.rate_limiter import RateLimiter  # throttle requests
 
 from validation import format_invalid_notes, parse_coordinate_pairs
 
+
+# Global RateLimiters to enforce delays across sequential requests
+_geolocator = Nominatim(user_agent="my_geocoder_app")
+_geocode_limiter = RateLimiter(_geolocator.geocode, min_delay_seconds=1, max_retries=2)
+_reverse_limiter = RateLimiter(_geolocator.reverse, min_delay_seconds=1, max_retries=2)
+
 # Geocoding helper functions
 
 def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en"):
@@ -36,14 +42,14 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
     tuple
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+
     try:
-        location = geocode(
+        location = _geocode_limiter(
             location_query,
             language=language,
             viewbox=bounding_box,
             bounded=bool(bounding_box),
+            timeout=timeout,
         )
         if location:
             return location.address, location.latitude, location.longitude
@@ -75,12 +81,11 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         Preferred language for address results (default ``"en"``).
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+
     rows = []
     for lat, lon in pairs:
         try:
-            location = reverse((lat, lon), language=language)
+            location = _reverse_limiter((lat, lon), language=language, timeout=timeout)
             address = location.address if location else "Not found"
         except (GeocoderTimedOut, GeocoderServiceError, Exception):
             address = "Not found"
