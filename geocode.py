@@ -180,35 +180,48 @@ def main():
     ]
 
     # First interaction with the LLM
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    message = response.choices[0].message
-
-    # If LLM requests our function, execute and return results
-    if message.function_call:
-        args = json.loads(message.function_call.arguments)
-        table = geocode_locations(args["locations"])
-        # Append the function call and its result
-        messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
-        messages.append({"role": "function", "name": message.function_call.name, "content": table})
-        # Send back to LLM for final formatting
-        second_resp = client.chat.completions.create(
+    try:
+        response = client.chat.completions.create(
             model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
             messages=messages,
+            functions=functions,
+            function_call="auto",
             max_tokens=1000,
             frequency_penalty=1,
         )
-        print(second_resp.choices[0].message.content)
-        # Indicate datum and format
-        print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
-    else:
-        # Fallback: local geocoding if LLM did not call function
+        message = response.choices[0].message
+
+        # If LLM requests our function, execute and return results
+        if getattr(message, "function_call", None):
+            args = json.loads(message.function_call.arguments)
+            table = geocode_locations(args.get("locations", ""))
+            # Append the function call and its result
+            messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
+            messages.append({"role": "function", "name": message.function_call.name, "content": table})
+            # Send back to LLM for final formatting
+            try:
+                second_resp = client.chat.completions.create(
+                    model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+                    messages=messages,
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                print(second_resp.choices[0].message.content)
+            except Exception as e:
+                print(f"Error communicating with AI provider for final response: {e}")
+                print("\nPartial results:")
+                print(table)
+
+            # Indicate datum and format
+            print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
+        else:
+            # Fallback: local geocoding if LLM did not call function
+            table = geocode_locations(user_input)
+            print(table)
+            print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
+    except Exception as e:
+        print(f"Error communicating with AI provider: {e}")
+        print("\nFalling back to direct tool execution...")
         table = geocode_locations(user_input)
         print(table)
         print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")

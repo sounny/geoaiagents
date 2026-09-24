@@ -135,6 +135,7 @@ def run_tool(function_call) -> tuple[str, str]:
 
 def respond(message: str, history: list[dict], upload_file=None):
     """Handle a chat message and return the agent's reply."""
+    global LAST_MAP_HTML
     if upload_file is not None:
         try:
             with open(upload_file.name, "r", encoding="utf-8", errors="ignore") as f:
@@ -144,20 +145,25 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    msg = response.choices[0].message
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+        msg = response.choices[0].message
+    except Exception as e:
+        error_msg = f"Error communicating with AI provider: {e}"
+        logging.error(error_msg)
+        return error_msg, LAST_MAP_HTML, "\n".join(log_history), ""
+
     logging.debug("LLM response: %s", msg)
-    global LAST_MAP_HTML
     map_html = ""
     table = ""
-    if msg.function_call:
+    if getattr(msg, "function_call", None):
         tool_name, table = run_tool(msg.function_call)
         coords = extract_map_coords(tool_name, table)
         map_html = create_map_html(coords)
@@ -168,13 +174,17 @@ def respond(message: str, history: list[dict], upload_file=None):
         messages.append(
             {"role": "function", "name": msg.function_call.name, "content": table}
         )
-        second = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
-        reply = second.choices[0].message.content
+        try:
+            second = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            reply = second.choices[0].message.content
+        except Exception as e:
+            reply = f"Tool executed, but error communicating with AI provider for final response: {e}"
+            logging.error(reply)
         logging.info("LLM response received")
     else:
         reply = msg.content
@@ -198,13 +208,18 @@ def respond(message: str, history: list[dict], upload_file=None):
             messages.append(
                 {"role": "function", "name": "geocode_locations", "content": table}
             )
-            second = client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=messages,
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
-            reply = second.choices[0].message.content
+            try:
+                second = client.chat.completions.create(
+                    model=MODEL_NAME,
+                    messages=messages,
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                reply = second.choices[0].message.content
+            except Exception as e:
+                reply = f"Auto geocode executed, but error communicating with AI provider for final response: {e}"
+                logging.error(reply)
+
     if map_html:
         LAST_MAP_HTML = map_html
     else:
