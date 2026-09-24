@@ -17,7 +17,7 @@ from validation import format_invalid_notes, parse_coordinate_pairs
 
 # Geocoding helper functions
 
-def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en"):
+def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en", _rate_limiter=None):
     """Query Nominatim for a single location string.
 
     Parameters
@@ -36,8 +36,11 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
     tuple
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+    if _rate_limiter:
+        geocode = _rate_limiter
+    else:
+        geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
+        geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1, max_retries=2)
     try:
         location = geocode(
             location_query,
@@ -62,7 +65,7 @@ def parse_locations(locations_str):
     return [line.strip() for line in re.split(r'\n|;', locations_str) if line.strip()]
 
 
-def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en") -> str:
+def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en", _rate_limiter=None) -> str:
     """Reverse geocode lat/lon pairs to the nearest address.
 
     Parameters
@@ -75,8 +78,12 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         Preferred language for address results (default ``"en"``).
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+
+    if _rate_limiter:
+        reverse = _rate_limiter
+    else:
+        geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
+        reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1, max_retries=2)
     rows = []
     for lat, lon in pairs:
         try:
@@ -101,9 +108,13 @@ def geocode_locations(locations_str: str) -> str:
     Geocode multiple locations and return a markdown-formatted table.
     """
     locations = parse_locations(locations_str)
+
+    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=1)
+    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1, max_retries=2)
+
     rows = []
     for loc in locations:
-        address, lat, lon = get_coordinates(loc)
+        address, lat, lon = get_coordinates(loc, _rate_limiter=geocode)
         # Use placeholders on missing data
         address = address or "Not found"
         lat = lat or ""
