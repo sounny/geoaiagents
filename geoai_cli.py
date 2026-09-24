@@ -162,8 +162,9 @@ def _run_tool_command(args: argparse.Namespace, registry) -> int:
     return 1
 
 
+
 def _run_chat_mode(args: argparse.Namespace, registry) -> int:
-    from openai import OpenAI
+    from openai import OpenAI, APIConnectionError, APIError
 
     client = OpenAI(base_url=args.base_url, api_key=args.api_key)
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -182,14 +183,20 @@ def _run_chat_mode(args: argparse.Namespace, registry) -> int:
         steps = 0
 
         while steps <= args.max_steps:
-            response = client.chat.completions.create(
-                model=args.model,
-                messages=messages,
-                functions=functions,
-                function_call="auto",
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
+            try:
+                response = client.chat.completions.create(
+                    model=args.model,
+                    messages=messages,
+                    functions=functions,
+                    function_call="auto",
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+            except (APIConnectionError, APIError) as e:
+                print(f"Error connecting to LLM provider: {e}")
+                messages.pop() # Remove the user input so it can be retried
+                break
+
             message = response.choices[0].message
             call = getattr(message, "function_call", None)
             if call:
