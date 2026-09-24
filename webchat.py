@@ -144,14 +144,20 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+    except Exception as e:
+        err_msg = f"Error connecting to LLM provider: {e}"
+        logging.error(err_msg)
+        messages.pop()
+        return err_msg, "", "\n".join(log_history), ""
     msg = response.choices[0].message
     logging.debug("LLM response: %s", msg)
     global LAST_MAP_HTML
@@ -168,12 +174,17 @@ def respond(message: str, history: list[dict], upload_file=None):
         messages.append(
             {"role": "function", "name": msg.function_call.name, "content": table}
         )
-        second = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
+        try:
+            second = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+        except Exception as e:
+            err_msg = f"Error connecting to LLM provider for second pass: {e}"
+            logging.error(err_msg)
+            return err_msg, map_html, "\n".join(log_history), table
         reply = second.choices[0].message.content
         logging.info("LLM response received")
     else:

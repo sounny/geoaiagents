@@ -138,3 +138,9 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added interactive terminal emulator for `geoai_cli.py`, `humboldt.py`, stdin piping, and custom STAC plugins.
 - Updated academic credentials and affiliations across ISU Strasbourg, UW-Madison, Texas State University, and UF.
 
+
+### 2026-10-25 - Fix LLM Provider Connection Errors
+- Added robust error handling across `geoai_cli.py`, `humboldt.py`, and `webchat.py` to prevent crashing when the LLM provider (e.g., local server or API endpoint) is unreachable.
+- Implemented graceful degradation: connection errors are logged, the failed user message is preserved/popped, and the loop breaks or handles the error cleanly, allowing for retry.
+- Added test coverage in `tests/test_llm_client.py`, `tests/test_humboldt_client.py`, and `tests/test_webchat.py` to assert correct exception catching.
+- Added `tests/test_geocode.py` to test the graceful degradation of the Nominatim API adapter on timeouts and service errors.
