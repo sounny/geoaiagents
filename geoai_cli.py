@@ -182,15 +182,30 @@ def _run_chat_mode(args: argparse.Namespace, registry) -> int:
         steps = 0
 
         while steps <= args.max_steps:
-            response = client.chat.completions.create(
-                model=args.model,
-                messages=messages,
-                functions=functions,
-                function_call="auto",
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
-            message = response.choices[0].message
+            for attempt in range(3):
+                try:
+                    response = client.chat.completions.create(
+                    model=args.model,
+                    messages=messages,
+                    functions=functions,
+                    function_call="auto",
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                    if not response.choices:
+                        print(f"[Warning] Empty choices in response (attempt {attempt+1})")
+                        import time; time.sleep(1)
+                        if attempt == 2:
+                            raise ValueError("Empty choices returned after 3 attempts")
+                        continue
+                    message = response.choices[0].message
+                    break
+                except Exception as e:
+                    print(f"[Warning] API error: {e} (attempt {attempt+1})")
+                    import time; time.sleep(1)
+                    if attempt == 2:
+                        raise
+
             call = getattr(message, "function_call", None)
             if call:
                 if args.debug:
