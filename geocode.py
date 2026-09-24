@@ -16,6 +16,9 @@ from geopy.extra.rate_limiter import RateLimiter  # throttle requests
 from validation import format_invalid_notes, parse_coordinate_pairs
 
 # Geocoding helper functions
+_shared_geolocator = Nominatim(user_agent="my_geocoder_app", timeout=1)
+_shared_geocode = RateLimiter(_shared_geolocator.geocode, min_delay_seconds=1, max_retries=2)
+_shared_reverse = RateLimiter(_shared_geolocator.reverse, min_delay_seconds=1, max_retries=2)
 
 def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en"):
     """Query Nominatim for a single location string.
@@ -36,11 +39,10 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
     tuple
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
     try:
-        location = geocode(
+        location = _shared_geocode(
             location_query,
+            timeout=timeout,
             language=language,
             viewbox=bounding_box,
             bounded=bool(bounding_box),
@@ -75,12 +77,10 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         Preferred language for address results (default ``"en"``).
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
     rows = []
     for lat, lon in pairs:
         try:
-            location = reverse((lat, lon), language=language)
+            location = _shared_reverse((lat, lon), timeout=timeout, language=language)
             address = location.address if location else "Not found"
         except (GeocoderTimedOut, GeocoderServiceError, Exception):
             address = "Not found"
