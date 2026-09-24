@@ -180,15 +180,22 @@ def main():
     ]
 
     # First interaction with the LLM
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    message = response.choices[0].message
+    try:
+        response = client.chat.completions.create(
+            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+        if not getattr(response, "choices", None) or len(response.choices) == 0:
+            print("[ERROR] Invalid or empty response from LLM provider.")
+            return
+        message = response.choices[0].message
+    except Exception as e:
+        print(f"[ERROR] API communication failed: {e}")
+        return
 
     # If LLM requests our function, execute and return results
     if message.function_call:
@@ -198,13 +205,19 @@ def main():
         messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
         messages.append({"role": "function", "name": message.function_call.name, "content": table})
         # Send back to LLM for final formatting
-        second_resp = client.chat.completions.create(
-            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
-        print(second_resp.choices[0].message.content)
+        try:
+            second_resp = client.chat.completions.create(
+                model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            if getattr(second_resp, "choices", None) and len(second_resp.choices) > 0:
+                print(second_resp.choices[0].message.content)
+            else:
+                print("[ERROR] Invalid or empty response from LLM provider on second pass.")
+        except Exception as e:
+            print(f"[ERROR] API communication failed on second pass: {e}")
         # Indicate datum and format
         print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
     else:

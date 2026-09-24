@@ -138,3 +138,9 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added interactive terminal emulator for `geoai_cli.py`, `humboldt.py`, stdin piping, and custom STAC plugins.
 - Updated academic credentials and affiliations across ISU Strasbourg, UW-Madison, Texas State University, and UF.
 
+
+### 2026-11-20 - LLM Resilience and CI
+- Added robust error handling to orchestrator loop in `geoai_cli.py`, `geocode.py`, `humboldt.py`, and `webchat.py`
+  to gracefully handle edge cases when the LLM provider returns empty or missing choices.
+- Created `tests/test_llm_resilience.py` to ensure empty choice edge cases are covered.
+- Configured CI pipeline via `.github/workflows/ci.yml`.
