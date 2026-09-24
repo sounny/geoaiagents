@@ -11,7 +11,13 @@ import os
 from openai import OpenAI  # OpenAI client for LLM interaction
 from geopy.geocoders import Nominatim  # Nominatim geocoder for OpenStreetMap
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError  # handle geocoding errors
+
 from geopy.extra.rate_limiter import RateLimiter  # throttle requests
+
+# Global, shared geolocator and rate limiters to enforce minimum delays across sequential requests
+_GLOBAL_GEOLOCATOR = Nominatim(user_agent="my_geocoder_app", timeout=5)
+_global_geocode = RateLimiter(_GLOBAL_GEOLOCATOR.geocode, min_delay_seconds=1, max_retries=2)
+_global_reverse = RateLimiter(_GLOBAL_GEOLOCATOR.reverse, min_delay_seconds=1, max_retries=2)
 
 from validation import format_invalid_notes, parse_coordinate_pairs
 
@@ -36,8 +42,8 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
     tuple
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+    # using global geocode rate limiter
+    geocode = _global_geocode
     try:
         location = geocode(
             location_query,
@@ -75,8 +81,8 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         Preferred language for address results (default ``"en"``).
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+    # using global reverse rate limiter
+    reverse = _global_reverse
     rows = []
     for lat, lon in pairs:
         try:
@@ -179,16 +185,33 @@ def main():
         }
     ]
 
-    # First interaction with the LLM
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
+
+    # First interaction with the LLM with 3-attempt retry loop
+    import time
+    max_retries = 3
+    response = None
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+                messages=messages,
+                functions=functions,
+                function_call="auto",
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            break
+        except Exception as e:
+            if attempt < max_retries - 1:
+                time.sleep(1)
+            else:
+                raise ValueError(f"LLM API retries exhausted: {e}")
+
+    if not response or not getattr(response, 'choices', None) or not response.choices:
+        raise ValueError("Invalid LLM API response or exhausted retries")
+
     message = response.choices[0].message
+
 
     # If LLM requests our function, execute and return results
     if message.function_call:
@@ -197,14 +220,28 @@ def main():
         # Append the function call and its result
         messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
         messages.append({"role": "function", "name": message.function_call.name, "content": table})
-        # Send back to LLM for final formatting
-        second_resp = client.chat.completions.create(
-            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
+
+        # Send back to LLM for final formatting with retry
+        for attempt in range(max_retries):
+            try:
+                second_resp = client.chat.completions.create(
+                    model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+                    messages=messages,
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+                else:
+                    raise ValueError(f"LLM API retries exhausted: {e}")
+
+        if not second_resp or not getattr(second_resp, 'choices', None) or not second_resp.choices:
+            raise ValueError("Invalid LLM API response or exhausted retries")
+
         print(second_resp.choices[0].message.content)
+
         # Indicate datum and format
         print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
     else:

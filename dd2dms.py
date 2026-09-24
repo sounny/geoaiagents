@@ -114,14 +114,28 @@ def main():
     ]
 
     # LLM call
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call={"name": "convert_dd_to_dms"},  # force function call
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
+
+    import time
+    max_retries = 3
+    response = None
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+                messages=messages,
+                functions=functions,
+                function_call={"name": "convert_dd_to_dms"},
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            break
+        except Exception as e:
+            if attempt < max_retries - 1:
+                time.sleep(1)
+            else:
+                raise ValueError(f"LLM API retries exhausted: {e}")
+    if not response or not getattr(response, 'choices', None) or not response.choices:
+        raise ValueError("Invalid LLM API response or exhausted retries")
     message = response.choices[0].message
 
     # Execute function if called

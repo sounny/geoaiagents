@@ -206,14 +206,28 @@ def main():
         steps = 0
         last_content_printed = False
         while steps <= args.max_steps:
-            response = client.chat.completions.create(
-                model=args.model,
-                messages=messages,
-                functions=functions,
-                function_call="auto",
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
+
+            import time
+            max_retries = 3
+            response = None
+            for attempt in range(max_retries):
+                try:
+                    response = client.chat.completions.create(
+                        model=args.model,
+                        messages=messages,
+                        functions=functions,
+                        function_call="auto",
+                        max_tokens=1000,
+                        frequency_penalty=1,
+                    )
+                    break
+                except Exception as e:
+                    if attempt < max_retries - 1:
+                        time.sleep(1)
+                    else:
+                        raise ValueError(f"LLM API retries exhausted: {e}")
+            if not response or not getattr(response, 'choices', None) or not response.choices:
+                raise ValueError("Invalid LLM API response or exhausted retries")
             message = response.choices[0].message
             if args.debug:
                 print("[DEBUG] LLM message:", message)

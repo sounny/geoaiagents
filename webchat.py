@@ -144,14 +144,28 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
+
+    import time
+    max_retries = 3
+    response = None
+    for attempt in range(max_retries):
+        try:
+            response = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                functions=functions,
+                function_call="auto",
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            break
+        except Exception as e:
+            if attempt < max_retries - 1:
+                time.sleep(1)
+            else:
+                raise ValueError(f"LLM API retries exhausted: {e}")
+    if not response or not getattr(response, 'choices', None) or not response.choices:
+        raise ValueError("Invalid LLM API response or exhausted retries")
     msg = response.choices[0].message
     logging.debug("LLM response: %s", msg)
     global LAST_MAP_HTML
@@ -168,12 +182,26 @@ def respond(message: str, history: list[dict], upload_file=None):
         messages.append(
             {"role": "function", "name": msg.function_call.name, "content": table}
         )
-        second = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
+
+        import time
+        max_retries = 3
+        second = None
+        for attempt in range(max_retries):
+            try:
+                second = client.chat.completions.create(
+                    model=MODEL_NAME,
+                    messages=messages,
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                break
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    time.sleep(1)
+                else:
+                    raise ValueError(f"LLM API retries exhausted: {e}")
+        if not second or not getattr(second, 'choices', None) or not second.choices:
+            raise ValueError("Invalid LLM API response or exhausted retries")
         reply = second.choices[0].message.content
         logging.info("LLM response received")
     else:
@@ -198,12 +226,26 @@ def respond(message: str, history: list[dict], upload_file=None):
             messages.append(
                 {"role": "function", "name": "geocode_locations", "content": table}
             )
-            second = client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=messages,
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
+
+            import time
+            max_retries = 3
+            second = None
+            for attempt in range(max_retries):
+                try:
+                    second = client.chat.completions.create(
+                        model=MODEL_NAME,
+                        messages=messages,
+                        max_tokens=1000,
+                        frequency_penalty=1,
+                    )
+                    break
+                except Exception as e:
+                    if attempt < max_retries - 1:
+                        time.sleep(1)
+                    else:
+                        raise ValueError(f"LLM API retries exhausted: {e}")
+            if not second or not getattr(second, 'choices', None) or not second.choices:
+                raise ValueError("Invalid LLM API response or exhausted retries")
             reply = second.choices[0].message.content
     if map_html:
         LAST_MAP_HTML = map_html
