@@ -144,17 +144,23 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    msg = response.choices[0].message
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+        if not getattr(response, "choices", None) or len(response.choices) == 0:
+            logging.error("Invalid or empty response from LLM provider.")
+            return "Error: Received invalid or empty response from the AI provider.", "", "", ""
+        msg = response.choices[0].message
+    except Exception as e:
+        logging.error(f"API communication failed: {e}")
+        return f"Error communicating with the AI provider: {e}", "", "", ""
     logging.debug("LLM response: %s", msg)
-    global LAST_MAP_HTML
     map_html = ""
     table = ""
     if msg.function_call:

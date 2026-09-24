@@ -182,15 +182,22 @@ def _run_chat_mode(args: argparse.Namespace, registry) -> int:
         steps = 0
 
         while steps <= args.max_steps:
-            response = client.chat.completions.create(
-                model=args.model,
-                messages=messages,
-                functions=functions,
-                function_call="auto",
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
-            message = response.choices[0].message
+            try:
+                response = client.chat.completions.create(
+                    model=args.model,
+                    messages=messages,
+                    functions=functions,
+                    function_call="auto",
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                if not getattr(response, "choices", None) or len(response.choices) == 0:
+                    print("[ERROR] Invalid or empty response from LLM provider.")
+                    break
+                message = response.choices[0].message
+            except Exception as e:
+                print(f"[ERROR] API communication failed: {e}")
+                break
             call = getattr(message, "function_call", None)
             if call:
                 if args.debug:
