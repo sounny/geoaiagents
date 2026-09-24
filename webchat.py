@@ -144,15 +144,27 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    msg = response.choices[0].message
+    for attempt in range(3):
+        try:
+            response = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                functions=functions,
+                function_call="auto",
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            if not response.choices:
+                import time; time.sleep(1)
+                if attempt == 2:
+                    raise ValueError("Empty choices returned after 3 attempts")
+                continue
+            msg = response.choices[0].message
+            break
+        except Exception as e:
+            import time; time.sleep(1)
+            if attempt == 2:
+                raise
     logging.debug("LLM response: %s", msg)
     global LAST_MAP_HTML
     map_html = ""
@@ -168,13 +180,25 @@ def respond(message: str, history: list[dict], upload_file=None):
         messages.append(
             {"role": "function", "name": msg.function_call.name, "content": table}
         )
-        second = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
-        reply = second.choices[0].message.content
+        for attempt in range(3):
+            try:
+                second = client.chat.completions.create(
+                    model=MODEL_NAME,
+                    messages=messages,
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                if not second.choices:
+                    import time; time.sleep(1)
+                    if attempt == 2:
+                        raise ValueError("Empty choices returned after 3 attempts")
+                    continue
+                reply = second.choices[0].message.content
+                break
+            except Exception as e:
+                import time; time.sleep(1)
+                if attempt == 2:
+                    raise
         logging.info("LLM response received")
     else:
         reply = msg.content
