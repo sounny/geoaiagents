@@ -7,6 +7,7 @@
 import json  # to parse and format JSON for function arguments
 import argparse
 import os
+import time
 # Third-party imports
 from openai import OpenAI  # OpenAI client for LLM interaction
 from geopy.geocoders import Nominatim  # Nominatim geocoder for OpenStreetMap
@@ -17,7 +18,7 @@ from validation import format_invalid_notes, parse_coordinate_pairs
 
 # Geocoding helper functions
 
-def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en"):
+def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en", retries=3):
     """Query Nominatim for a single location string.
 
     Parameters
@@ -30,6 +31,8 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
         Optional viewbox in the form ``(west, south, east, north)`` to bound the search.
     language : str, optional
         Preferred language for results (default ``"en"``).
+    retries : int, optional
+        Number of times to retry on timeout or service error (default 3).
 
     Returns
     -------
@@ -38,20 +41,27 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
     """
     geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
     geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
-    try:
-        location = geocode(
-            location_query,
-            language=language,
-            viewbox=bounding_box,
-            bounded=bool(bounding_box),
-        )
-        if location:
-            return location.address, location.latitude, location.longitude
-        else:
+
+    for attempt in range(retries):
+        try:
+            location = geocode(
+                location_query,
+                language=language,
+                viewbox=bounding_box,
+                bounded=bool(bounding_box),
+            )
+            if location:
+                return location.address, location.latitude, location.longitude
+            else:
+                return None, None, None
+        except (GeocoderTimedOut, GeocoderServiceError):
+            if attempt < retries - 1:
+                time.sleep(1)
+                continue
             return None, None, None
-    except (GeocoderTimedOut, GeocoderServiceError, Exception):
-        # Return empty tuple on any geocoding failure
-        return None, None, None
+        except Exception:
+            return None, None, None
+    return None, None, None
 
 
 def parse_locations(locations_str):
@@ -62,7 +72,7 @@ def parse_locations(locations_str):
     return [line.strip() for line in re.split(r'\n|;', locations_str) if line.strip()]
 
 
-def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en") -> str:
+def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en", retries=3) -> str:
     """Reverse geocode lat/lon pairs to the nearest address.
 
     Parameters
@@ -73,18 +83,31 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         Request timeout in seconds (default 1).
     language : str, optional
         Preferred language for address results (default ``"en"``).
+    retries : int, optional
+        Number of times to retry on timeout or service error (default 3).
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
     geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
     reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
     rows = []
     for lat, lon in pairs:
-        try:
-            location = reverse((lat, lon), language=language)
-            address = location.address if location else "Not found"
-        except (GeocoderTimedOut, GeocoderServiceError, Exception):
-            address = "Not found"
+        address = "Not found"
+        for attempt in range(retries):
+            try:
+                location = reverse((lat, lon), language=language)
+                address = location.address if location else "Not found"
+                break
+            except (GeocoderTimedOut, GeocoderServiceError):
+                if attempt < retries - 1:
+                    time.sleep(1)
+                    continue
+                address = "Not found"
+                break
+            except Exception:
+                address = "Not found"
+                break
         rows.append((lat, lon, address))
+
     table = [
         "| Latitude | Longitude | Address |",
         "|---------:|----------:|---------|",
