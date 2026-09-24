@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import logging
+from llm_utils import call_llm_with_retry
 import os
 import sys
 
@@ -182,7 +183,8 @@ def _run_chat_mode(args: argparse.Namespace, registry) -> int:
         steps = 0
 
         while steps <= args.max_steps:
-            response = client.chat.completions.create(
+            response = call_llm_with_retry(
+                client,
                 model=args.model,
                 messages=messages,
                 functions=functions,
