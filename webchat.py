@@ -1,5 +1,6 @@
 import json
 import logging
+from llm_utils import call_llm_with_retry
 import os
 import re
 
@@ -144,7 +145,8 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = client.chat.completions.create(
+    response = call_llm_with_retry(
+        client,
         model=MODEL_NAME,
         messages=messages,
         functions=functions,
@@ -168,7 +170,8 @@ def respond(message: str, history: list[dict], upload_file=None):
         messages.append(
             {"role": "function", "name": msg.function_call.name, "content": table}
         )
-        second = client.chat.completions.create(
+        second = call_llm_with_retry(
+            client,
             model=MODEL_NAME,
             messages=messages,
             max_tokens=1000,
@@ -198,12 +201,13 @@ def respond(message: str, history: list[dict], upload_file=None):
             messages.append(
                 {"role": "function", "name": "geocode_locations", "content": table}
             )
-            second = client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=messages,
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
+            second = call_llm_with_retry(
+            client,
+            model=MODEL_NAME,
+            messages=messages,
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
             reply = second.choices[0].message.content
     if map_html:
         LAST_MAP_HTML = map_html

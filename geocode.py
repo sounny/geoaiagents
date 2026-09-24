@@ -4,7 +4,8 @@
 > pip install geopy
 """
 # Standard library imports
-import json  # to parse and format JSON for function arguments
+import json
+from llm_utils import call_llm_with_retry  # to parse and format JSON for function arguments
 import argparse
 import os
 # Third-party imports
@@ -180,7 +181,8 @@ def main():
     ]
 
     # First interaction with the LLM
-    response = client.chat.completions.create(
+    response = call_llm_with_retry(
+        client,
         model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
         messages=messages,
         functions=functions,
@@ -198,7 +200,8 @@ def main():
         messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
         messages.append({"role": "function", "name": message.function_call.name, "content": table})
         # Send back to LLM for final formatting
-        second_resp = client.chat.completions.create(
+        second_resp = call_llm_with_retry(
+            client,
             model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
             messages=messages,
             max_tokens=1000,

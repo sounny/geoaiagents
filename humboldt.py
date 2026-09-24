@@ -6,6 +6,7 @@
 import argparse
 import os
 import logging
+from llm_utils import call_llm_with_retry
 import subprocess
 import sys
 import importlib.util
@@ -206,7 +207,8 @@ def main():
         steps = 0
         last_content_printed = False
         while steps <= args.max_steps:
-            response = client.chat.completions.create(
+            response = call_llm_with_retry(
+                client,
                 model=args.model,
                 messages=messages,
                 functions=functions,
