@@ -13,11 +13,18 @@ from geopy.geocoders import Nominatim  # Nominatim geocoder for OpenStreetMap
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError  # handle geocoding errors
 from geopy.extra.rate_limiter import RateLimiter  # throttle requests
 
+
 from validation import format_invalid_notes, parse_coordinate_pairs
+
+# Global rate limiters to prevent hitting rate limits across sequential requests
+_geolocator = Nominatim(user_agent="my_geocoder_app", timeout=2)
+_geocode_limiter = RateLimiter(_geolocator.geocode, min_delay_seconds=1, max_retries=2)
+_reverse_limiter = RateLimiter(_geolocator.reverse, min_delay_seconds=1, max_retries=2)
+
 
 # Geocoding helper functions
 
-def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en"):
+def get_coordinates(location_query, *, bounding_box=None, language="en"):
     """Query Nominatim for a single location string.
 
     Parameters
@@ -36,10 +43,9 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
     tuple
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+    # Using global rate limiter
     try:
-        location = geocode(
+        location = _geocode_limiter(
             location_query,
             language=language,
             viewbox=bounding_box,
@@ -62,7 +68,7 @@ def parse_locations(locations_str):
     return [line.strip() for line in re.split(r'\n|;', locations_str) if line.strip()]
 
 
-def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en") -> str:
+def reverse_geocode_coordinates(coordinates_str: str, *, language="en") -> str:
     """Reverse geocode lat/lon pairs to the nearest address.
 
     Parameters
@@ -75,12 +81,10 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         Preferred language for address results (default ``"en"``).
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
     rows = []
     for lat, lon in pairs:
         try:
-            location = reverse((lat, lon), language=language)
+            location = _reverse_limiter((lat, lon), language=language)
             address = location.address if location else "Not found"
         except (GeocoderTimedOut, GeocoderServiceError, Exception):
             address = "Not found"
