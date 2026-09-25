@@ -15,6 +15,12 @@ from geopy.extra.rate_limiter import RateLimiter  # throttle requests
 
 from validation import format_invalid_notes, parse_coordinate_pairs
 
+# Global rate limiters
+_geolocator = Nominatim(user_agent="my_geocoder_app", timeout=1)
+_geocode_throttle = RateLimiter(_geolocator.geocode, min_delay_seconds=1, max_retries=2)
+_reverse_throttle = RateLimiter(_geolocator.reverse, min_delay_seconds=1, max_retries=2)
+
+
 # Geocoding helper functions
 
 def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en"):
@@ -36,8 +42,9 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
     tuple
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+    # Use global rate limiter to prevent block timeouts
+    _geolocator.timeout = timeout
+    geocode = _geocode_throttle
     try:
         location = geocode(
             location_query,
@@ -75,8 +82,9 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         Preferred language for address results (default ``"en"``).
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+    # Use global rate limiter
+    _geolocator.timeout = timeout
+    reverse = _reverse_throttle
     rows = []
     for lat, lon in pairs:
         try:
@@ -180,15 +188,22 @@ def main():
     ]
 
     # First interaction with the LLM
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    message = response.choices[0].message
+    try:
+        response = client.chat.completions.create(
+            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+        if not response.choices:
+            raise ValueError("Empty choices in response")
+        message = response.choices[0].message
+    except Exception as e:
+        print(f"[Error] Failed to get LLM completion: {e}")
+        message = type('obj', (object,), {'function_call': None, 'content': "Error orchestrating LLM request."})
+
 
     # If LLM requests our function, execute and return results
     if message.function_call:
@@ -198,13 +213,19 @@ def main():
         messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
         messages.append({"role": "function", "name": message.function_call.name, "content": table})
         # Send back to LLM for final formatting
-        second_resp = client.chat.completions.create(
-            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
-        print(second_resp.choices[0].message.content)
+        try:
+            second_resp = client.chat.completions.create(
+                model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            if not second_resp.choices:
+                raise ValueError("Empty choices in second response")
+            print(second_resp.choices[0].message.content)
+        except Exception as e:
+            print(f"[Error] Second completion failed: {e}")
+            print(table)
         # Indicate datum and format
         print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
     else:

@@ -135,6 +135,7 @@ def run_tool(function_call) -> tuple[str, str]:
 
 def respond(message: str, history: list[dict], upload_file=None):
     """Handle a chat message and return the agent's reply."""
+    global LAST_MAP_HTML
     if upload_file is not None:
         try:
             with open(upload_file.name, "r", encoding="utf-8", errors="ignore") as f:
@@ -144,17 +145,26 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    msg = response.choices[0].message
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+        if not response.choices:
+            raise ValueError("Malformed response: choices list is empty.")
+        msg = response.choices[0].message
+    except Exception as e:
+        error_msg = f"Provider orchestration failed: {e}"
+        logging.error(error_msg)
+        history.append({"role": "assistant", "content": error_msg})
+        yield history, LAST_MAP_HTML
+        return
+
     logging.debug("LLM response: %s", msg)
-    global LAST_MAP_HTML
     map_html = ""
     table = ""
     if msg.function_call:
