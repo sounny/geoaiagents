@@ -114,15 +114,22 @@ def main():
     ]
 
     # LLM call
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call={"name": "convert_dd_to_dms"},  # force function call
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    message = response.choices[0].message
+    try:
+        response = client.chat.completions.create(
+            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+            messages=messages,
+            functions=functions,
+            function_call={"name": "convert_dd_to_dms"},  # force function call
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+        if not response.choices:
+            print("[ERROR] Provider returned an empty response choices.")
+            sys.exit(1)
+        message = response.choices[0].message
+    except Exception as e:
+        print(f"[ERROR] Provider connection failed: {e}")
+        sys.exit(1)
 
     # Execute function if called
     if message.function_call:
