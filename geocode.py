@@ -180,14 +180,18 @@ def main():
     ]
 
     # First interaction with the LLM
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
+    try:
+        response = client.chat.completions.create(
+            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+    except Exception as e:
+        print(f"Error communicating with LLM: {e}")
+        return
     message = response.choices[0].message
 
     # If LLM requests our function, execute and return results
@@ -198,12 +202,16 @@ def main():
         messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
         messages.append({"role": "function", "name": message.function_call.name, "content": table})
         # Send back to LLM for final formatting
-        second_resp = client.chat.completions.create(
-            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
+        try:
+            second_resp = client.chat.completions.create(
+                model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+        except Exception as e:
+            print(f"Error communicating with LLM: {e}")
+            return
         print(second_resp.choices[0].message.content)
         # Indicate datum and format
         print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
