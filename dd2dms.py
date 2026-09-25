@@ -114,14 +114,19 @@ def main():
     ]
 
     # LLM call
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call={"name": "convert_dd_to_dms"},  # force function call
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
+    try:
+        response = client.chat.completions.create(
+            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+            messages=messages,
+            functions=functions,
+            function_call={"name": "convert_dd_to_dms"},  # force function call
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+    except Exception as e:
+        print(f"Error communicating with LLM: {e}")
+        import sys
+        sys.exit(1)
     message = response.choices[0].message
 
     # Execute function if called
