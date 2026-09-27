@@ -138,3 +138,9 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added interactive terminal emulator for `geoai_cli.py`, `humboldt.py`, stdin piping, and custom STAC plugins.
 - Updated academic credentials and affiliations across ISU Strasbourg, UW-Madison, Texas State University, and UF.
 
+### 2026-09-27 - Provider-Specific CI Orchestration & Geocode Resiliency
+- Refactored `geocode.py` to use a globally shared `RateLimiter` configured with `max_retries=2` to enforce safe retry behavior across both `.geocode()` and `.reverse()` calls.
+- Resolved stale task issues by surfacing `timeout` directly into the `geolocator` requests, decoupling them from static initialization values.
+- Implemented robust CI orchestration (`.github/workflows/ci.yml`) leveraging `concurrency: cancel-in-progress: true` to prevent test bloat and runaway duplicate agents.
+- Enforced test determinism by mocking external network boundaries (`openai`, `geopy`, `sys.argv`, and `time.sleep`) in a new Pytest suite explicitly asserting CLI output streams via `capsys`.
+- Bound root-level package resolution via a `pytest.ini` configuration.
