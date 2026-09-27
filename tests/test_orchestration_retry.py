@@ -20,7 +20,7 @@ def test_call_llm_with_retry_malformed(mock_sleep):
     mock_response.choices = []
     client.chat.completions.create.return_value = mock_response
 
-    with pytest.raises(ValueError, match="LLM call failed after 3 attempts"):
+    with pytest.raises(ValueError, match="Malformed response: 'choices' missing or empty"):
         call_llm_with_retry(client, max_retries=3)
 
     assert client.chat.completions.create.call_count == 3
@@ -43,5 +43,16 @@ def test_call_llm_with_retry_timeout_then_success(mock_sleep):
     response = call_llm_with_retry(client, max_retries=3)
 
     assert response == mock_response
+    assert client.chat.completions.create.call_count == 3
+    assert mock_sleep.call_count == 2
+
+@patch("time.sleep")
+def test_call_llm_with_retry_timeout_exhausted(mock_sleep):
+    client = MagicMock()
+    client.chat.completions.create.side_effect = TimeoutError("Request timed out completely")
+
+    with pytest.raises(TimeoutError, match="Request timed out completely"):
+        call_llm_with_retry(client, max_retries=3)
+
     assert client.chat.completions.create.call_count == 3
     assert mock_sleep.call_count == 2

@@ -117,7 +117,9 @@ def main():
     ]
 
     # LLM call
-    response = client.chat.completions.create(
+    from llm_utils import call_llm_with_retry
+    response = call_llm_with_retry(
+        client,
         model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
         messages=messages,
         functions=functions,
