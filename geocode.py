@@ -4,7 +4,8 @@
 > pip install geopy
 """
 # Standard library imports
-import json  # to parse and format JSON for function arguments
+import json
+from llm_utils import call_llm_with_retry  # to parse and format JSON for function arguments
 import argparse
 import os
 # Third-party imports
@@ -14,6 +15,12 @@ from geopy.exc import GeocoderTimedOut, GeocoderServiceError  # handle geocoding
 from geopy.extra.rate_limiter import RateLimiter  # throttle requests
 
 from validation import format_invalid_notes, parse_coordinate_pairs
+
+
+# Global RateLimiters to enforce delays across sequential requests
+_geolocator = Nominatim(user_agent="my_geocoder_app")
+_geocode_limiter = RateLimiter(_geolocator.geocode, min_delay_seconds=1, max_retries=2)
+_reverse_limiter = RateLimiter(_geolocator.reverse, min_delay_seconds=1, max_retries=2)
 
 # Geocoding helper functions
 
@@ -36,14 +43,14 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
     tuple
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+
     try:
-        location = geocode(
+        location = _geocode_limiter(
             location_query,
             language=language,
             viewbox=bounding_box,
             bounded=bool(bounding_box),
+            timeout=timeout,
         )
         if location:
             return location.address, location.latitude, location.longitude
@@ -75,12 +82,11 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         Preferred language for address results (default ``"en"``).
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+
     rows = []
     for lat, lon in pairs:
         try:
-            location = reverse((lat, lon), language=language)
+            location = _reverse_limiter((lat, lon), language=language, timeout=timeout)
             address = location.address if location else "Not found"
         except (GeocoderTimedOut, GeocoderServiceError, Exception):
             address = "Not found"
@@ -180,7 +186,8 @@ def main():
     ]
 
     # First interaction with the LLM
-    response = client.chat.completions.create(
+    response = call_llm_with_retry(
+        client,
         model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
         messages=messages,
         functions=functions,
@@ -198,7 +205,8 @@ def main():
         messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
         messages.append({"role": "function", "name": message.function_call.name, "content": table})
         # Send back to LLM for final formatting
-        second_resp = client.chat.completions.create(
+        second_resp = call_llm_with_retry(
+            client,
             model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
             messages=messages,
             max_tokens=1000,

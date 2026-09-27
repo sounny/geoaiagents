@@ -6,6 +6,7 @@
 import argparse
 import os
 import logging
+from llm_utils import call_llm_with_retry
 import subprocess
 import sys
 import importlib.util
@@ -84,7 +85,7 @@ def is_package_installed(package_name):
 
 # Import modules that are definitely available; others imported after deps
 
-def main():
+def build_parser():
     parser = argparse.ArgumentParser(description="Interactive GeoAI agent")
     parser.add_argument(
         "--base-url",
@@ -122,6 +123,11 @@ def main():
         default=os.getenv("HUMBOLDT_DEBUG", "0") in ("1", "true", "True"),
         help="Enable debug logging",
     )
+    return parser
+
+def main():
+    parser = build_parser()
+
     args = parser.parse_args()
 
     if not args.skip_deps:
@@ -206,7 +212,8 @@ def main():
         steps = 0
         last_content_printed = False
         while steps <= args.max_steps:
-            response = client.chat.completions.create(
+            response = call_llm_with_retry(
+                client,
                 model=args.model,
                 messages=messages,
                 functions=functions,
