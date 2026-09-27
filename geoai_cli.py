@@ -182,15 +182,22 @@ def _run_chat_mode(args: argparse.Namespace, registry) -> int:
         steps = 0
 
         while steps <= args.max_steps:
-            response = client.chat.completions.create(
-                model=args.model,
-                messages=messages,
-                functions=functions,
-                function_call="auto",
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
-            message = response.choices[0].message
+            try:
+                response = client.chat.completions.create(
+                    model=args.model,
+                    messages=messages,
+                    functions=functions,
+                    function_call="auto",
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                if not response.choices:
+                    print("[ERROR] Provider returned an empty response choices.")
+                    break
+                message = response.choices[0].message
+            except Exception as e:
+                print(f"[ERROR] Provider connection failed: {e}")
+                break
             call = getattr(message, "function_call", None)
             if call:
                 if args.debug:

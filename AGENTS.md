@@ -138,3 +138,8 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added interactive terminal emulator for `geoai_cli.py`, `humboldt.py`, stdin piping, and custom STAC plugins.
 - Updated academic credentials and affiliations across ISU Strasbourg, UW-Madison, Texas State University, and UF.
 
+
+### 2026-10-27 - Reliability Improvements and Regression Testing
+- Added regression tests in `tests/test_agent_failures.py` to ensure provider failures (like API connection timeouts or empty `response.choices`) are gracefully handled without crashing the orchestration scripts.
+- Wrapped `client.chat.completions.create` calls in `try/except` blocks across `humboldt.py`, `geoai_cli.py`, `webchat.py`, `geocode.py`, and `dd2dms.py`.
+- Added validation for empty `response.choices` in all scripts to prevent `IndexError` on provider API failures.
