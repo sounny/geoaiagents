@@ -144,14 +144,19 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+    except Exception as e:
+        logging.error(f"Error communicating with LLM: {e}")
+        return f"Error communicating with LLM: {e}", "", "\n".join(log_history), ""
+
     msg = response.choices[0].message
     logging.debug("LLM response: %s", msg)
     global LAST_MAP_HTML
@@ -168,13 +173,17 @@ def respond(message: str, history: list[dict], upload_file=None):
         messages.append(
             {"role": "function", "name": msg.function_call.name, "content": table}
         )
-        second = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
-        reply = second.choices[0].message.content
+        try:
+            second = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            reply = second.choices[0].message.content
+        except Exception as e:
+            logging.error(f"Error communicating with LLM: {e}")
+            return f"Error communicating with LLM: {e}", LAST_MAP_HTML, "\n".join(log_history), table
         logging.info("LLM response received")
     else:
         reply = msg.content
@@ -198,13 +207,17 @@ def respond(message: str, history: list[dict], upload_file=None):
             messages.append(
                 {"role": "function", "name": "geocode_locations", "content": table}
             )
-            second = client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=messages,
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
-            reply = second.choices[0].message.content
+            try:
+                second = client.chat.completions.create(
+                    model=MODEL_NAME,
+                    messages=messages,
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                reply = second.choices[0].message.content
+            except Exception as e:
+                logging.error(f"Error communicating with LLM: {e}")
+                return f"Error communicating with LLM: {e}", LAST_MAP_HTML, "\n".join(log_history), table
     if map_html:
         LAST_MAP_HTML = map_html
     else:
