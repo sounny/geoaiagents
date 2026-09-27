@@ -148,3 +148,7 @@ Keep entries concise but informative. Include the date and a brief description o
 - Combined `tests/test_distance.py` and `tests/test_validation.py` so both suites run; left `tests/test_tool_registry.py` as added by this PR.
 - `pytest.ini` already matched `main` (`pythonpath = .`), so that add/add resolved without a content change.
 
+
+### 2026-09-27 - Provider Error Handling Update
+- Updated `call_llm_with_retry` in `llm_utils.py` to use `logging.exception` and explicitly re-raise the original provider exception upon retry exhaustion.
+- Corrected test assertions in `tests/test_orchestration_retry.py` and added a test specifically targeting the timeout exhaustion scenario.
