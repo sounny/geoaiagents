@@ -80,3 +80,58 @@ def test_retry_exhaustion_geoai_cli(mocker, capsys):
     captured = capsys.readouterr()
     assert "[INFO] Reached max tool-call steps for this turn." in captured.out
     assert mock_client.chat.completions.create.call_count == 2
+
+def test_humboldt_provider_failure_reporting(mocker, capsys):
+    """Test that Humboldt gracefully reports provider failures."""
+    mock_client = mocker.MagicMock()
+    mock_client.chat.completions.create.side_effect = Exception("Provider is down")
+
+    mocker.patch("openai.OpenAI", return_value=mock_client)
+    mocker.patch("humboldt.check_and_install_dependencies")
+    mocker.patch("builtins.input", side_effect=["find Paris", "exit"])
+    mocker.patch("sys.argv", ["humboldt.py", "--max-steps", "2"])
+
+    # Needs to disable sleep to run fast
+    mocker.patch("time.sleep")
+
+    humboldt.main()
+
+    captured = capsys.readouterr()
+    assert "Error communicating with provider" in captured.out
+
+def test_geoai_cli_provider_failure_reporting(mocker, capsys):
+    """Test that GeoAI CLI gracefully reports provider failures."""
+    mock_client = mocker.MagicMock()
+    mock_client.chat.completions.create.side_effect = Exception("Provider is down")
+
+    mocker.patch("openai.OpenAI", return_value=mock_client)
+    mocker.patch("builtins.input", side_effect=["find London", "exit"])
+    mocker.patch("sys.argv", ["geoai_cli.py", "chat", "--max-steps", "1"])
+
+    # Needs to disable sleep to run fast
+    mocker.patch("time.sleep")
+
+    try:
+        geoai_cli.main()
+    except SystemExit:
+        pass
+
+    captured = capsys.readouterr()
+    assert "Error communicating with provider" in captured.out
+
+def test_webchat_provider_failure_reporting(mocker, capsys):
+    """Test that WebChat gracefully reports provider failures."""
+    import webchat
+    import importlib
+    importlib.reload(webchat)
+
+    mock_client = mocker.MagicMock()
+    mock_client.chat.completions.create.side_effect = Exception("Provider is down")
+
+    # We can patch client directly on webchat module
+    mocker.patch("webchat.client", mock_client)
+    mocker.patch("time.sleep")
+
+    reply, map_html, logs, table = webchat.respond("find Paris", [])
+
+    assert "Error communicating with provider" in reply
