@@ -5,7 +5,9 @@ from llm_utils import call_llm_with_retry
 def test_call_llm_with_retry_success():
     client = MagicMock()
     mock_response = MagicMock()
-    mock_response.choices = ["some_choice"]
+    mock_choice = MagicMock()
+    mock_choice.message = "some_message"
+    mock_response.choices = [mock_choice]
     client.chat.completions.create.return_value = mock_response
 
     response = call_llm_with_retry(client, max_retries=3)
@@ -31,7 +33,9 @@ def test_call_llm_with_retry_timeout_then_success(mock_sleep):
     client = MagicMock()
 
     mock_response = MagicMock()
-    mock_response.choices = ["some_choice"]
+    mock_choice = MagicMock()
+    mock_choice.message = "some_message"
+    mock_response.choices = [mock_choice]
 
     # Fail first two times, succeed on the third
     client.chat.completions.create.side_effect = [

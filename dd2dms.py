@@ -6,6 +6,7 @@ import json
 import argparse
 import os
 from openai import OpenAI
+from llm_utils import call_llm_with_retry
 
 from validation import format_invalid_notes, parse_coordinate_pairs
 
@@ -117,14 +118,19 @@ def main():
     ]
 
     # LLM call
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call={"name": "convert_dd_to_dms"},  # force function call
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
+    try:
+        response = call_llm_with_retry(
+            client,
+            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+            messages=messages,
+            functions=functions,
+            function_call={"name": "convert_dd_to_dms"},  # force function call
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+    except Exception as e:
+        print(f"Error calling LLM: {e}")
+        return
     message = response.choices[0].message
 
     # Execute function if called
