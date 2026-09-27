@@ -144,15 +144,19 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = client.chat.completions.create(
-        model=MODEL_NAME,
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    msg = response.choices[0].message
+    try:
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+        msg = response.choices[0].message
+    except Exception as e:
+        logging.error(f"API connection failed: {e}")
+        return f"Error: API connection failed: {e}", LAST_MAP_HTML, "\n".join(log_history), ""
     logging.debug("LLM response: %s", msg)
     global LAST_MAP_HTML
     map_html = ""
@@ -168,13 +172,17 @@ def respond(message: str, history: list[dict], upload_file=None):
         messages.append(
             {"role": "function", "name": msg.function_call.name, "content": table}
         )
-        second = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
-        reply = second.choices[0].message.content
+        try:
+            second = client.chat.completions.create(
+                model=MODEL_NAME,
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            reply = second.choices[0].message.content
+        except Exception as e:
+            logging.error(f"API connection failed on second pass: {e}")
+            reply = f"Here is the raw data (I had an error responding):\n\n{table}"
         logging.info("LLM response received")
     else:
         reply = msg.content
@@ -198,13 +206,17 @@ def respond(message: str, history: list[dict], upload_file=None):
             messages.append(
                 {"role": "function", "name": "geocode_locations", "content": table}
             )
-            second = client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=messages,
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
-            reply = second.choices[0].message.content
+            try:
+                second = client.chat.completions.create(
+                    model=MODEL_NAME,
+                    messages=messages,
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                reply = second.choices[0].message.content
+            except Exception as e:
+                logging.error(f"API connection failed on auto-geocode second pass: {e}")
+                reply = f"Error: {e} (But here is the mapped location data:\n{table})"
     if map_html:
         LAST_MAP_HTML = map_html
     else:

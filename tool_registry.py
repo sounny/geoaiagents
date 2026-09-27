@@ -67,7 +67,7 @@ class ToolRegistry:
         try:
             return tool.handler(parsed)
         except Exception as exc:  # noqa: BLE001 - report and continue
-            logging.error("Tool '%s' failed: %s", tool_name, exc)
+            logging.exception("Tool '%s' failed: %s", tool_name, exc)
             return f"Error running {tool_name}: {exc}"
 
     def has_tool(self, tool_name: str) -> bool:

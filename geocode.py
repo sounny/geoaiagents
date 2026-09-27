@@ -13,6 +13,12 @@ from geopy.geocoders import Nominatim  # Nominatim geocoder for OpenStreetMap
 from geopy.exc import GeocoderTimedOut, GeocoderServiceError  # handle geocoding errors
 from geopy.extra.rate_limiter import RateLimiter  # throttle requests
 
+# Global, shared RateLimiter and geolocator to enforce minimum delays across requests
+_SHARED_GEOLOCATOR = Nominatim(user_agent="my_geocoder_app")
+_SHARED_GEOCODE = RateLimiter(_SHARED_GEOLOCATOR.geocode, min_delay_seconds=1, max_retries=2)
+_SHARED_REVERSE = RateLimiter(_SHARED_GEOLOCATOR.reverse, min_delay_seconds=1, max_retries=2)
+
+
 from validation import format_invalid_notes, parse_coordinate_pairs
 
 # Geocoding helper functions
@@ -36,14 +42,13 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
     tuple
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
     try:
-        location = geocode(
+        location = _SHARED_GEOCODE(
             location_query,
             language=language,
             viewbox=bounding_box,
             bounded=bool(bounding_box),
+            timeout=timeout,
         )
         if location:
             return location.address, location.latitude, location.longitude
@@ -75,12 +80,10 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         Preferred language for address results (default ``"en"``).
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
     rows = []
     for lat, lon in pairs:
         try:
-            location = reverse((lat, lon), language=language)
+            location = _SHARED_REVERSE((lat, lon), language=language, timeout=timeout)
             address = location.address if location else "Not found"
         except (GeocoderTimedOut, GeocoderServiceError, Exception):
             address = "Not found"
@@ -180,15 +183,23 @@ def main():
     ]
 
     # First interaction with the LLM
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    message = response.choices[0].message
+    try:
+        response = client.chat.completions.create(
+            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+        message = response.choices[0].message
+    except Exception as e:
+        print(f"[ERROR] API connection failed: {e}")
+        # Fallback: local geocoding
+        table = geocode_locations(user_input)
+        print(table)
+        print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
+        return
 
     # If LLM requests our function, execute and return results
     if message.function_call:
@@ -198,13 +209,17 @@ def main():
         messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
         messages.append({"role": "function", "name": message.function_call.name, "content": table})
         # Send back to LLM for final formatting
-        second_resp = client.chat.completions.create(
-            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
-        print(second_resp.choices[0].message.content)
+        try:
+            second_resp = client.chat.completions.create(
+                model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            print(second_resp.choices[0].message.content)
+        except Exception as e:
+            print(f"[ERROR] API connection failed: {e}")
+            print(table)
         # Indicate datum and format
         print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
     else:
