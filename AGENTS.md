@@ -138,3 +138,8 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added interactive terminal emulator for `geoai_cli.py`, `humboldt.py`, stdin piping, and custom STAC plugins.
 - Updated academic credentials and affiliations across ISU Strasbourg, UW-Madison, Texas State University, and UF.
 
+### 2026-09-27 - Merge main into DMS direction fix (#34)
+- Merged latest `main` (including #36 rollover rounding) into `fix-dms-direction-bug-1854197629837488013`.
+- Kept both the near-zero N/S-E/W direction fix and the seconds-rounding rollover fix in `dd2dms.py`.
+- Combined `tests/test_dd2dms.py` so #34's direction regression and #36's rollover/format tests both run.
+
