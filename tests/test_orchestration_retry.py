@@ -5,7 +5,9 @@ from llm_utils import call_llm_with_retry
 def test_call_llm_with_retry_success():
     client = MagicMock()
     mock_response = MagicMock()
-    mock_response.choices = ["some_choice"]
+    mock_choice = MagicMock()
+    mock_choice.message = "some_message"
+    mock_response.choices = [mock_choice]
     client.chat.completions.create.return_value = mock_response
 
     response = call_llm_with_retry(client, max_retries=3)
@@ -20,7 +22,7 @@ def test_call_llm_with_retry_malformed(mock_sleep):
     mock_response.choices = []
     client.chat.completions.create.return_value = mock_response
 
-    with pytest.raises(ValueError, match="LLM call failed after 3 attempts"):
+    with pytest.raises(ValueError, match="Malformed response: \'choices\' missing or empty"):
         call_llm_with_retry(client, max_retries=3)
 
     assert client.chat.completions.create.call_count == 3
@@ -31,7 +33,9 @@ def test_call_llm_with_retry_timeout_then_success(mock_sleep):
     client = MagicMock()
 
     mock_response = MagicMock()
-    mock_response.choices = ["some_choice"]
+    mock_choice = MagicMock()
+    mock_choice.message = "some_message"
+    mock_response.choices = [mock_choice]
 
     # Fail first two times, succeed on the third
     client.chat.completions.create.side_effect = [
@@ -43,5 +47,31 @@ def test_call_llm_with_retry_timeout_then_success(mock_sleep):
     response = call_llm_with_retry(client, max_retries=3)
 
     assert response == mock_response
+    assert client.chat.completions.create.call_count == 3
+    assert mock_sleep.call_count == 2
+
+@patch("time.sleep")
+def test_call_llm_with_retry_timeout(mock_sleep):
+    client = MagicMock()
+    client.chat.completions.create.side_effect = TimeoutError("Request timed out")
+
+    with pytest.raises(TimeoutError, match="Request timed out"):
+        call_llm_with_retry(client, max_retries=3)
+
+    assert client.chat.completions.create.call_count == 3
+    assert mock_sleep.call_count == 2
+
+@patch("time.sleep")
+def test_call_llm_with_retry_missing_message(mock_sleep):
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_choice = MagicMock()
+    del mock_choice.message
+    mock_response.choices = [mock_choice]
+    client.chat.completions.create.return_value = mock_response
+
+    with pytest.raises(ValueError, match="Malformed response: 'message' missing or empty"):
+        call_llm_with_retry(client, max_retries=3)
+
     assert client.chat.completions.create.call_count == 3
     assert mock_sleep.call_count == 2
