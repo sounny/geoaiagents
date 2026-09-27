@@ -148,3 +148,9 @@ Keep entries concise but informative. Include the date and a brief description o
 - Combined `tests/test_distance.py` and `tests/test_validation.py` so both suites run; left `tests/test_tool_registry.py` as added by this PR.
 - `pytest.ini` already matched `main` (`pythonpath = .`), so that add/add resolved without a content change.
 
+### 2026-10-01 - Orchestration Timeout Logic Fix
+- Audited `call_llm_with_retry` orchestration logic in `llm_utils.py`.
+- Fixed the final failure block to use `logging.exception(...)` so tracebacks are properly captured.
+- Modified the loop to re-raise the original exception rather than masking it in a generic `ValueError` when all retries are exhausted.
+- Updated intermediate retries to use `exc_info=True`.
+- Wrote targeted regression coverage (`test_call_llm_with_retry_reraises_original_exception`) and updated the malformed test case assertions to reflect the correct error surfacing.
