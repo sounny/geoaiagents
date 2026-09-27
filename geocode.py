@@ -180,15 +180,23 @@ def main():
     ]
 
     # First interaction with the LLM
-    response = client.chat.completions.create(
-        model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
-    message = response.choices[0].message
+    try:
+        response = client.chat.completions.create(
+            model="Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx",
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+        message = response.choices[0].message
+    except Exception as e:
+        print(f"[Error] Provider API failure: {e}")
+        # Fallback to local geocoding
+        table = geocode_locations(user_input)
+        print(table)
+        print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
+        return
 
     # If LLM requests our function, execute and return results
     if message.function_call:

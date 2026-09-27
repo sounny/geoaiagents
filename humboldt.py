@@ -206,15 +206,20 @@ def main():
         steps = 0
         last_content_printed = False
         while steps <= args.max_steps:
-            response = client.chat.completions.create(
-                model=args.model,
-                messages=messages,
-                functions=functions,
-                function_call="auto",
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
-            message = response.choices[0].message
+            try:
+                response = client.chat.completions.create(
+                    model=args.model,
+                    messages=messages,
+                    functions=functions,
+                    function_call="auto",
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                message = response.choices[0].message
+            except Exception as e:
+                print(f"[Error] Provider API failure: {e}")
+                break
+
             if args.debug:
                 print("[DEBUG] LLM message:", message)
 
