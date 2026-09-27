@@ -17,7 +17,14 @@ from validation import format_invalid_notes, parse_coordinate_pairs
 
 # Geocoding helper functions
 
+
+# Global shared geolocator and rate limiters to enforce minimum delays across sequential requests
+_global_geolocator = Nominatim(user_agent="my_geocoder_app", timeout=5)
+_shared_geocode = RateLimiter(_global_geolocator.geocode, min_delay_seconds=1, max_retries=2)
+_shared_reverse = RateLimiter(_global_geolocator.reverse, min_delay_seconds=1, max_retries=2)
+
 def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en"):
+
     """Query Nominatim for a single location string.
 
     Parameters
@@ -36,8 +43,7 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
     tuple
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+    geocode = _shared_geocode
     try:
         location = geocode(
             location_query,
@@ -75,8 +81,7 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
         Preferred language for address results (default ``"en"``).
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
-    geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+    reverse = _shared_reverse
     rows = []
     for lat, lon in pairs:
         try:
