@@ -1,5 +1,6 @@
 import json
 import logging
+from llm_utils import call_llm_with_retry
 import os
 import re
 
@@ -12,8 +13,8 @@ from tool_registry import DEFAULT_TOOL_COORD_PARSERS, create_registry, parse_too
 # Initialize OpenAI client using environment variables or defaults
 BASE_URL = os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/")
 API_KEY = os.getenv("OPENAI_API_KEY", "unused")
-MODEL_NAME = os.getenv(
-    "OPENAI_MODEL", "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
+MODEL_NAME = (
+    os.getenv("OPENAI_MODEL") or os.getenv("HUMBOLDT_MODEL") or "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
 )
 client = OpenAI(base_url=BASE_URL, api_key=API_KEY)
 
@@ -144,7 +145,8 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = client.chat.completions.create(
+    response = call_llm_with_retry(
+        client,
         model=MODEL_NAME,
         messages=messages,
         functions=functions,
@@ -168,7 +170,8 @@ def respond(message: str, history: list[dict], upload_file=None):
         messages.append(
             {"role": "function", "name": msg.function_call.name, "content": table}
         )
-        second = client.chat.completions.create(
+        second = call_llm_with_retry(
+            client,
             model=MODEL_NAME,
             messages=messages,
             max_tokens=1000,
@@ -198,12 +201,13 @@ def respond(message: str, history: list[dict], upload_file=None):
             messages.append(
                 {"role": "function", "name": "geocode_locations", "content": table}
             )
-            second = client.chat.completions.create(
-                model=MODEL_NAME,
-                messages=messages,
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
+            second = call_llm_with_retry(
+            client,
+            model=MODEL_NAME,
+            messages=messages,
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
             reply = second.choices[0].message.content
     if map_html:
         LAST_MAP_HTML = map_html
