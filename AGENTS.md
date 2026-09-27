@@ -143,3 +143,8 @@ Keep entries concise but informative. Include the date and a brief description o
 - Kept both the near-zero N/S-E/W direction fix and the seconds-rounding rollover fix in `dd2dms.py`.
 - Combined `tests/test_dd2dms.py` so #34's direction regression and #36's rollover/format tests both run.
 
+### 2026-09-27 - Merge main into core workflow tests (#41)
+- Merged latest `main` into `jules-1522192487418728040-560e7053` after #36 added overlapping distance and validation tests.
+- Combined `tests/test_distance.py` and `tests/test_validation.py` so both suites run; left `tests/test_tool_registry.py` as added by this PR.
+- `pytest.ini` already matched `main` (`pythonpath = .`), so that add/add resolved without a content change.
+
