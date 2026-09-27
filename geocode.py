@@ -37,7 +37,7 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
     geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
+    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1, max_retries=2)
     try:
         location = geocode(
             location_query,
@@ -76,7 +76,7 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
     geolocator = Nominatim(user_agent="my_geocoder_app", timeout=timeout)
-    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1)
+    reverse = RateLimiter(geolocator.reverse, min_delay_seconds=1, max_retries=2)
     rows = []
     for lat, lon in pairs:
         try:
