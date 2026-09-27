@@ -138,3 +138,8 @@ Keep entries concise but informative. Include the date and a brief description o
 - Added interactive terminal emulator for `geoai_cli.py`, `humboldt.py`, stdin piping, and custom STAC plugins.
 - Updated academic credentials and affiliations across ISU Strasbourg, UW-Madison, Texas State University, and UF.
 
+
+### 2026-09-24 - Handled API Edge Cases
+- Wrapped LLM calls in geoai_cli, humboldt, geocode, and webchat with try-except blocks
+- Allowed graceful degradation on API failures (falling back to direct tool execution or printing error messages instead of crashing)
+- Added testing for provider errors using unittest.mock in test_providers.py
