@@ -45,3 +45,15 @@ def test_call_llm_with_retry_timeout_then_success(mock_sleep):
     assert response == mock_response
     assert client.chat.completions.create.call_count == 3
     assert mock_sleep.call_count == 2
+
+@patch("time.sleep")
+def test_call_llm_with_retry_all_fail(mock_sleep):
+    client = MagicMock()
+    # Always fail
+    client.chat.completions.create.side_effect = TimeoutError("Request timed out")
+
+    with pytest.raises(ValueError, match="LLM call failed after 3 attempts"):
+        call_llm_with_retry(client, max_retries=3)
+
+    assert client.chat.completions.create.call_count == 3
+    assert mock_sleep.call_count == 2

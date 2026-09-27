@@ -48,6 +48,7 @@ def test_retry_exhaustion_humboldt(mocker, capsys):
     mocker.patch("humboldt.check_and_install_dependencies")
     mocker.patch("builtins.input", side_effect=["find Paris", "exit"])
     mocker.patch("sys.argv", ["humboldt.py", "--max-steps", "2"])
+    mocker.patch("time.sleep")
 
     humboldt.main()
 
@@ -71,6 +72,7 @@ def test_retry_exhaustion_geoai_cli(mocker, capsys):
     mocker.patch("openai.OpenAI", return_value=mock_client)
     mocker.patch("builtins.input", side_effect=["find London", "exit"])
     mocker.patch("sys.argv", ["geoai_cli.py", "chat", "--max-steps", "1"])
+    mocker.patch("time.sleep")
 
     try:
         geoai_cli.main()
