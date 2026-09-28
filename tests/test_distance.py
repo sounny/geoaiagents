@@ -35,3 +35,16 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_haversine_non_numeric():
+    with pytest.raises(TypeError, match="Coordinates must be numeric"):
+        _haversine_km("40.7128", -74.0060, 51.5074, -0.1278)
+
+    with pytest.raises(TypeError, match="Coordinates must be numeric"):
+        _haversine_km(40.7128, None, 51.5074, -0.1278)
+
+    with pytest.raises(TypeError, match="Coordinates must be numeric"):
+        _haversine_km(40.7128, -74.0060, "51.5074", -0.1278)
+
+    with pytest.raises(TypeError, match="Coordinates must be numeric"):
+        _haversine_km(40.7128, -74.0060, 51.5074, None)
