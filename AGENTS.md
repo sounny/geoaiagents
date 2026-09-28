@@ -148,3 +148,7 @@ Keep entries concise but informative. Include the date and a brief description o
 - Combined `tests/test_distance.py` and `tests/test_validation.py` so both suites run; left `tests/test_tool_registry.py` as added by this PR.
 - `pytest.ini` already matched `main` (`pythonpath = .`), so that add/add resolved without a content change.
 
+
+### 2026-09-28 - Add missing tool tests
+- Added test cases in `tests/test_tool_registry.py` for unknown tools handling (`has_tool` and `invoke`).
+- Verified expected `None` / `False` fallback behaviors in `tool_registry.py` do not raise unexpected exceptions.
