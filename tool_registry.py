@@ -6,16 +6,16 @@ import importlib
 import json
 import logging
 import os
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Optional
+from typing import Any
 
 from dd2dms import convert_dd_to_dms
 from distance import calculate_distance
 from file_loaders import fetch_geo_boundaries, load_csv, load_geojson, load_kml
 from geocode import geocode_locations, reverse_geocode_coordinates
 
-
-ToolHandler = Callable[[Dict[str, Any]], str]
+ToolHandler = Callable[[dict[str, Any]], str]
 
 
 @dataclass
@@ -24,7 +24,7 @@ class ToolDefinition:
 
     name: str
     description: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
     handler: ToolHandler
 
 
@@ -32,14 +32,14 @@ class ToolRegistry:
     """Registry for built-in and plugin tools."""
 
     def __init__(self) -> None:
-        self._tools: Dict[str, ToolDefinition] = {}
+        self._tools: dict[str, ToolDefinition] = {}
 
     def register_tool(
         self,
         *,
         name: str,
         description: str,
-        parameters: Dict[str, Any],
+        parameters: dict[str, Any],
         handler: ToolHandler,
     ) -> None:
         self._tools[name] = ToolDefinition(
@@ -49,7 +49,7 @@ class ToolRegistry:
             handler=handler,
         )
 
-    def openai_functions(self) -> list[Dict[str, Any]]:
+    def openai_functions(self) -> list[dict[str, Any]]:
         return [
             {
                 "name": tool.name,
@@ -59,15 +59,15 @@ class ToolRegistry:
             for tool in self._tools.values()
         ]
 
-    def invoke(self, tool_name: str, raw_args: Any) -> Optional[str]:
+    def invoke(self, tool_name: str, raw_args: Any) -> str | None:
         tool = self._tools.get(tool_name)
         if not tool:
             return None
         parsed = parse_tool_args(raw_args)
         try:
             return tool.handler(parsed)
-        except Exception as exc:  # noqa: BLE001 - report and continue
-            logging.exception("Tool '%s' failed: %s", tool_name, exc)
+        except Exception as exc:
+            logging.exception("Tool '%s' failed", tool_name)
             return f"Error running {tool_name}: {exc}"
 
     def has_tool(self, tool_name: str) -> bool:
@@ -86,7 +86,7 @@ DEFAULT_TOOL_COORD_PARSERS = {
 }
 
 
-def parse_tool_args(raw_args: Any) -> Dict[str, Any]:
+def parse_tool_args(raw_args: Any) -> dict[str, Any]:
     """Parse tool call args from JSON string or dict."""
     if isinstance(raw_args, dict):
         return raw_args
@@ -108,6 +108,12 @@ def create_registry() -> ToolRegistry:
 
 
 def _register_builtin_tools(registry: ToolRegistry) -> None:
+    _register_geocoding_tools(registry)
+    _register_coordinate_tools(registry)
+    _register_file_tools(registry)
+
+
+def _register_geocoding_tools(registry: ToolRegistry) -> None:
     registry.register_tool(
         name="geocode_locations",
         description="Geocode a list of locations and return a markdown table",
@@ -124,21 +130,6 @@ def _register_builtin_tools(registry: ToolRegistry) -> None:
         handler=lambda arguments: geocode_locations(arguments.get("locations", "")),
     )
     registry.register_tool(
-        name="convert_dd_to_dms",
-        description="Convert decimal-degree coordinates to DMS table",
-        parameters={
-            "type": "object",
-            "properties": {
-                "coordinates": {
-                    "type": "string",
-                    "description": "Newline- or semicolon-delimited DD lat,lon pairs",
-                }
-            },
-            "required": ["coordinates"],
-        },
-        handler=lambda arguments: convert_dd_to_dms(arguments.get("coordinates", "")),
-    )
-    registry.register_tool(
         name="reverse_geocode_coordinates",
         description="Reverse geocode lat/lon pairs to addresses",
         parameters={
@@ -152,6 +143,24 @@ def _register_builtin_tools(registry: ToolRegistry) -> None:
             "required": ["coordinates"],
         },
         handler=lambda arguments: reverse_geocode_coordinates(arguments.get("coordinates", "")),
+    )
+
+
+def _register_coordinate_tools(registry: ToolRegistry) -> None:
+    registry.register_tool(
+        name="convert_dd_to_dms",
+        description="Convert decimal-degree coordinates to DMS table",
+        parameters={
+            "type": "object",
+            "properties": {
+                "coordinates": {
+                    "type": "string",
+                    "description": "Newline- or semicolon-delimited DD lat,lon pairs",
+                }
+            },
+            "required": ["coordinates"],
+        },
+        handler=lambda arguments: convert_dd_to_dms(arguments.get("coordinates", "")),
     )
     registry.register_tool(
         name="calculate_distance",
@@ -168,6 +177,9 @@ def _register_builtin_tools(registry: ToolRegistry) -> None:
         },
         handler=lambda arguments: calculate_distance(arguments.get("coordinates", "")),
     )
+
+
+def _register_file_tools(registry: ToolRegistry) -> None:
     registry.register_tool(
         name="load_geojson",
         description="Load GeoJSON text and return a coordinate table",
@@ -250,5 +262,5 @@ def _load_plugins(registry: ToolRegistry) -> None:
                     "Plugin module '%s' has no callable register_tools(registry)",
                     module_name,
                 )
-        except Exception as exc:  # noqa: BLE001
-            logging.exception("Failed to load plugin module '%s': %s", module_name, exc)
+        except Exception:
+            logging.exception("Failed to load plugin module '%s'", module_name)
