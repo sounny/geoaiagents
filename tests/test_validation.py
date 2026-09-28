@@ -43,3 +43,21 @@ def test_format_invalid_notes():
     formatted = format_invalid_notes([("invalid", "Missing latitude/longitude pair")])
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
+
+def test_parse_coordinate_pairs_tab_separated():
+    text = "10\t20\n30.5\t-40.5"
+    pairs, invalid = parse_coordinate_pairs(text)
+    assert pairs == [(10.0, 20.0), (30.5, -40.5)]
+    assert len(invalid) == 0
+
+def test_parse_coordinate_pairs_mixed_comma_space():
+    text = "10,  20\n30 , 40\n50  ,  60"
+    pairs, invalid = parse_coordinate_pairs(text)
+    assert pairs == [(10.0, 20.0), (30.0, 40.0), (50.0, 60.0)]
+    assert len(invalid) == 0
+
+def test_parse_coordinate_pairs_three_tokens():
+    text = "10, 20, 30\n40 50 60\n70,80,90"
+    pairs, invalid = parse_coordinate_pairs(text)
+    assert pairs == [(10.0, 20.0), (40.0, 50.0), (70.0, 80.0)]
+    assert len(invalid) == 0
