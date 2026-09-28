@@ -228,7 +228,8 @@ def chat(message, history, upload_file):
     return history, map_html, logs, table
 
 
-def main():
+def build_ui():
+    """Construct and return the Gradio interface."""
     with gr.Blocks() as demo:
         with gr.Row():
             with gr.Column(scale=3):
@@ -257,6 +258,11 @@ def main():
             inputs=[message, chatbot, upload],
             outputs=[chatbot, map_box, log_box, data_box],
         )
+    return demo
+
+
+def main():
+    demo = build_ui()
     demo.launch()
 
 
