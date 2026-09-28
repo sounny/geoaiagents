@@ -37,3 +37,12 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_tool_registry_list_tools():
+    registry = ToolRegistry()
+    registry.register_tool(name="zeta", description="", parameters={}, handler=lambda x: None)
+    registry.register_tool(name="alpha", description="", parameters={}, handler=lambda x: None)
+    registry.register_tool(name="gamma", description="", parameters={}, handler=lambda x: None)
+
+    tools = registry.list_tools()
+    assert tools == ["alpha", "gamma", "zeta"]
