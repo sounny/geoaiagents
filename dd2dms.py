@@ -3,6 +3,7 @@
 > pip install openai
 """
 import json
+import math
 import argparse
 import os
 from openai import OpenAI
@@ -17,7 +18,7 @@ using OpenAI function-calling to pass data through the LLM.
 # Conversion helper functions
 def dd_to_dms_value(dd: float):
     """Convert a decimal degree value to DMS components with float seconds using total seconds."""
-    sign = -1 if dd < 0 else 1
+    sign = -1 if math.copysign(1, dd) < 0 else 1
     abs_dd = abs(dd)
     # Total seconds from decimal degrees
     total_seconds = abs_dd * 3600.0
@@ -46,10 +47,11 @@ def format_dms(deg: int, minutes: int, seconds: float, is_lat: bool, original_dd
     """Format DMS components into a string with two decimal places for seconds."""
     if original_dd is None:
         original_dd = deg
+    sign = math.copysign(1, original_dd)
     if is_lat:
-        direction = 'N' if original_dd >= 0 else 'S'
+        direction = 'N' if sign >= 0 else 'S'
     else:
-        direction = 'E' if original_dd >= 0 else 'W'
+        direction = 'E' if sign >= 0 else 'W'
     return f"{abs(deg)}°{minutes:02d}'{seconds:05.2f}\" {direction}"
 
 def convert_dd_to_dms(coordinates_str: str) -> str:
