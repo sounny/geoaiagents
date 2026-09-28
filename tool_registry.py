@@ -73,6 +73,9 @@ class ToolRegistry:
     def has_tool(self, tool_name: str) -> bool:
         return tool_name in self._tools
 
+    def list_tools(self) -> list[str]:
+        return sorted(self._tools.keys())
+
 
 DEFAULT_TOOL_COORD_PARSERS = {
     "geocode_locations": (2, 3),
