@@ -1,5 +1,5 @@
 import pytest
-from distance import _parse_distance_pairs, _haversine_km, calculate_distance
+from distance import _parse_distance_pairs, _haversine_km, calculate_distance, calculate_path_length
 
 def test_parse_distance_pairs():
     text = "0,0,10,10\n91,0,0,0\nabc,123,0,0\n10, 20, 30, 40"
@@ -35,3 +35,17 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_path_length():
+    text = "40.7128,-74.0060\n51.5074,-0.1278"
+    result = calculate_path_length(text)
+    assert "Total path length:" in result
+    assert "km" in result
+
+def test_calculate_path_length_single_point():
+    result = calculate_path_length("40.7128,-74.0060")
+    assert "Path length: 0.00 km (0.00 mi)" in result
+
+def test_calculate_path_length_empty():
+    result = calculate_path_length("")
+    assert result == "No valid coordinates provided."

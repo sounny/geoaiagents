@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional
 
 from dd2dms import convert_dd_to_dms
-from distance import calculate_distance
+from distance import calculate_distance, calculate_path_length
 from file_loaders import fetch_geo_boundaries, load_csv, load_geojson, load_kml
 from geocode import geocode_locations, reverse_geocode_coordinates
 
@@ -83,6 +83,7 @@ DEFAULT_TOOL_COORD_PARSERS = {
     "load_csv": (0, 1),
     "fetch_geo_boundaries": (0, 1),
     "calculate_distance": "distance",
+    "calculate_path_length": "distance",
 }
 
 
@@ -226,6 +227,24 @@ def _register_builtin_tools(registry: ToolRegistry) -> None:
             arguments.get("iso", ""),
             arguments.get("adm", "ADM0"),
         ),
+    )
+
+
+
+    registry.register_tool(
+        name="calculate_path_length",
+        description="Calculate total great-circle distance along a sequential path of coordinates",
+        parameters={
+            "type": "object",
+            "properties": {
+                "coordinates": {
+                    "type": "string",
+                    "description": "Newline- or semicolon-delimited lat,lon pairs",
+                }
+            },
+            "required": ["coordinates"],
+        },
+        handler=lambda arguments: calculate_path_length(arguments.get("coordinates", "")),
     )
 
 
