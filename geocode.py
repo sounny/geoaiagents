@@ -106,6 +106,12 @@ def geocode_locations(locations_str: str) -> str:
     """
     Geocode multiple locations and return a markdown-formatted table.
     """
+    if not locations_str.strip():
+        return "\n".join([
+            "| Input | Matched Address | Latitude | Longitude |",
+            "|-------|-----------------|----------|-----------|"
+        ])
+
     locations = parse_locations(locations_str)
     rows = []
     for loc in locations:
