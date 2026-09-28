@@ -4,6 +4,11 @@ Enable by setting:
     export GEOAI_PLUGIN_MODULES=plugins.example_plugin
 """
 
+try:
+    import requests
+except ImportError as exc:
+    raise ImportError("example_plugin requires the 'requests' package") from exc
+
 
 def register_tools(registry):
     """Register example tools with the shared registry."""
