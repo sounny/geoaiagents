@@ -80,3 +80,48 @@ def test_retry_exhaustion_geoai_cli(mocker, capsys):
     captured = capsys.readouterr()
     assert "[INFO] Reached max tool-call steps for this turn." in captured.out
     assert mock_client.chat.completions.create.call_count == 2
+
+def test_humboldt_tool_call_malformed_json(mocker, capsys):
+    """Test that malformed JSON from a provider in Humboldt returns a clear error."""
+    mock_client = mocker.MagicMock()
+
+    # First response: malformed tool call
+    mock_msg1 = mocker.MagicMock()
+    mock_msg1.content = None
+    mock_msg1.function_call = mocker.MagicMock()
+    mock_msg1.function_call.name = "geocode_locations"
+    mock_msg1.function_call.arguments = '{"locations": "Paris"' # Missing closing brace
+
+    # Second response: regular text message
+    mock_msg2 = mocker.MagicMock()
+    mock_msg2.content = "I encountered an error parsing the arguments."
+    mock_msg2.function_call = None
+
+    # Configure sequential responses
+    mock_resp1 = mocker.MagicMock()
+    mock_resp1.choices = [mocker.MagicMock(message=mock_msg1)]
+
+    mock_resp2 = mocker.MagicMock()
+    mock_resp2.choices = [mocker.MagicMock(message=mock_msg2)]
+
+    mock_client.chat.completions.create.side_effect = [mock_resp1, mock_resp2]
+
+    mocker.patch("openai.OpenAI", return_value=mock_client)
+    mocker.patch("humboldt.check_and_install_dependencies")
+    mocker.patch("builtins.input", side_effect=["find Paris", "exit"])
+    mocker.patch("sys.argv", ["humboldt.py", "--max-steps", "3"])
+
+    humboldt.main()
+
+    # Verify that the second call to chat.completions.create includes the error message in the messages list
+    assert mock_client.chat.completions.create.call_count == 2
+
+    # Extract the messages sent in the second call
+    call_kwargs = mock_client.chat.completions.create.call_args_list[1].kwargs
+    messages = call_kwargs["messages"]
+
+    # The last message should be from the 'function' role and contain the error text
+    last_msg = messages[-1]
+    assert last_msg["role"] == "function"
+    assert last_msg["name"] == "geocode_locations"
+    assert "Error: Invalid JSON arguments for tool geocode_locations" in last_msg["content"]
