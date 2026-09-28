@@ -35,3 +35,14 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_haversine_km_identical_points():
+    # Identical points should evaluate to exactly 0.0 without domain error
+    distance = _haversine_km(12.345678, 98.765432, 12.345678, 98.765432)
+    assert distance == 0.0
+
+def test_haversine_km_antipodal_points():
+    # Antipodal points should evaluate correctly without domain error
+    distance = _haversine_km(12.345678, 98.765432, -12.345678, -81.234568)
+    # Earth circumference is roughly 40075 km, antipodal is half
+    assert 20000 < distance < 20030
