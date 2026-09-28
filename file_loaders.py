@@ -14,9 +14,14 @@ def _table(coords):
 
 def load_geojson(geojson: str) -> str:
     """Parse GeoJSON text and return a markdown table of point coordinates."""
+    if not geojson or not geojson.strip():
+        raise ValueError("GeoJSON is empty")
+
     coords = []
     try:
         data = json.loads(geojson)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Corrupt GeoJSON: {e}")
     except Exception:
         return _table(coords)
 
