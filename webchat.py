@@ -136,6 +136,9 @@ def run_tool(function_call) -> tuple[str, str]:
 
 def respond(message: str, history: list[dict], upload_file=None):
     """Handle a chat message and return the agent's reply."""
+    global LAST_MAP_HTML
+    if not message.strip() and upload_file is None:
+        return "", LAST_MAP_HTML, "\n".join(log_history), ""
     if upload_file is not None:
         try:
             with open(upload_file.name, "r", encoding="utf-8", errors="ignore") as f:
@@ -156,7 +159,6 @@ def respond(message: str, history: list[dict], upload_file=None):
     )
     msg = response.choices[0].message
     logging.debug("LLM response: %s", msg)
-    global LAST_MAP_HTML
     map_html = ""
     table = ""
     if msg.function_call:
