@@ -6,6 +6,11 @@ import re
 
 import folium
 import gradio as gr
+
+from fastapi import FastAPI, Request
+from fastapi.responses import PlainTextResponse
+import uvicorn
+
 from openai import OpenAI
 
 from tool_registry import DEFAULT_TOOL_COORD_PARSERS, create_registry, parse_tool_args
@@ -31,6 +36,8 @@ log_history: list[str] = []
 
 def infer_location(message: str) -> str | None:
     """Return a location string if message looks like a map request."""
+    if not message:
+        return None
     m = re.search(r"for ([A-Za-z0-9, ]+)", message, re.IGNORECASE)
     if m:
         return m.group(1).strip()
@@ -228,12 +235,12 @@ def chat(message, history, upload_file):
     return history, map_html, logs, table
 
 
-def main():
+def build_ui():
     with gr.Blocks() as demo:
         with gr.Row():
             with gr.Column(scale=3):
                 map_box = gr.HTML(LAST_MAP_HTML, label="Map")
-                chatbot = gr.Chatbot(type="messages")
+                chatbot = gr.Chatbot(type="messages") if "type" in gr.Chatbot.__init__.__code__.co_varnames else gr.Chatbot()
                 message = gr.Textbox(label="Message")
                 send_btn = gr.Button("Send")
             with gr.Column(scale=1):
@@ -257,7 +264,25 @@ def main():
             inputs=[message, chatbot, upload],
             outputs=[chatbot, map_box, log_box, data_box],
         )
-    demo.launch()
+    return demo
+
+app = FastAPI()
+
+@app.middleware("http")
+async def block_unsupported_methods(request: Request, call_next):
+    if request.method not in ["GET", "POST"]:
+        return PlainTextResponse("Method Not Allowed", status_code=405)
+    return await call_next(request)
+
+def create_app():
+    demo = build_ui()
+    return gr.mount_gradio_app(app, demo, path="/")
+
+def main():
+    mounted_app = create_app()
+
+    uvicorn.run(mounted_app, host="127.0.0.1", port=7860)
+
 
 
 if __name__ == "__main__":
