@@ -37,3 +37,28 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_tool_registry_has_tool_unknown():
+    registry = ToolRegistry()
+    assert registry.has_tool("unknown_tool") is False
+
+def test_tool_registry_has_tool_known():
+    registry = ToolRegistry()
+    registry.register_tool(
+        name="known_tool",
+        description="A known tool",
+        parameters={},
+        handler=lambda x: "success"
+    )
+    assert registry.has_tool("known_tool") is True
+
+def test_tool_registry_invoke_unknown_with_populated_registry():
+    registry = ToolRegistry()
+    registry.register_tool(
+        name="known_tool",
+        description="A known tool",
+        parameters={},
+        handler=lambda x: "success"
+    )
+    result = registry.invoke("unknown_tool", {})
+    assert result is None
