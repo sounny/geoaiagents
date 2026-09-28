@@ -35,3 +35,19 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_haversine_km_identical():
+    # Test for floating-point inaccuracies that could result in math domain error
+    distance = _haversine_km(12.3456789, 98.7654321, 12.3456789, 98.7654321)
+    assert distance == 0.0
+
+def test_haversine_km_antipodal():
+    # Test for antipodal points that could result in a slightly >1 'a' value
+    # North Pole to South Pole
+    distance = _haversine_km(90.0, 0.0, -90.0, 0.0)
+    # The max distance should be around 20015 km (half of circumference)
+    assert 20000 < distance < 20020
+
+    # Opposite points on the equator
+    distance_eq = _haversine_km(0.0, 0.0, 0.0, 180.0)
+    assert 20000 < distance_eq < 20020
