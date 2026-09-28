@@ -1,6 +1,7 @@
-"""Run this model in Python
+"""Interactive GeoAI agent
 
-> pip install openai
+Usage:
+    python3 humboldt.py
 """
 
 import argparse
