@@ -3,3 +3,4 @@ geopy>=2.0
 gradio>=3.50
 folium>=0.14
 requests>=2.0
+defusedxml>=0.7.1
