@@ -1,3 +1,4 @@
+import math
 import pytest
 from validation import is_valid_lat_lon, parse_coordinate_pairs, format_invalid_notes
 
@@ -43,3 +44,50 @@ def test_format_invalid_notes():
     formatted = format_invalid_notes([("invalid", "Missing latitude/longitude pair")])
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
+
+
+def test_is_valid_lat_lon_bad_types():
+    with pytest.raises(TypeError):
+        is_valid_lat_lon(None, 0) # type: ignore
+    with pytest.raises(TypeError):
+        is_valid_lat_lon(0, None) # type: ignore
+    with pytest.raises(TypeError):
+        is_valid_lat_lon("90", 0) # type: ignore
+    with pytest.raises(TypeError):
+        is_valid_lat_lon(0, "180") # type: ignore
+
+def test_is_valid_lat_lon_exceeding_bounds():
+    assert is_valid_lat_lon(90.000001, 0) is False
+    assert is_valid_lat_lon(-90.000001, 0) is False
+    assert is_valid_lat_lon(0, 180.000001) is False
+    assert is_valid_lat_lon(0, -180.000001) is False
+    assert is_valid_lat_lon(math.inf, 0) is False
+    assert is_valid_lat_lon(0, math.inf) is False
+    assert is_valid_lat_lon(-math.inf, 0) is False
+    assert is_valid_lat_lon(0, -math.inf) is False
+    assert is_valid_lat_lon(math.nan, 0) is False
+    assert is_valid_lat_lon(0, math.nan) is False
+
+def test_parse_coordinate_pairs_empty_and_whitespace():
+    pairs, invalid = parse_coordinate_pairs("")
+    assert not pairs
+    assert not invalid
+
+    pairs, invalid = parse_coordinate_pairs(None) # type: ignore
+    assert not pairs
+    assert not invalid
+
+    pairs, invalid = parse_coordinate_pairs("   \n  \t ")
+    assert not pairs
+    assert not invalid
+
+def test_parse_coordinate_pairs_inf_and_nan():
+    pairs, invalid = parse_coordinate_pairs("inf, 0\n0, nan\n-inf, -inf")
+    assert not pairs
+    assert len(invalid) == 3
+    assert invalid[0] == ("inf, 0", "Out of range (-90 <= lat <= 90, -180 <= lon <= 180)")
+    assert invalid[1] == ("0, nan", "Out of range (-90 <= lat <= 90, -180 <= lon <= 180)")
+    assert invalid[2] == ("-inf, -inf", "Out of range (-90 <= lat <= 90, -180 <= lon <= 180)")
+
+def test_format_invalid_notes_empty():
+    assert format_invalid_notes([]) == ""
