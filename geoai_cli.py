@@ -237,8 +237,8 @@ def main() -> int:
     if args.command in {"geocode", "reverse", "dms", "distance", "boundaries", "run-tool"}:
         return _run_tool_command(args, registry)
 
-    parser.print_help()
-    return 0
+    parser.print_usage(sys.stderr)
+    return 2
 
 
 if __name__ == "__main__":
