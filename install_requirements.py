@@ -10,12 +10,18 @@ import argparse
 
 def read_requirements(file_path="requirements.txt"):
     """Read and parse requirements from requirements.txt file."""
-    if not os.path.exists(file_path):
+
+    repo_root = os.path.abspath(os.path.dirname(__file__))
+    resolved_path = os.path.abspath(file_path)
+    if os.path.commonpath([repo_root, resolved_path]) != repo_root:
+        raise ValueError("Path traversal detected: path outside repository")
+
+    if not os.path.exists(resolved_path):
         print(f"Error: {file_path} not found!")
         return []
     
     requirements = []
-    with open(file_path, 'r') as f:
+    with open(resolved_path, 'r') as f:
         for line in f:
             line = line.strip()
             # Skip empty lines and comments
