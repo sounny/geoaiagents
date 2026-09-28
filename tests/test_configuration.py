@@ -86,14 +86,104 @@ def test_plugin_loading_with_env(mocker):
     env_vars = {
         "GEOAI_PLUGIN_MODULES": "fake_plugin"
     }
+    try:
+        with patch.dict(os.environ, env_vars, clear=True):
+            registry = tool_registry.create_registry()
+
+            # Verify the fake tool was loaded
+            assert "fake_tool" in registry._tools
+            tool_def = registry._tools.get("fake_tool")
+            assert tool_def is not None
+            assert tool_def.handler({}) == "fake_result"
+    finally:
+        # Clean up
+        del sys.modules["fake_plugin"]
+
+def test_humboldt_cli_args_fallback_model():
+    env_vars = {
+        "HUMBOLDT_MODEL": "fallback-model",
+        "PATH": os.environ.get("PATH", "")
+    }
     with patch.dict(os.environ, env_vars, clear=True):
+        import humboldt
+        import importlib
+        importlib.reload(humboldt)
+        parser = humboldt.build_parser()
+        args = parser.parse_args([])
+        assert args.model == "fallback-model"
+
+@pytest.mark.parametrize("debug_val, expected", [
+    ("1", True),
+    ("true", True),
+    ("True", True),
+    ("0", False),
+    ("false", False),
+    ("invalid", False),
+])
+def test_humboldt_cli_debug_parsing(debug_val, expected):
+    env_vars = {
+        "HUMBOLDT_DEBUG": debug_val,
+        "PATH": os.environ.get("PATH", "")
+    }
+    with patch.dict(os.environ, env_vars, clear=True):
+        import humboldt
+        import importlib
+        importlib.reload(humboldt)
+        parser = humboldt.build_parser()
+        args = parser.parse_args([])
+        assert args.debug == expected
+
+def test_humboldt_invalid_max_steps():
+    env_vars = {
+        "HUMBOLDT_MAX_STEPS": "invalid_int",
+        "PATH": os.environ.get("PATH", "")
+    }
+    with patch.dict(os.environ, env_vars, clear=True):
+        import humboldt
+        import importlib
+        importlib.reload(humboldt)
+        with pytest.raises(ValueError):
+            humboldt.build_parser()
+
+def test_plugin_loading_invalid_module(caplog):
+    env_vars = {
+        "GEOAI_PLUGIN_MODULES": "non_existent_module_123"
+    }
+    with patch.dict(os.environ, env_vars, clear=True):
+        import tool_registry
+        import importlib
+        importlib.reload(tool_registry)
         registry = tool_registry.create_registry()
+        assert "Failed to load plugin module 'non_existent_module_123'" in caplog.text
 
-        # Verify the fake tool was loaded
-        assert "fake_tool" in registry._tools
-        tool_def = registry._tools.get("fake_tool")
-        assert tool_def is not None
-        assert tool_def.handler({}) == "fake_result"
+def test_plugin_loading_missing_register(caplog):
+    import sys
+    from types import ModuleType
+    mock_plugin = ModuleType("plugin_without_register")
+    sys.modules["plugin_without_register"] = mock_plugin
 
-    # Clean up
-    del sys.modules["fake_plugin"]
+    env_vars = {
+        "GEOAI_PLUGIN_MODULES": "plugin_without_register"
+    }
+    try:
+        with patch.dict(os.environ, env_vars, clear=True):
+            import tool_registry
+            import importlib
+            importlib.reload(tool_registry)
+            registry = tool_registry.create_registry()
+            assert "has no callable register_tools(registry)" in caplog.text
+    finally:
+        del sys.modules["plugin_without_register"]
+
+
+def test_humboldt_cli_args_missing_model():
+    env_vars = {
+        "PATH": os.environ.get("PATH", "")
+    }
+    with patch.dict(os.environ, env_vars, clear=True):
+        import humboldt
+        import importlib
+        importlib.reload(humboldt)
+        parser = humboldt.build_parser()
+        args = parser.parse_args([])
+        assert args.model == "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
