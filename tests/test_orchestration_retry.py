@@ -8,7 +8,7 @@ def test_call_llm_with_retry_success():
     mock_response.choices = ["some_choice"]
     client.chat.completions.create.return_value = mock_response
 
-    response = call_llm_with_retry(client, max_retries=3)
+    response = call_llm_with_retry(client, max_retries=3, messages=[{'role': 'user', 'content': 'hi'}])
     assert response == mock_response
     assert client.chat.completions.create.call_count == 1
 
@@ -21,7 +21,7 @@ def test_call_llm_with_retry_malformed(mock_sleep):
     client.chat.completions.create.return_value = mock_response
 
     with pytest.raises(ValueError, match="LLM call failed after 3 attempts"):
-        call_llm_with_retry(client, max_retries=3)
+        call_llm_with_retry(client, max_retries=3, messages=[{'role': 'user', 'content': 'hi'}])
 
     assert client.chat.completions.create.call_count == 3
     assert mock_sleep.call_count == 2
@@ -40,8 +40,29 @@ def test_call_llm_with_retry_timeout_then_success(mock_sleep):
         mock_response
     ]
 
-    response = call_llm_with_retry(client, max_retries=3)
+    response = call_llm_with_retry(client, max_retries=3, messages=[{'role': 'user', 'content': 'hi'}])
 
     assert response == mock_response
     assert client.chat.completions.create.call_count == 3
     assert mock_sleep.call_count == 2
+
+def test_call_llm_with_retry_whitespace_only():
+    client = MagicMock()
+    with pytest.raises(ValueError, match="Prompt cannot be whitespace-only"):
+        call_llm_with_retry(client, max_retries=3, messages=[{'role': 'user', 'content': '   \n\t  '}])
+
+def test_call_llm_with_retry_none_messages():
+    client = MagicMock()
+    with pytest.raises(ValueError, match="Prompt cannot be None"):
+        call_llm_with_retry(client, max_retries=3, messages=None)
+
+def test_call_llm_with_retry_empty_messages():
+    client = MagicMock()
+    with pytest.raises(ValueError, match="Prompt cannot be empty"):
+        call_llm_with_retry(client, max_retries=3, messages=[])
+
+def test_call_llm_with_retry_oversized_messages():
+    client = MagicMock()
+    oversized_content = "a" * 1000001
+    with pytest.raises(ValueError, match="Prompt is oversized"):
+        call_llm_with_retry(client, max_retries=3, messages=[{'role': 'user', 'content': oversized_content}])
