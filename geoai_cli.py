@@ -32,6 +32,9 @@ def _build_parser() -> argparse.ArgumentParser:
         description="GeoAI CLI with direct geospatial tools and optional LLM chat mode."
     )
     parser.add_argument(
+        "-v", "--version", action="version", version="GeoAI CLI 1.0.0"
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         default=os.getenv("HUMBOLDT_DEBUG", "0") in ("1", "true", "True"),
