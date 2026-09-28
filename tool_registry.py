@@ -42,6 +42,8 @@ class ToolRegistry:
         parameters: Dict[str, Any],
         handler: ToolHandler,
     ) -> None:
+        if name in self._tools:
+            raise ValueError(f"Tool '{name}' is already registered.")
         self._tools[name] = ToolDefinition(
             name=name,
             description=description,
