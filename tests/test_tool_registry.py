@@ -37,3 +37,7 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_tool_registry_empty_functions():
+    registry = ToolRegistry()
+    assert registry.openai_functions() == []

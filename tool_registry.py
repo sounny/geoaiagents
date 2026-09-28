@@ -50,6 +50,7 @@ class ToolRegistry:
         )
 
     def openai_functions(self) -> list[Dict[str, Any]]:
+        """Return functions for OpenAI API. Returns empty list if no tools registered."""
         return [
             {
                 "name": tool.name,
