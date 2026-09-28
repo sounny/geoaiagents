@@ -120,7 +120,7 @@ def _read_value_or_stdin(value: str) -> str:
 def _tool_args_for(tool_name: str, payload: str, adm: str = "ADM0") -> dict:
     if tool_name == "geocode_locations":
         return {"locations": payload}
-    if tool_name in {"convert_dd_to_dms", "reverse_geocode_coordinates", "calculate_distance"}:
+    if tool_name in {"convert_dd_to_dms", "reverse_geocode_coordinates", "calculate_distance", "calculate_path_length"}:
         return {"coordinates": payload}
     if tool_name in TEXT_FIELD_BY_TOOL:
         return {TEXT_FIELD_BY_TOOL[tool_name]: payload}

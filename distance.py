@@ -77,6 +77,52 @@ def calculate_distance(coordinates: str) -> str:
     return "\n".join(lines) + format_invalid_notes(invalid)
 
 
+
+def _parse_path_points(
+    text: str,
+) -> Tuple[List[Tuple[float, float]], List[Tuple[str, str]]]:
+    points: List[Tuple[float, float]] = []
+    invalid: List[Tuple[str, str]] = []
+    lines = [line.strip() for line in re.split(r"\n|;", text or "") if line.strip()]
+    for line in lines:
+        parts = re.split(r"[,\s]+", line)
+        if len(parts) < 2:
+            invalid.append((line, "Expected lat, lon"))
+            continue
+        try:
+            lat, lon = map(float, parts[:2])
+        except ValueError:
+            invalid.append((line, "Not a number"))
+            continue
+        if not is_valid_lat_lon(lat, lon):
+            invalid.append((line, "Point out of range (-90 <= lat <= 90, -180 <= lon <= 180)"))
+            continue
+        points.append((lat, lon))
+    return points, invalid
+
+
+def calculate_path_length(coordinates: str) -> str:
+    """Calculate total great-circle distance along a sequential path of coordinates.
+
+    Input format: newline or semicolon separated lat,lon.
+    """
+    points, invalid = _parse_path_points(coordinates)
+    if not points:
+        return "No valid coordinates provided." + format_invalid_notes(invalid)
+
+    if len(points) == 1:
+        return "Path length: 0.00 km (0.00 mi) - single point provided." + format_invalid_notes(invalid)
+
+    total_km = 0.0
+    for i in range(len(points) - 1):
+        lat1, lon1 = points[i]
+        lat2, lon2 = points[i+1]
+        total_km += _haversine_km(lat1, lon1, lat2, lon2)
+
+    total_mi = total_km * 0.621371
+    return f"Total path length: {total_km:.2f} km ({total_mi:.2f} mi)" + format_invalid_notes(invalid)
+
+
 def main() -> None:
     user_input = input(
         "Enter coordinate pairs as lat1,lon1,lat2,lon2 (newline or semicolon separated):\n"
