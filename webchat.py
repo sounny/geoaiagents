@@ -143,6 +143,8 @@ def respond(message: str, history: list[dict], upload_file=None):
             message = f"{message}\n\nUploaded file `{os.path.basename(upload_file.name)}`:\n{file_text}"
         except Exception:
             pass
+    if len(message) > 15000:
+        raise gr.Error("Message payload too large")
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
     response = call_llm_with_retry(
