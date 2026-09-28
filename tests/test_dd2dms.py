@@ -34,3 +34,20 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_convert_dd_to_dms_negative_zero():
+    # Negative zero should map to S/W
+    res = convert_dd_to_dms("-0.0, -0.0\n0.0, 0.0")
+    # Using format_dms should show S and W for negative zero
+    assert "0°00'00.00\" S" in res
+    assert "0°00'00.00\" W" in res
+    assert "0°00'00.00\" N" in res
+    assert "0°00'00.00\" E" in res
+
+def test_convert_dd_to_dms_exact_90():
+    # Exactly +/- 90
+    res = convert_dd_to_dms("90.0, 180.0\n-90.0, -180.0")
+    assert "90°00'00.00\" N" in res
+    assert "180°00'00.00\" E" in res
+    assert "90°00'00.00\" S" in res
+    assert "180°00'00.00\" W" in res
