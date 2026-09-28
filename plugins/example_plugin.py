@@ -16,18 +16,19 @@ def register_tools(registry):
             f"| {endpoint} | plugin-ok |"
         )
 
-    registry.register_tool(
-        name="ping_api",
-        description="Example plugin tool to demonstrate external API integration",
-        parameters={
-            "type": "object",
-            "properties": {
-                "endpoint": {
-                    "type": "string",
-                    "description": "API endpoint name or URL to test",
-                }
+    if not registry.has_tool("ping_api"):
+        registry.register_tool(
+            name="ping_api",
+            description="Example plugin tool to demonstrate external API integration",
+            parameters={
+                "type": "object",
+                "properties": {
+                    "endpoint": {
+                        "type": "string",
+                        "description": "API endpoint name or URL to test",
+                    }
+                },
+                "required": ["endpoint"],
             },
-            "required": ["endpoint"],
-        },
-        handler=ping_api,
-    )
+            handler=ping_api,
+        )
