@@ -1,3 +1,4 @@
+from geopy.exc import GeocoderParseError
 import pytest
 from geocode import get_coordinates, reverse_geocode_coordinates
 
@@ -17,3 +18,16 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+
+def test_get_coordinates_parse_error(mocker):
+    # Mock _geocode_limiter to raise GeocoderParseError
+    mocker.patch("geocode._geocode_limiter", side_effect=GeocoderParseError("Unparseable response"))
+    result = get_coordinates("Some unparseable location")
+    assert result == (None, None, None)
+
+def test_reverse_geocode_parse_error(mocker):
+    # Mock _reverse_limiter to raise GeocoderParseError
+    mocker.patch("geocode._reverse_limiter", side_effect=GeocoderParseError("Unparseable response"))
+    result = reverse_geocode_coordinates("40.0, -70.0")
+    assert "| 40.0 | -70.0 | Not found |" in result
