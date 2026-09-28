@@ -130,6 +130,12 @@ def main():
 
     args = parser.parse_args()
 
+    if "api.openai.com" in args.base_url and args.api_key in ("unused", "", None):
+        print("Error: OPENAI_API_KEY is missing.")
+        print("Please set the OPENAI_API_KEY environment variable or use the --api-key flag")
+        print("when using the official OpenAI API (api.openai.com).")
+        sys.exit(1)
+
     if not args.skip_deps:
         check_and_install_dependencies()
 

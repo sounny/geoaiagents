@@ -97,3 +97,27 @@ def test_plugin_loading_with_env(mocker):
 
     # Clean up
     del sys.modules["fake_plugin"]
+
+def test_humboldt_missing_api_key(mocker, capsys):
+    # Mocking os.environ to use openai base url but default 'unused' api key
+    env_vars = {
+        "OPENAI_BASE_URL": "https://api.openai.com/v1/",
+        "OPENAI_API_KEY": "unused",
+        "PATH": os.environ.get("PATH", "")
+    }
+    with patch.dict(os.environ, env_vars, clear=True):
+        import humboldt
+        import importlib
+        importlib.reload(humboldt)
+
+        # Mock sys.argv to run humboldt
+        mocker.patch("sys.argv", ["humboldt.py", "--skip-deps"])
+
+        with pytest.raises(SystemExit) as e:
+            humboldt.main()
+
+        assert e.value.code == 1
+
+        captured = capsys.readouterr()
+        assert "Error: OPENAI_API_KEY is missing." in captured.out
+        assert "when using the official OpenAI API (api.openai.com)." in captured.out
