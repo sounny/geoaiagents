@@ -77,6 +77,20 @@ def calculate_distance(coordinates: str) -> str:
     return "\n".join(lines) + format_invalid_notes(invalid)
 
 
+def calculate_path_length(coordinates: Sequence[Tuple[float, float]]) -> float:
+    """Calculate total great-circle distance along a sequence of coordinates in km."""
+    if not coordinates:
+        return 0.0
+
+    total_distance = 0.0
+    for i in range(len(coordinates) - 1):
+        lat1, lon1 = coordinates[i]
+        lat2, lon2 = coordinates[i+1]
+        total_distance += _haversine_km(lat1, lon1, lat2, lon2)
+
+    return total_distance
+
+
 def main() -> None:
     user_input = input(
         "Enter coordinate pairs as lat1,lon1,lat2,lon2 (newline or semicolon separated):\n"

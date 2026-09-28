@@ -1,5 +1,5 @@
 import pytest
-from distance import _parse_distance_pairs, _haversine_km, calculate_distance
+from distance import _parse_distance_pairs, _haversine_km, calculate_distance, calculate_path_length
 
 def test_parse_distance_pairs():
     text = "0,0,10,10\n91,0,0,0\nabc,123,0,0\n10, 20, 30, 40"
@@ -35,3 +35,19 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_path_length_empty():
+    assert calculate_path_length([]) == 0.0
+
+def test_calculate_path_length_single():
+    assert calculate_path_length([(40.7128, -74.0060)]) == 0.0
+
+def test_calculate_path_length_multiple():
+    coords = [
+        (40.7128, -74.0060),  # NYC
+        (51.5074, -0.1278),   # London
+        (48.8566, 2.3522)     # Paris
+    ]
+    # NYC to London is ~5570km, London to Paris is ~343km
+    dist = calculate_path_length(coords)
+    assert 5800 < dist < 6000
