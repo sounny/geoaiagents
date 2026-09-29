@@ -8,7 +8,7 @@ def test_call_llm_with_retry_success():
     mock_response.choices = ["some_choice"]
     client.chat.completions.create.return_value = mock_response
 
-    response = call_llm_with_retry(client, max_retries=3)
+    response = call_llm_with_retry(client, max_retries=3, messages=[{'role': 'user', 'content': 'hi'}])
     assert response == mock_response
     assert client.chat.completions.create.call_count == 1
 
@@ -20,8 +20,8 @@ def test_call_llm_with_retry_malformed(mock_sleep):
     mock_response.choices = []
     client.chat.completions.create.return_value = mock_response
 
-    with pytest.raises(ValueError, match="LLM call failed after 3 attempts"):
-        call_llm_with_retry(client, max_retries=3)
+    with pytest.raises(ValueError, match="Malformed response: 'choices' missing or empty"):
+        call_llm_with_retry(client, max_retries=3, messages=[{'role': 'user', 'content': 'hi'}])
 
     assert client.chat.completions.create.call_count == 3
     assert mock_sleep.call_count == 2
@@ -40,8 +40,21 @@ def test_call_llm_with_retry_timeout_then_success(mock_sleep):
         mock_response
     ]
 
-    response = call_llm_with_retry(client, max_retries=3)
+    response = call_llm_with_retry(client, max_retries=3, messages=[{'role': 'user', 'content': 'hi'}])
 
     assert response == mock_response
     assert client.chat.completions.create.call_count == 3
     assert mock_sleep.call_count == 2
+
+@patch("time.sleep")
+def test_call_llm_with_retry_max_retries_1(mock_sleep):
+    client = MagicMock()
+    # Client always fails with a specific error
+    client.chat.completions.create.side_effect = TimeoutError("Request timed out")
+
+    # Should raise the original TimeoutError directly, not a ValueError wrapper
+    with pytest.raises(TimeoutError, match="Request timed out"):
+        call_llm_with_retry(client, max_retries=1, messages=[{'role': 'user', 'content': 'hi'}])
+
+    assert client.chat.completions.create.call_count == 1
+    assert mock_sleep.call_count == 0
