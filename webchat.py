@@ -33,7 +33,9 @@ def infer_location(message: str) -> str | None:
     """Return a location string if message looks like a map request."""
     m = re.search(r"for ([A-Za-z0-9, ]+)", message, re.IGNORECASE)
     if m:
-        return m.group(1).strip()
+        loc = m.group(1).strip()
+        if loc:
+            return loc
     return None
 
 
