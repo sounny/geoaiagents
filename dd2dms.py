@@ -56,7 +56,11 @@ def convert_dd_to_dms(coordinates_str: str) -> str:
     """
     Convert newline- or semicolon-delimited DD lat,lon pairs to a markdown table of DMS.
     """
-    pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
+    if not coordinates_str or not coordinates_str.strip():
+        pairs = []
+        invalid_entries = [('""', "Empty input")]
+    else:
+        pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
     rows = []
     for lat_dd, lon_dd in pairs:
         lat_d, lat_m, lat_s = dd_to_dms_value(lat_dd)
