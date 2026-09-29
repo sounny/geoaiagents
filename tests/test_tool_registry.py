@@ -37,3 +37,16 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_tool_registry_openai_functions():
+    registry = create_registry()
+    funcs = registry.openai_functions()
+    assert isinstance(funcs, list)
+    assert len(funcs) > 0
+    for func in funcs:
+        assert "name" in func
+        assert "description" in func
+        assert "parameters" in func
+
+    names = [func["name"] for func in funcs]
+    assert "convert_dd_to_dms" in names
