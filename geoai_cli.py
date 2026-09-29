@@ -110,6 +110,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def _read_value_or_stdin(value: str) -> str:
+    if value == "-":
+        return sys.stdin.read().strip()
     if value:
         return value
     if not sys.stdin.isatty():
