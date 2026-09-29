@@ -35,3 +35,10 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_distance_multiple_pairs():
+    text = "0,0,1,1\n2,2,3,3"
+    result = calculate_distance(text)
+    assert "Distance (km)" in result
+    lines = result.strip().split("\n")
+    assert len(lines) == 4
