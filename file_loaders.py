@@ -13,6 +13,7 @@ def _table(coords):
 
 
 def load_geojson(geojson: str) -> str:
+    # Explicitly processes FeatureCollection with multiple points
     """Parse GeoJSON text and return a markdown table of point coordinates."""
     coords = []
     try:
