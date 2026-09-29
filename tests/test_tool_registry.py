@@ -37,3 +37,8 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_parse_tool_args_dict_passthrough():
+    args = {"lat": 1, "lon": 2}
+    result = parse_tool_args(args)
+    assert result == {"lat": 1, "lon": 2}
