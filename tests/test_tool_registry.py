@@ -37,3 +37,14 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+
+def test_tool_registry_openai_functions():
+    registry = create_registry()
+    functions = registry.openai_functions()
+    assert isinstance(functions, list)
+    assert len(functions) > 0
+    for func in functions:
+        assert func.get("type") == "function"
+        assert "function" in func
+        assert isinstance(func["function"].get("name"), str)
