@@ -53,6 +53,8 @@ def calculate_distance(coordinates: str) -> str:
 
     Input format: newline or semicolon separated lat1,lon1,lat2,lon2.
     """
+    if not coordinates or not coordinates.strip():
+        return "No valid coordinate pairs provided."
 
     pairs, invalid = _parse_distance_pairs(coordinates)
     if not pairs:
