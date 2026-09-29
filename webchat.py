@@ -40,7 +40,7 @@ def infer_location(message: str) -> str | None:
 def create_map_html(points: list[tuple[float, float]]) -> str:
     """Return HTML for a folium map with given points."""
     if not points:
-        return ""
+        return '<div style="padding: 20px; text-align: center; color: gray;">No map data available.</div>'
     m = folium.Map(location=points[0], zoom_start=4)
     for lat, lon in points:
         folium.Marker([lat, lon]).add_to(m)
