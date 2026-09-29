@@ -63,8 +63,15 @@ class ToolRegistry:
         tool = self._tools.get(tool_name)
         if not tool:
             return None
-        parsed = parse_tool_args(raw_args)
+
+        if isinstance(raw_args, str) and raw_args.strip():
+            if not (raw_args.strip().startswith("{") or raw_args.strip().startswith("[")):
+                req = tool.parameters.get("required", [])
+                if req:
+                    raw_args = {req[0]: raw_args}
+
         try:
+            parsed = parse_tool_args(raw_args)
             return tool.handler(parsed)
         except Exception as exc:  # noqa: BLE001 - report and continue
             logging.exception("Tool '%s' failed: %s", tool_name, exc)
@@ -90,12 +97,18 @@ def parse_tool_args(raw_args: Any) -> Dict[str, Any]:
     """Parse tool call args from JSON string or dict."""
     if isinstance(raw_args, dict):
         return raw_args
+    if raw_args is None:
+        return {}
+    if isinstance(raw_args, list):
+        return {}
     if isinstance(raw_args, str):
-        try:
-            parsed = json.loads(raw_args or "{}")
-            return parsed if isinstance(parsed, dict) else {}
-        except json.JSONDecodeError:
+        if not raw_args:
             return {}
+        try:
+            parsed = json.loads(raw_args)
+            return parsed if isinstance(parsed, dict) else {}
+        except json.JSONDecodeError as exc:
+            raise ValueError(f"Invalid JSON string: {exc}")
     return {}
 
 
