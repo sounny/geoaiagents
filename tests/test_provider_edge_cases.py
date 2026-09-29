@@ -8,7 +8,8 @@ import geoai_cli
 
 def test_parse_tool_args_malformed():
     """Test that malformed JSON from a provider is handled gracefully."""
-    assert parse_tool_args("{invalid json") == {}
+    with pytest.raises(ValueError, match="Invalid JSON string for tool arguments"):
+        parse_tool_args("{invalid json")
     assert parse_tool_args("") == {}
     assert parse_tool_args(None) == {}
     assert parse_tool_args("[]") == {}
