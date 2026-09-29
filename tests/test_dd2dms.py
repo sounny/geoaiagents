@@ -34,3 +34,8 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_convert_dd_to_dms_single_numeric_token():
+    res = convert_dd_to_dms("48.8566")
+    assert "Missing latitude/longitude pair" in res
+    assert "48.8566" in res
