@@ -71,6 +71,10 @@ def load_kml(kml: str) -> str:
 def load_csv(csv_text: str) -> str:
     """Parse CSV text and return a markdown table of coordinates."""
     coords = []
+
+    if csv_text.startswith('\ufeff'):
+        csv_text = csv_text[1:]
+
     f = io.StringIO(csv_text)
     try:
         reader = csv.DictReader(f)
@@ -96,7 +100,6 @@ def load_csv(csv_text: str) -> str:
             continue
         coords.append((lat, lon))
     return _table(coords)
-
 
 def fetch_geo_boundaries(iso: str, adm: str = "ADM0") -> str:
     """Download simplified boundaries from geoBoundaries and return a table."""
