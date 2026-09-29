@@ -71,6 +71,8 @@ def load_kml(kml: str) -> str:
 def load_csv(csv_text: str) -> str:
     """Parse CSV text and return a markdown table of coordinates."""
     coords = []
+    if csv_text.startswith("\ufeff"):
+        csv_text = csv_text.lstrip("\ufeff")
     f = io.StringIO(csv_text)
     try:
         reader = csv.DictReader(f)
