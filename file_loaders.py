@@ -29,6 +29,7 @@ def load_geojson(geojson: str) -> str:
                     coords.append((lat, lon))
             elif obj.get("type") == "FeatureCollection":
                 for f in obj.get("features", []):
+                    # Process multiple features within a FeatureCollection
                     extract(f.get("geometry"))
             elif obj.get("type") == "Feature":
                 extract(obj.get("geometry"))
