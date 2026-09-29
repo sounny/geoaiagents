@@ -34,3 +34,14 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_convert_dd_to_dms_empty_string():
+    result = convert_dd_to_dms("")
+    assert '""` (Empty input)' in result
+
+def test_convert_dd_to_dms_invalid_token():
+    result = convert_dd_to_dms("foo, bar")
+    assert "`foo, bar` (Not a number)" in result
+
+    result = convert_dd_to_dms("foo")
+    assert "`foo` (Missing latitude/longitude pair)" in result
