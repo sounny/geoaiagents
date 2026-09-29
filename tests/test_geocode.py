@@ -14,6 +14,11 @@ def test_reverse_geocode_timeout_or_error(mocker):
 
 def test_reverse_geocode_invalid_inputs():
     result = reverse_geocode_coordinates("abc, def; 100, 200")
+    assert result == "Error: No valid coordinate pairs provided."
+
+def test_reverse_geocode_mixed_inputs(mocker):
+    mocker.patch("geocode._reverse_limiter", side_effect=Exception("Mocked timeout"))
+    result = reverse_geocode_coordinates("abc, def; 40.0, -70.0")
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
-    assert "100, 200" in result
+    assert "| 40.0 | -70.0 | Not found |" in result
