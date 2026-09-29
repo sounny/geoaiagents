@@ -34,3 +34,13 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_convert_dd_to_dms_invalid_only():
+    res = convert_dd_to_dms("not-a-pair\n91,0")
+    lines = res.splitlines()
+    assert len(lines) == 5
+    assert lines[0] == "| Latitude (DD) | Longitude (DD) | Latitude (DMS) | Longitude (DMS) |"
+    assert lines[1] == "|--------------:|---------------:|---------------|---------------|"
+    assert lines[2] == "_Skipped invalid inputs:_"
+    assert lines[3] == "- `not-a-pair` (Missing latitude/longitude pair)"
+    assert lines[4] == "- `91,0` (Out of range (-90 <= lat <= 90, -180 <= lon <= 180))"
