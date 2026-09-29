@@ -3,6 +3,7 @@ import csv
 import io
 import xml.etree.ElementTree as ET
 import requests
+from validation import format_invalid_notes
 
 
 def _table(coords):
@@ -71,6 +72,7 @@ def load_kml(kml: str) -> str:
 def load_csv(csv_text: str) -> str:
     """Parse CSV text and return a markdown table of coordinates."""
     coords = []
+    invalid = []
     f = io.StringIO(csv_text)
     try:
         reader = csv.DictReader(f)
@@ -87,15 +89,20 @@ def load_csv(csv_text: str) -> str:
         if lname in ("lon", "lng", "longitude", "x") and lon_field is None:
             lon_field = name
     if not lat_field or not lon_field:
-        return _table(coords)
+        for row in reader:
+            raw = ",".join(str(row.get(fn, "")) for fn in reader.fieldnames)
+            invalid.append((raw, "Missing latitude/longitude columns"))
+        return _table(coords) + format_invalid_notes(invalid)
     for row in reader:
         try:
             lat = float(row[lat_field])
             lon = float(row[lon_field])
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
+            raw = ",".join(str(row.get(fn, "")) for fn in reader.fieldnames)
+            invalid.append((raw, "Invalid coordinate data"))
             continue
         coords.append((lat, lon))
-    return _table(coords)
+    return _table(coords) + format_invalid_notes(invalid)
 
 
 def fetch_geo_boundaries(iso: str, adm: str = "ADM0") -> str:
