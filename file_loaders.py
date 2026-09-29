@@ -100,6 +100,8 @@ def load_csv(csv_text: str) -> str:
 
 def fetch_geo_boundaries(iso: str, adm: str = "ADM0") -> str:
     """Download simplified boundaries from geoBoundaries and return a table."""
+    if not iso or not iso.strip():
+        return _table([])
     url = f"https://www.geoboundaries.org/api/current/gbOpen/{iso.upper()}/{adm}/"
     try:
         info = requests.get(url, timeout=10)
