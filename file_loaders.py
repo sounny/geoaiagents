@@ -15,6 +15,7 @@ def _table(coords):
 def load_geojson(geojson: str) -> str:
     """Parse GeoJSON text and return a markdown table of point coordinates."""
     coords = []
+    invalid_notes = []
     try:
         data = json.loads(geojson)
     except Exception:
@@ -22,29 +23,44 @@ def load_geojson(geojson: str) -> str:
 
     def extract(obj):
         if isinstance(obj, dict):
-            if obj.get("type") == "Point":
+            geom_type = obj.get("type")
+            if geom_type == "Point":
                 c = obj.get("coordinates", [])
                 if len(c) >= 2:
                     lon, lat = c[:2]
                     coords.append((lat, lon))
-            elif obj.get("type") == "FeatureCollection":
+            elif geom_type == "FeatureCollection":
                 for f in obj.get("features", []):
-                    extract(f.get("geometry"))
-            elif obj.get("type") == "Feature":
-                extract(obj.get("geometry"))
+                    if isinstance(f, dict) and "geometry" in f:
+                        geom = f.get("geometry")
+                        if geom is not None and not isinstance(geom, dict):
+                            raise ValueError("Feature geometry must be a JSON object or null")
+                        extract(geom)
+            elif geom_type == "Feature":
+                if "geometry" in obj:
+                    geom = obj.get("geometry")
+                    if geom is not None and not isinstance(geom, dict):
+                        raise ValueError("Feature geometry must be a JSON object or null")
+                    extract(geom)
+            elif geom_type in ("LineString", "Polygon", "MultiPoint", "MultiLineString", "MultiPolygon", "GeometryCollection"):
+                invalid_notes.append(geom_type)
             else:
                 for v in obj.values():
                     extract(v)
         elif isinstance(obj, list):
-            if len(obj) >= 2 and all(isinstance(n, (int, float)) for n in obj[:2]):
-                lon, lat = obj[:2]
-                coords.append((lat, lon))
-            else:
-                for v in obj:
-                    extract(v)
+            for v in obj:
+                extract(v)
 
     extract(data)
-    return _table(coords)
+
+    result = _table(coords)
+    if invalid_notes:
+        from validation import format_invalid_notes
+        notes = [(t, "Non-Point geometry ignored") for t in invalid_notes]
+        result += "\n" + format_invalid_notes(notes)
+
+    return result
+
 
 
 def load_kml(kml: str) -> str:
