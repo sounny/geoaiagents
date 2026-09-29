@@ -34,3 +34,19 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_format_dms_explicit():
+    # positive lat → N
+    assert format_dms(45, 30, 15.123, is_lat=True, original_dd=45.5) == "45°30'15.12\" N"
+    # negative lat → S
+    assert format_dms(-45, 30, 15.123, is_lat=True, original_dd=-45.5) == "45°30'15.12\" S"
+    # positive lon → E
+    assert format_dms(45, 30, 15.123, is_lat=False, original_dd=45.5) == "45°30'15.12\" E"
+    # negative lon → W
+    assert format_dms(-45, 30, 15.123, is_lat=False, original_dd=-45.5) == "45°30'15.12\" W"
+    # seconds formatted to exactly two decimals (rounding down)
+    assert format_dms(10, 20, 30.111, is_lat=True, original_dd=10.0) == "10°20'30.11\" N"
+    # seconds formatted to exactly two decimals (rounding up)
+    assert format_dms(10, 20, 30.116, is_lat=True, original_dd=10.0) == "10°20'30.12\" N"
+    # seconds formatted with zero padding
+    assert format_dms(10, 20, 5.1, is_lat=True, original_dd=10.0) == "10°20'05.10\" N"
