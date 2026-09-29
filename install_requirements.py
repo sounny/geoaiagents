@@ -38,10 +38,10 @@ def install_package(package, method="auto"):
         # Standard pip install (may fail on managed environments)
         cmd = [sys.executable, "-m", "pip", "install", package]
         method_desc = "normally"
-    else:  # auto
-        # Try --user first, then fallback to --break-system-packages
+    elif method == "auto":
         return install_package_auto(package)
-    
+    else:
+        raise ValueError(f"Unsupported installation method: {method}")
     try:
         print(f"Installing {package} {method_desc}...")
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
