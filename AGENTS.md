@@ -148,3 +148,8 @@ Keep entries concise but informative. Include the date and a brief description o
 - Combined `tests/test_distance.py` and `tests/test_validation.py` so both suites run; left `tests/test_tool_registry.py` as added by this PR.
 - `pytest.ini` already matched `main` (`pythonpath = .`), so that add/add resolved without a content change.
 
+
+### 2026-10-01 - Raw string tool arguments fallback
+- Fixed a bug in `ToolRegistry.invoke` where raw string arguments (like `'48.8566,2.3522'`) would cause JSONDecodeError failures during agent orchestration.
+- Reimplemented `parse_tool_args` to throw an explicit `ValueError` when a malformed JSON string is parsed, rather than defaulting to `{}`.
+- Updated `invoke` to detect non-JSON string arguments, and automatically wrap them into a dict by mapping the string to the tool's first required property (if any). This allows tools to be invoked with simple strings directly.
