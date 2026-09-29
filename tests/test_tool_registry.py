@@ -37,3 +37,10 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_create_registry_builtins():
+    registry = create_registry()
+    assert registry.has_tool("geocode_locations")
+    assert registry.has_tool("calculate_distance")
+    assert registry.has_tool("load_kml")
+    assert not registry.has_tool("nope")
