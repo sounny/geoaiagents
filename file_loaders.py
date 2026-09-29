@@ -113,3 +113,29 @@ def fetch_geo_boundaries(iso: str, adm: str = "ADM0") -> str:
     except Exception:
         return _table([])
     return load_geojson(geo.text)
+
+if __name__ == "__main__":
+    import pytest
+    pytest.main(["-v", __file__])
+
+def test_load_geojson_point():
+    geojson_str = """
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [2.3, 48.8]
+      },
+      "properties": {}
+    }
+    """
+
+    result = load_geojson(geojson_str)
+
+    # Using internal formatting for robust checking
+    expected = _table([(48.8, 2.3)])
+    assert result == expected
+
+    # Also verify the coordinates are physically present in the result string
+    assert "48.8" in result
+    assert "2.3" in result
