@@ -88,6 +88,7 @@ DEFAULT_TOOL_COORD_PARSERS = {
 
 def parse_tool_args(raw_args: Any) -> Dict[str, Any]:
     """Parse tool call args from JSON string or dict."""
+    # Positive dict passthrough: if already a dict, return it directly
     if isinstance(raw_args, dict):
         return raw_args
     if isinstance(raw_args, str):
