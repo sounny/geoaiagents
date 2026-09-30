@@ -34,4 +34,9 @@ def test_calculate_distance_malformed():
 
 def test_calculate_distance_empty():
     result = calculate_distance("")
-    assert result == "No valid coordinate pairs provided."
+    assert result.startswith("No valid coordinate pairs provided.")
+
+def test_calculate_distance_not_a_pair():
+    result = calculate_distance("not-a-pair")
+    assert result.startswith("No valid coordinate pairs provided.")
+    assert "not-a-pair" in result
