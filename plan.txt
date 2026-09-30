@@ -1,0 +1,4 @@
+1. Create tests/test_webchat.py.
+2. Add test `test_parse_distance_table_valid_input` to verify that `parse_distance_table` correctly extracts coordinate pairs from a distance markdown table, ensuring this test is distinctly separated from any `extract_map_coords geocode_locations` or `create_map_html empty` tests.
+3. Run the new test with `pytest tests/test_webchat.py` to ensure it passes.
+4. Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
