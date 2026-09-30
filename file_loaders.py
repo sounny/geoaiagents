@@ -3,6 +3,7 @@ import csv
 import io
 import xml.etree.ElementTree as ET
 import requests
+import validation
 
 
 def _table(coords):
@@ -13,40 +14,60 @@ def _table(coords):
 
 
 def load_geojson(geojson: str) -> str:
+    # Handles Polygon geometries
     """Parse GeoJSON text and return a markdown table of point coordinates."""
     coords = []
+    invalid = []
+
     try:
         data = json.loads(geojson)
     except Exception:
-        return _table(coords)
+        return "Error: No coordinates found in GeoJSON data."
 
     def extract(obj):
         if isinstance(obj, dict):
-            if obj.get("type") == "Point":
+            geom_type = obj.get("type")
+            if geom_type == "FeatureCollection":
+                for f in obj.get("features", []):
+                    extract(f.get("geometry"))
+            elif geom_type == "Feature":
+                extract(obj.get("geometry"))
+            elif geom_type == "Point":
                 c = obj.get("coordinates", [])
                 if len(c) >= 2:
                     lon, lat = c[:2]
                     coords.append((lat, lon))
-            elif obj.get("type") == "FeatureCollection":
-                for f in obj.get("features", []):
-                    extract(f.get("geometry"))
-            elif obj.get("type") == "Feature":
-                extract(obj.get("geometry"))
+            elif geom_type == "MultiPoint":
+                for c in obj.get("coordinates", []):
+                    if len(c) >= 2:
+                        lon, lat = c[:2]
+                        coords.append((lat, lon))
+            elif geom_type == "Polygon":
+                rings = obj.get("coordinates", [])
+                if rings and len(rings) > 0:
+                    for c in rings[0]:
+                        if len(c) >= 2:
+                            lon, lat = c[:2]
+                            coords.append((lat, lon))
+            elif geom_type in ("LineString", "MultiLineString", "MultiPolygon", "GeometryCollection"):
+                invalid.append((geom_type, "Unsupported geometry type"))
             else:
                 for v in obj.values():
                     extract(v)
         elif isinstance(obj, list):
-            if len(obj) >= 2 and all(isinstance(n, (int, float)) for n in obj[:2]):
-                lon, lat = obj[:2]
-                coords.append((lat, lon))
-            else:
-                for v in obj:
-                    extract(v)
+            for v in obj:
+                extract(v)
 
     extract(data)
-    return _table(coords)
 
+    if not coords:
+        return "Error: No coordinates found in GeoJSON data."
 
+    result = _table(coords)
+    invalid_notes = validation.format_invalid_notes(invalid)
+    if invalid_notes:
+        result += "\n" + invalid_notes
+    return result
 def load_kml(kml: str) -> str:
     """Parse KML text and return a markdown table of coordinates."""
     coords = []
