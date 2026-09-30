@@ -35,3 +35,14 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_parse_distance_pairs_incomplete():
+    pairs, invalid = _parse_distance_pairs('48.8,2.3')
+    assert pairs == []
+    assert len(invalid) == 1
+    assert "Expected lat1" in invalid[0][1]
+
+def test_parse_distance_pairs_empty():
+    pairs, invalid = _parse_distance_pairs('')
+    assert pairs == []
+    assert invalid == []
