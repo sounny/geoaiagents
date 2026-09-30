@@ -10,6 +10,17 @@ def test_is_valid_lat_lon():
     assert is_valid_lat_lon(-91, 0) is False
     assert is_valid_lat_lon(0, -181) is False
 
+
+def test_is_valid_lat_lon_poles_and_antimeridian():
+    assert is_valid_lat_lon(90, 0) is True
+    assert is_valid_lat_lon(-90, 0) is True
+    assert is_valid_lat_lon(0, 180) is True
+    assert is_valid_lat_lon(0, -180) is True
+    assert is_valid_lat_lon(90.1, 0) is False
+    assert is_valid_lat_lon(-90.1, 0) is False
+    assert is_valid_lat_lon(0, 180.1) is False
+    assert is_valid_lat_lon(0, -180.1) is False
+
 def test_parse_coordinate_pairs():
     text = "0,0\n91,0\nabc,123\n10, 20"
     pairs, invalid = parse_coordinate_pairs(text)
