@@ -35,3 +35,14 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_parse_distance_pairs_point_b_out_of_range():
+    pairs, invalid = _parse_distance_pairs("0.0,0.0,91.0,0.0")
+    assert pairs == []
+    assert len(invalid) == 1
+    assert "Point B out of range" in invalid[0][1]
+
+def test_parse_distance_pairs_zero_coordinates():
+    pairs, invalid = _parse_distance_pairs("0.0,0.0,0.0,0.0")
+    assert pairs == [(0.0, 0.0, 0.0, 0.0)]
+    assert len(invalid) == 0
