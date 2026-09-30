@@ -1,0 +1,3 @@
+- In `file_loaders.py`, `load_geojson` should explicitly handle GeoJSON geometries like `Point`, `MultiPoint` and `GeometryCollection` while explicitly skipping unsupported geometries like `Polygon` and `LineString` by recording them in an invalid entries list.
+- Stripping BOM in `load_csv` using `csv_text = csv_text.lstrip('\ufeff')` is necessary before parsing using `io.StringIO` and `csv.DictReader` to correctly identify column names.
+- GeoJSON parsing can return "Error: No coordinates found in GeoJSON data." when no valid coordinates are extracted instead of returning an empty table.
