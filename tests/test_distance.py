@@ -35,3 +35,24 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_distance_two_pairs_semicolon():
+    text = "0,0,0,1;0,0,1,0"
+    result = calculate_distance(text)
+
+    assert "Distance (km)" in result
+
+    lines = result.strip().split("\n")
+    # Header + separator + two data rows = 4 lines
+    assert len(lines) == 4
+
+    # Parse the two data rows
+    row1 = lines[2].strip("|").split("|")
+    row2 = lines[3].strip("|").split("|")
+
+    # Extract km value which is at index 4
+    km1 = float(row1[4].strip())
+    km2 = float(row2[4].strip())
+
+    assert km1 > 0
+    assert km2 > 0
