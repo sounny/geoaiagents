@@ -27,6 +27,12 @@ def load_geojson(geojson: str) -> str:
                 if len(c) >= 2:
                     lon, lat = c[:2]
                     coords.append((lat, lon))
+            elif obj.get("type") == "LineString":
+                c = obj.get("coordinates", [])
+                for pt in c:
+                    if len(pt) >= 2:
+                        lon, lat = pt[:2]
+                        coords.append((lat, lon))
             elif obj.get("type") == "FeatureCollection":
                 for f in obj.get("features", []):
                     extract(f.get("geometry"))
