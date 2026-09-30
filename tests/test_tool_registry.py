@@ -37,3 +37,18 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_tool_registry_basic():
+    registry = ToolRegistry()
+    assert registry.has_tool('nope') is False
+    assert registry.invoke('nope', {}) is None
+
+    registry.register_tool(
+        name='ping',
+        description='d',
+        parameters={'type': 'object', 'properties': {}},
+        handler=lambda args: 'pong'
+    )
+
+    assert registry.has_tool('ping') is True
+    assert registry.invoke('ping', '{}') == 'pong'
