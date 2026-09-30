@@ -35,3 +35,16 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+import re
+
+def test_calculate_distance_positive_path():
+    text = "48.8566,2.3522,51.5074,-0.1278"
+    result = calculate_distance(text)
+
+    assert "Distance (km)" in result
+    assert "Distance (mi)" in result
+
+    # Check for at least one data row with numeric km and mi
+    # Regex checks for standard markdown table rows looking like: | ... | ... | ... | ... | 123.45 | 67.89 |
+    assert bool(re.search(r"\|\s*\d+\.\d+\s*\|\s*\d+\.\d+\s*\|", result))
