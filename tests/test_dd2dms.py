@@ -34,3 +34,11 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_format_dms_directions():
+    assert "N" in format_dms(48, 51, 23.76, True, 48.8566)
+    assert "°" in format_dms(48, 51, 23.76, True, 48.8566)
+    assert "'" in format_dms(48, 51, 23.76, True, 48.8566)
+    assert "E" in format_dms(2, 21, 7.92, False, 2.3522)
+    assert "S" in format_dms(33, 51, 0.0, True, -33.85)
+    assert "W" in format_dms(0, 7, 40.08, False, -0.1278)
