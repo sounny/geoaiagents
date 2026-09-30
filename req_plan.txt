@@ -1,0 +1,2 @@
+1. Add test for `geocode_locations('')` in `tests/test_geocode.py`. The test will verify that it returns a markdown table starting with `| Input | Matched Address | Latitude | Longitude |` plus separator `|-------|-----------------|----------|-----------|` and exactly zero data rows.
+2. Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
