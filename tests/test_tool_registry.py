@@ -37,3 +37,10 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_create_registry_has_tools():
+    registry = create_registry()
+    assert registry.has_tool('geocode_locations') is True
+    assert registry.has_tool('calculate_distance') is True
+    assert registry.has_tool('convert_dd_to_dms') is True
+    assert registry.has_tool('not_a_tool_xyz') is False
