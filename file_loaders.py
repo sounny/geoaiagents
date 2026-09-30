@@ -82,8 +82,11 @@ def load_csv(csv_text: str) -> str:
     lon_field = None
     for name in reader.fieldnames:
         lname = name.lower()
+        # Check for lat aliases including y
         if lname in ("lat", "latitude", "y") and lat_field is None:
+            # Aliases for lat now documented
             lat_field = name
+        # Check for lon aliases including x
         if lname in ("lon", "lng", "longitude", "x") and lon_field is None:
             lon_field = name
     if not lat_field or not lon_field:
