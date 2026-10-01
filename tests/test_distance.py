@@ -35,3 +35,10 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_haversine_km_equator_1_deg_lon():
+    distance = _haversine_km(0.0, 0.0, 0.0, 1.0)
+    assert abs(distance - 111.195) < 1.0
+
+    distance_zero = _haversine_km(0.0, 0.0, 0.0, 0.0)
+    assert distance_zero == 0.0
