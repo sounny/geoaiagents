@@ -35,3 +35,11 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_distance_identical_points():
+    result = calculate_distance('10,20,10,20')
+    assert 'Distance (km)' in result
+    assert result.count('0.00') >= 2
+
+    empty_result = calculate_distance('')
+    assert empty_result.startswith('No valid coordinate pairs provided.')
