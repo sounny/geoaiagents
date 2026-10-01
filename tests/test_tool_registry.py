@@ -37,3 +37,12 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_create_registry_has_tool_extended():
+    registry = create_registry()
+    assert registry.has_tool('convert_dd_to_dms') is True
+    assert registry.has_tool('reverse_geocode_coordinates') is True
+    assert registry.has_tool('load_kml') is True
+    assert registry.has_tool('load_csv') is True
+    assert registry.has_tool('fetch_geo_boundaries') is True
+    assert registry.has_tool('missing_tool_zzz') is False
