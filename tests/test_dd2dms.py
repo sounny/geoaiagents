@@ -34,3 +34,53 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_format_dms_hemisphere_specific_2_5_and_zero():
+    deg, minutes, seconds = dd_to_dms_value(2.5)
+
+    # original_dd=2.5, is_lat=False -> 'E'
+    res_e = format_dms(deg, minutes, seconds, is_lat=False, original_dd=2.5)
+    assert 'E' in res_e
+
+    # original_dd=-2.5, is_lat=False -> 'W'
+    res_w = format_dms(deg, minutes, seconds, is_lat=False, original_dd=-2.5)
+    assert 'W' in res_w
+
+    # original_dd=0, is_lat=True -> 'N' or 'S'
+    res_zero_lat = format_dms(deg, minutes, seconds, is_lat=True, original_dd=0.0)
+    assert 'N' in res_zero_lat or 'S' in res_zero_lat
+
+def test_dd_to_dms_value_zero_and_negative_2_5():
+    deg, minutes, seconds = dd_to_dms_value(0.0)
+    assert deg == 0
+    assert minutes == 0
+    assert pytest.approx(0.0, abs=0.01) == seconds
+
+    deg, minutes, seconds = dd_to_dms_value(-2.5)
+    assert abs(deg) == 2
+    assert minutes == 30
+    assert pytest.approx(0.0, abs=0.01) == seconds
+
+def test_dd_to_dms_value_components():
+    deg, minutes, seconds = dd_to_dms_value(48.8566)
+    assert deg == 48
+    assert minutes == 51
+    assert pytest.approx(23.76, abs=0.05) == seconds
+
+    deg, minutes, seconds = dd_to_dms_value(-0.1278)
+    assert abs(deg) == 0
+    assert minutes >= 7
+    assert pytest.approx(40.08, abs=0.05) == seconds
+
+def test_convert_dd_to_dms_invalid_inputs():
+    res = convert_dd_to_dms("91,0")
+    assert "| Latitude (DD) | Longitude (DD) | Latitude (DMS) | Longitude (DMS) |" in res
+    assert res.count("\n|") >= 1
+    assert "_Skipped invalid inputs:_" in res
+    assert "`91,0`" in res
+
+def test_convert_dd_to_dms_empty_string():
+    res = convert_dd_to_dms("")
+    assert "| Latitude (DD) | Longitude (DD) | Latitude (DMS) | Longitude (DMS) |" in res
+    assert "|--------------:|---------------:|---------------|---------------|" in res
+    assert res.count("\n|") == 1
