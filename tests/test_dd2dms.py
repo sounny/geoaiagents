@@ -34,3 +34,13 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_format_dms_southern_latitude():
+    deg, minutes, seconds = dd_to_dms_value(-33.8688)
+    res1 = format_dms(deg, minutes, seconds, is_lat=True, original_dd=-33.8688)
+    assert 'S' in res1
+    assert 'N' not in res1
+
+    deg2, minutes2, seconds2 = dd_to_dms_value(33.8688)
+    res2 = format_dms(deg2, minutes2, seconds2, is_lat=True, original_dd=33.8688)
+    assert 'N' in res2
