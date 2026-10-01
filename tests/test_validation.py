@@ -43,3 +43,11 @@ def test_format_invalid_notes():
     formatted = format_invalid_notes([("invalid", "Missing latitude/longitude pair")])
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
+def test_format_invalid_notes_three_skipped_entries():
+    assert format_invalid_notes([]) == ""
+    notes = format_invalid_notes([('91,0', 'Out of range'), ('x,y', 'Not a number'), ('1', 'Missing')])
+    assert "_Skipped invalid inputs:_" in notes
+    assert "`91,0`" in notes
+    assert "`x,y`" in notes
+    assert "`1`" in notes
+    assert "Out of range" in notes
