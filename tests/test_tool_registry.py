@@ -37,3 +37,9 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_parse_tool_args_pure_json_parse_helper():
+    assert parse_tool_args({'a': 1}) == {'a': 1}
+    assert parse_tool_args('[1, 2, 3]') == {}
+    assert parse_tool_args('not-json') == {}
+    assert parse_tool_args(None) == {}
