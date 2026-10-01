@@ -35,3 +35,10 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_haversine_km_antipodal():
+    distance = _haversine_km(0, 0, 0, 180)
+    assert abs(distance - 20015.0) < 50.0
+
+    distance_zero = _haversine_km(10, 20, 10, 20)
+    assert distance_zero == 0.0
