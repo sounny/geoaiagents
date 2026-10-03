@@ -35,3 +35,20 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_distance_pure_math_parse():
+    res_empty = calculate_distance('')
+    assert "No valid coordinate" in res_empty
+
+    res_not_pairs = calculate_distance('not-pairs')
+    assert "No valid" in res_not_pairs
+
+    res_valid = calculate_distance('0,0,0,1')
+    assert "Distance" in res_valid
+
+    # check that it's markdown with numeric km > 0
+    lines = [line for line in res_valid.strip().split('\n') if "|" in line]
+    data_row = lines[2] # skip headers and sep
+    parts = [p.strip() for p in data_row.split('|') if p.strip()]
+    km_val = float(parts[4])
+    assert km_val > 0
