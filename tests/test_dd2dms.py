@@ -34,3 +34,18 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_dd_to_dms_value_60_5():
+    # Test converting 60.5 to check degrees, minutes 0-59, seconds >=0 and <60
+    import math
+    deg, minutes, seconds = dd_to_dms_value(60.5)
+
+    assert deg == 60
+    assert minutes == 30
+    assert seconds == 0.0
+
+    assert 0 <= minutes <= 59
+    assert 0 <= seconds < 60
+
+    # degree sign follows the input
+    assert math.copysign(1, deg) == math.copysign(1, 60.5)
