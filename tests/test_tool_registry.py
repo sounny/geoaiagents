@@ -37,3 +37,15 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_parse_tool_args_dict_same_keys():
+    assert parse_tool_args({'a': 1}) == {'a': 1}
+
+def test_parse_tool_args_locations_paris():
+    assert parse_tool_args('{"locations":"Paris"}') == {'locations': 'Paris'}
+
+def test_parse_tool_args_integer():
+    assert parse_tool_args(123) == {}
+
+def test_parse_tool_args_none():
+    assert parse_tool_args(None) == {}
