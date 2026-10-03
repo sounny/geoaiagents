@@ -3,6 +3,7 @@ import csv
 import io
 import xml.etree.ElementTree as ET
 import requests
+from validation import format_invalid_notes
 
 
 def _table(coords):
@@ -15,6 +16,7 @@ def _table(coords):
 def load_geojson(geojson: str) -> str:
     """Parse GeoJSON text and return a markdown table of point coordinates."""
     coords = []
+    invalid_notes = []
     try:
         data = json.loads(geojson)
     except Exception:
@@ -22,16 +24,26 @@ def load_geojson(geojson: str) -> str:
 
     def extract(obj):
         if isinstance(obj, dict):
-            if obj.get("type") == "Point":
+            geom_type = obj.get("type")
+            if geom_type == "Point":
                 c = obj.get("coordinates", [])
                 if len(c) >= 2:
                     lon, lat = c[:2]
                     coords.append((lat, lon))
-            elif obj.get("type") == "FeatureCollection":
+            elif geom_type == "FeatureCollection":
                 for f in obj.get("features", []):
-                    extract(f.get("geometry"))
-            elif obj.get("type") == "Feature":
-                extract(obj.get("geometry"))
+                    if isinstance(f, dict):
+                        if f.get("geometry") is None:
+                            invalid_notes.append(("null", "Null geometry"))
+                        else:
+                            extract(f.get("geometry"))
+            elif geom_type == "Feature":
+                if obj.get("geometry") is None:
+                    invalid_notes.append(("null", "Null geometry"))
+                else:
+                    extract(obj.get("geometry"))
+            elif geom_type in ("LineString", "Polygon", "MultiPoint", "MultiLineString", "MultiPolygon", "GeometryCollection"):
+                invalid_notes.append((geom_type, "Unsupported geometry"))
             else:
                 for v in obj.values():
                     extract(v)
@@ -44,7 +56,10 @@ def load_geojson(geojson: str) -> str:
                     extract(v)
 
     extract(data)
-    return _table(coords)
+    result = _table(coords)
+    if invalid_notes:
+        result += "\n" + format_invalid_notes(invalid_notes)
+    return result
 
 
 def load_kml(kml: str) -> str:
