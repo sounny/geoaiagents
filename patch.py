@@ -1,4 +1,9 @@
-import pytest
+with open('tests/test_tool_registry.py', 'r') as f:
+    content = f.read()
+
+# I will recreate the file completely for safety
+
+content = """import pytest
 from tool_registry import parse_tool_args, ToolRegistry, create_registry
 
 def test_parse_tool_args_dict():
@@ -42,3 +47,6 @@ def test_unknown_tool_and_invalid_json_args():
     assert create_registry().invoke('definitely_not_a_tool_zz', {}) is None
     assert parse_tool_args('{not json') == {}
     assert parse_tool_args('[1,2,3]') == {}
+"""
+with open('tests/test_tool_registry.py', 'w') as f:
+    f.write(content)
