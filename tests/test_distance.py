@@ -9,6 +9,44 @@ def test_parse_distance_pairs():
     assert invalid[0][0] == "91,0,0,0"
     assert invalid[1][0] == "abc,123,0,0"
 
+def test_parse_distance_pairs_tab_separated():
+    text = '48.8566\t2.3522\t51.5074\t-0.1278'
+    pairs, invalid = _parse_distance_pairs(text)
+    assert len(pairs) == 1
+    assert len(invalid) == 0
+    p = pairs[0]
+    assert abs(p[0] - 48.8566) < 1e-6
+    assert abs(p[1] - 2.3522) < 1e-6
+    assert abs(p[2] - 51.5074) < 1e-6
+    assert abs(p[3] - (-0.1278)) < 1e-6
+
+def test_parse_distance_pairs_empty():
+    pairs, invalid = _parse_distance_pairs('')
+    assert pairs == []
+
+def test_parse_distance_pairs_point_a_out_of_range():
+    pairs, invalid = _parse_distance_pairs('91.0,0.0,0.0,0.0')
+    assert pairs == []
+    assert len(invalid) == 1
+    assert "Point A out of range" in invalid[0][1]
+
+def test_parse_distance_pairs_point_b_out_of_range():
+    pairs, invalid = _parse_distance_pairs('0.0,0.0,91.0,0.0')
+    assert pairs == []
+    assert len(invalid) == 1
+    assert "Point B out of range" in invalid[0][1]
+
+def test_parse_distance_pairs_short_line():
+    pairs, invalid = _parse_distance_pairs('19,14')
+    assert pairs == []
+    assert len(invalid) == 1
+    assert "Expected lat1" in invalid[0][1]
+
+def test_parse_distance_pairs_all_zero():
+    pairs, invalid = _parse_distance_pairs('0.0,0.0,0.0,0.0')
+    assert pairs == [(0.0, 0.0, 0.0, 0.0)]
+    assert invalid == []
+
 def test_haversine_km():
     # New York to London
     distance = _haversine_km(40.7128, -74.0060, 51.5074, -0.1278)
