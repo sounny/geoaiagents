@@ -8,6 +8,7 @@ Enable by setting:
 def register_tools(registry):
     """Register example tools with the shared registry."""
 
+    # This tool is distinct from the builtin ping_unit
     def ping_api(arguments):
         endpoint = arguments.get("endpoint", "unknown")
         return (
