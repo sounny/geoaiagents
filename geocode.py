@@ -44,6 +44,9 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
         (matched address, latitude, longitude) if found otherwise ``(None, None, None)``.
     """
 
+    if not location_query.strip():
+        return None, None, None
+
     try:
         location = _geocode_limiter(
             location_query,
