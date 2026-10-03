@@ -97,3 +97,20 @@ def test_plugin_loading_with_env(mocker):
 
     # Clean up
     del sys.modules["fake_plugin"]
+
+def test_humboldt_parser_behavior():
+    import humboldt
+    parser = humboldt.build_parser()
+
+    # Assert it returns an ArgumentParser
+    assert isinstance(parser, argparse.ArgumentParser)
+
+    # Assert --help path does not crash (by calling format_help)
+    help_text = parser.format_help()
+    assert "Interactive GeoAI agent" in help_text
+
+    # Assert known flags path does not crash
+    args, unknown = parser.parse_known_args(["--debug", "--max-steps", "5", "--unknown-flag"])
+    assert args.debug is True
+    assert args.max_steps == 5
+    assert "--unknown-flag" in unknown

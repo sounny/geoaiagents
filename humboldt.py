@@ -128,7 +128,7 @@ def build_parser():
 def main():
     parser = build_parser()
 
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
     if not args.skip_deps:
         check_and_install_dependencies()
