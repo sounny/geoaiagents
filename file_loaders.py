@@ -87,7 +87,7 @@ def load_csv(csv_text: str) -> str:
         if lname in ("lon", "lng", "longitude", "x") and lon_field is None:
             lon_field = name
     if not lat_field or not lon_field:
-        return _table(coords)
+        return "Error: No coordinates found in CSV data."
     for row in reader:
         try:
             lat = float(row[lat_field])
