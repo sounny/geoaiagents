@@ -34,3 +34,10 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_convert_dd_to_dms_paris():
+    result = convert_dd_to_dms('48.8566,2.3522')
+    assert "Latitude (DMS)" in result
+    assert "Longitude (DMS)" in result
+    assert "N" in result
+    assert "E" in result
