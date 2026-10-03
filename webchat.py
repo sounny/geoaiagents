@@ -90,6 +90,17 @@ def parse_distance_table(table: str) -> list[tuple[float, float]]:
 
 
 def extract_map_coords(tool_name: str, table: str) -> list[tuple[float, float]]:
+    if tool_name == "geocode_locations":
+        coords = []
+        for line in table.splitlines()[2:]:
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) >= 4:
+                try:
+                    coords.append((float(cells[2]), float(cells[3])))
+                except ValueError:
+                    continue
+        return coords
+
     parser = DEFAULT_TOOL_COORD_PARSERS.get(tool_name)
     if parser == "distance":
         return parse_distance_table(table)
