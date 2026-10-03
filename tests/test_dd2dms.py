@@ -1,6 +1,15 @@
 import pytest
 from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms
 
+import math
+
+def test_dd_to_dms_value_33_333():
+    deg, minutes, seconds = dd_to_dms_value(33.333)
+    assert (deg, minutes, seconds) == (33, 19, pytest.approx(58.8, abs=0.01))
+    assert 0 <= minutes <= 59
+    assert 0 <= seconds < 60
+    assert math.copysign(1, deg) == math.copysign(1, 33.333)
+
 def test_dd_to_dms_value():
     assert dd_to_dms_value(40.7128) == (40, 42, pytest.approx(46.08, abs=0.01))
     assert dd_to_dms_value(-74.0060) == (-74, 0, pytest.approx(21.6, abs=0.01))
