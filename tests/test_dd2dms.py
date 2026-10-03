@@ -34,3 +34,19 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_dd_to_dms_value_rollover_normalize():
+    assert dd_to_dms_value(0.0) == (0, 0, 0.0)
+    # 0.999999 is 3599.9964 seconds.
+    # 3599.9964 // 3600 = 0 degrees.
+    # rem = 3599.9964. minutes = 3599.9964 // 60 = 59 minutes.
+    # rem_seconds = 59.9964. round(59.9964, 2) = 60.0.
+    # rollover makes seconds = 0.0, minutes = 60.
+    # rollover makes minutes = 0, degrees = 1.
+    res = dd_to_dms_value(0.999999)
+    assert res[1] < 60
+    assert res[2] < 60
+    assert res == (1, 0, 0.0)
+
+    # -2.5 is -2 degrees, 30 minutes, 0 seconds.
+    assert dd_to_dms_value(-2.5) == (-2, 30, 0.0)
