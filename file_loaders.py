@@ -3,6 +3,7 @@ import csv
 import io
 import xml.etree.ElementTree as ET
 import requests
+import validation
 
 
 def _table(coords):
@@ -15,6 +16,7 @@ def _table(coords):
 def load_geojson(geojson: str) -> str:
     """Parse GeoJSON text and return a markdown table of point coordinates."""
     coords = []
+    invalid = []
     try:
         data = json.loads(geojson)
     except Exception:
@@ -27,6 +29,14 @@ def load_geojson(geojson: str) -> str:
                 if len(c) >= 2:
                     lon, lat = c[:2]
                     coords.append((lat, lon))
+            elif obj.get("type") == "MultiPoint":
+                c_list = obj.get("coordinates", [])
+                for c in c_list:
+                    if len(c) >= 2:
+                        lon, lat = c[:2]
+                        coords.append((lat, lon))
+            elif obj.get("type") in ("LineString", "Polygon", "MultiLineString", "MultiPolygon"):
+                invalid.append((obj.get("type"), "Unsupported geometry type"))
             elif obj.get("type") == "FeatureCollection":
                 for f in obj.get("features", []):
                     extract(f.get("geometry"))
@@ -44,7 +54,12 @@ def load_geojson(geojson: str) -> str:
                     extract(v)
 
     extract(data)
-    return _table(coords)
+    result = _table(coords)
+    if invalid:
+        notes = validation.format_invalid_notes(invalid)
+        if notes:
+            result += "\n" + notes
+    return result
 
 
 def load_kml(kml: str) -> str:
