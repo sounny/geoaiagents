@@ -43,3 +43,8 @@ def test_format_invalid_notes():
     formatted = format_invalid_notes([("invalid", "Missing latitude/longitude pair")])
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
+
+def test_parse_coordinate_pairs_semicolon():
+    pairs, invalid = parse_coordinate_pairs("48.8,2.3;40.7,-74.0")
+    assert pairs == [(48.8, 2.3), (40.7, -74.0)]
+    assert len(invalid) == 0
