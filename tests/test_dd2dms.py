@@ -1,3 +1,4 @@
+import math
 import pytest
 from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms
 
@@ -34,3 +35,15 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_dd_to_dms_value_12_25():
+    # Test for 12.25 as requested
+    deg1, min1, sec1 = dd_to_dms_value(12.25)
+    assert deg1 == 12
+    assert min1 == 15
+    assert sec1 == 0.0
+
+    assert 0 <= min1 <= 59
+    assert 0 <= sec1 < 60
+    # degree sign follows the input
+    assert math.copysign(1, deg1) == math.copysign(1, 12.25)
