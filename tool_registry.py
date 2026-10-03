@@ -52,9 +52,9 @@ class ToolRegistry:
     def openai_functions(self) -> list[Dict[str, Any]]:
         return [
             {
-                "name": tool.name,
+                "type": "function", "function": {"name": tool.name,
                 "description": tool.description,
-                "parameters": tool.parameters,
+                "parameters": tool.parameters}
             }
             for tool in self._tools.values()
         ]
