@@ -1,6 +1,39 @@
 import pytest
 from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms
 
+import math
+
+def test_dd_to_dms_value_rollover_normalize():
+    d, m, s = dd_to_dms_value(-0.5)
+    assert math.copysign(1, d) == -1
+    assert 0 <= m < 60
+    assert 0 <= s < 60
+    assert (d, m, s) == (-0.0, 30, 0.0)
+
+    d, m, s = dd_to_dms_value(0.5)
+    assert math.copysign(1, d) == 1
+    assert 0 <= m < 60
+    assert 0 <= s < 60
+    assert (d, m, s) == (0.0, 30, 0.0)
+
+    d, m, s = dd_to_dms_value(0.0)
+    assert math.copysign(1, d) == 1
+    assert 0 <= m < 60
+    assert 0 <= s < 60
+    assert (d, m, s) == (0.0, 0, 0.0)
+
+    d, m, s = dd_to_dms_value(0.999999)
+    assert math.copysign(1, d) == 1
+    assert 0 <= m < 60
+    assert 0 <= s < 60
+    assert (d, m, s) == (1.0, 0, 0.0)
+
+    d, m, s = dd_to_dms_value(-2.5)
+    assert math.copysign(1, d) == -1
+    assert 0 <= m < 60
+    assert 0 <= s < 60
+    assert (d, m, s) == (-2.0, 30, 0.0)
+
 def test_dd_to_dms_value():
     assert dd_to_dms_value(40.7128) == (40, 42, pytest.approx(46.08, abs=0.01))
     assert dd_to_dms_value(-74.0060) == (-74, 0, pytest.approx(21.6, abs=0.01))
