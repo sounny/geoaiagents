@@ -53,7 +53,8 @@ def load_kml(kml: str) -> str:
     try:
         root = ET.fromstring(kml)
     except Exception:
-        return _table(coords)
+        return "Error: No coordinates found in KML data."
+
     ns = {"k": "http://www.opengis.net/kml/2.2"}
     for node in root.findall('.//k:coordinates', ns):
         if node.text:
@@ -65,6 +66,10 @@ def load_kml(kml: str) -> str:
                         coords.append((float(lat), float(lon)))
                     except ValueError:
                         continue
+
+    if not coords:
+        return "Error: No coordinates found in KML data."
+
     return _table(coords)
 
 
