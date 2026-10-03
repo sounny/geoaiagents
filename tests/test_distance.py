@@ -35,3 +35,11 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_haversine_km_tokyo_sapporo_and_identical_point():
+    # Tokyo to Sapporo
+    distance = _haversine_km(35.6762, 139.6503, 43.0618, 141.3545)
+    assert abs(distance - 830) / 830 < 0.15
+    # Identical point
+    distance_same = _haversine_km(35.6762, 139.6503, 35.6762, 139.6503)
+    assert distance_same == 0
