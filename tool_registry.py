@@ -88,13 +88,17 @@ DEFAULT_TOOL_COORD_PARSERS = {
 
 def parse_tool_args(raw_args: Any) -> Dict[str, Any]:
     """Parse tool call args from JSON string or dict."""
+    if raw_args is None:
+        return {}
+    if isinstance(raw_args, list):
+        return {}
     if isinstance(raw_args, dict):
         return raw_args
     if isinstance(raw_args, str):
         try:
             parsed = json.loads(raw_args or "{}")
             return parsed if isinstance(parsed, dict) else {}
-        except json.JSONDecodeError:
+        except json.JSONDecodeError:  # Explicitly catch invalid JSON
             return {}
     return {}
 
