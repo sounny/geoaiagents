@@ -37,3 +37,25 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+def test_tool_registry_builtin_openai_functions_convert_dd_to_dms_membership():
+    """Test registry and openai_functions structure (locking convert_dd_to_dms membership)."""
+    reg = create_registry()
+
+    assert reg.has_tool("convert_dd_to_dms") is True
+    assert reg.has_tool("geocode_locations") is True
+    assert reg.has_tool("calculate_distance") is True
+    assert reg.has_tool("load_geojson") is True
+
+    funcs = reg.openai_functions()
+    assert isinstance(funcs, list)
+    assert len(funcs) >= 3
+
+    names = {f["name"] for f in funcs}
+    assert "convert_dd_to_dms" in names
+
+    for f in funcs:
+        type_val = f.get("type", "function")
+        assert type_val == "function"
+        assert "name" in f and f["name"]
+        assert "description" in f and f["description"]
+        assert "parameters" in f and f["parameters"]
