@@ -13,6 +13,29 @@ def test_dd_to_dms_value():
     assert dd_to_dms_value(1.0) == (1, 0, 0.0)
     assert dd_to_dms_value(-1.0) == (-1, 0, 0.0)
 
+def test_dd_to_dms_value_rollover_normalize():
+    assert dd_to_dms_value(0.0) in [(0, 0, 0), (0, 0, 0.0)]
+
+    # Rollover check
+    deg, min, sec = dd_to_dms_value(0.999999)
+    assert deg == 1 and min == 0 and sec == 0
+    assert min < 60 and sec < 60
+
+    # Negative degrees component and positive minutes/seconds
+    deg, min, sec = dd_to_dms_value(-2.5)
+    assert deg == -2
+    assert min == 30
+    assert sec == 0.0
+    assert min >= 0 and sec >= 0
+
+    # Test 0.5 degrees, minutes 0-59, seconds >=0 and <60, degree sign follows the input
+    deg, min, sec = dd_to_dms_value(0.5)
+    assert deg == 0
+    assert 0 <= min < 60
+    assert 0 <= sec < 60
+    assert min == 30
+    assert sec == 0.0
+
 def test_format_dms():
     assert format_dms(40, 42, 46.08, True) == "40°42'46.08\" N"
     assert format_dms(-40, 42, 46.08, True) == "40°42'46.08\" S"
