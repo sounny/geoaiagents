@@ -62,7 +62,7 @@ class ToolRegistry:
     def invoke(self, tool_name: str, raw_args: Any) -> Optional[str]:
         tool = self._tools.get(tool_name)
         if not tool:
-            return None
+            return f"Error: Unknown tool '{tool_name}'"
         parsed = parse_tool_args(raw_args)
         try:
             return tool.handler(parsed)

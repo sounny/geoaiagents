@@ -36,4 +36,7 @@ def test_tool_registry_invoke_error_reporting():
 def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
-    assert result is None
+    assert result == "Error: Unknown tool 'missing_tool'"
+
+def test_create_registry_invoke_unknown_tool():
+    assert create_registry().invoke('definitely_not_a_tool', {}) == "Error: Unknown tool 'definitely_not_a_tool'"
