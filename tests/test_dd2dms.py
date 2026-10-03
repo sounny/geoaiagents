@@ -34,3 +34,15 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_convert_dd_to_dms_northern_east_headers():
+    res = convert_dd_to_dms('48.8566,2.3522')
+    assert 'Latitude (DD)' in res
+    assert 'Longitude (DD)' in res
+    assert 'N' in res
+    assert 'E' in res
+
+def test_convert_dd_to_dms_empty_header_only():
+    res = convert_dd_to_dms('')
+    expected = "| Latitude (DD) | Longitude (DD) | Latitude (DMS) | Longitude (DMS) |\n|--------------:|---------------:|---------------|---------------|"
+    assert res == expected
