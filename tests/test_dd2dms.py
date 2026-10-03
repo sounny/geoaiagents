@@ -34,3 +34,39 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_dd_to_dms_value_rollover_normalize():
+    # Test 1.0167
+    d, m, s = dd_to_dms_value(1.0167)
+    assert d == 1
+    assert m == 1
+    assert s == pytest.approx(0.12, abs=0.01)
+    assert 0 <= m < 60
+    assert 0 <= s < 60
+
+    # Test 0.5
+    d, m, s = dd_to_dms_value(0.5)
+    assert d == 0
+    assert m == 30
+    assert s == 0.0
+    assert 0 <= m < 60
+    assert 0 <= s < 60
+
+    # Test 0.0
+    assert dd_to_dms_value(0.0) in [(0, 0, 0), (0, 0, 0.0)]
+
+    # Test 0.999999 (rollover)
+    d, m, s = dd_to_dms_value(0.999999)
+    assert d == 1
+    assert m == 0
+    assert s == 0.0
+    assert 0 <= m < 60
+    assert 0 <= s < 60
+
+    # Test -2.5
+    d, m, s = dd_to_dms_value(-2.5)
+    assert d == -2
+    assert m == 30
+    assert s == 0.0
+    assert 0 <= m < 60
+    assert 0 <= s < 60
