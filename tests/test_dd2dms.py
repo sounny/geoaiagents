@@ -34,3 +34,10 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_convert_dd_to_dms_invalid_input():
+    result = convert_dd_to_dms('91,0')
+    table_lines = [line for line in result.splitlines() if '|' in line]
+    assert len(table_lines) == 2
+    assert '_Skipped invalid inputs:_' in result
+    assert '`91,0`' in result
