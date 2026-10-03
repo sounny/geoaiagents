@@ -18,7 +18,7 @@ def load_geojson(geojson: str) -> str:
     try:
         data = json.loads(geojson)
     except Exception:
-        return _table(coords)
+        return "Error: No coordinates found in GeoJSON data."
 
     def extract(obj):
         if isinstance(obj, dict):
@@ -44,6 +44,9 @@ def load_geojson(geojson: str) -> str:
                     extract(v)
 
     extract(data)
+    if not coords:
+        return "Error: No coordinates found in GeoJSON data."
+
     return _table(coords)
 
 
