@@ -34,3 +34,9 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_dd_to_dms_value_23_5_rollover_normalize():
+    deg, minutes, seconds = dd_to_dms_value(23.5)
+    assert 0 <= minutes <= 59
+    assert 0 <= seconds < 60
+    assert deg == 23
