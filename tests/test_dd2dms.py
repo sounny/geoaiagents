@@ -34,3 +34,18 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_dd_to_dms_value_2_0167_rollover_normalize():
+    import math
+    val = 2.0167
+    deg, minutes, seconds = dd_to_dms_value(val)
+
+    assert deg == 2
+    assert minutes == 1
+    assert pytest.approx(seconds, abs=0.01) == 0.12
+
+    assert 0 <= minutes <= 59
+    assert 0 <= seconds < 60
+
+    # Degree sign follows the input
+    assert math.copysign(1, deg) == math.copysign(1, val)
