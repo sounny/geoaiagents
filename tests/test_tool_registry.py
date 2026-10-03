@@ -37,3 +37,10 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_parse_tool_args_none_empty_whitespace():
+    assert parse_tool_args(None) == {}
+    assert parse_tool_args('') == {}
+    assert parse_tool_args('   ') == {}
+    assert parse_tool_args('{"x":1}') == {'x': 1}
+    assert parse_tool_args({'y': 2}) == {'y': 2}
