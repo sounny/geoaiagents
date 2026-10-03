@@ -5,6 +5,7 @@
 import json
 import argparse
 import os
+import math
 from openai import OpenAI
 
 from validation import format_invalid_notes, parse_coordinate_pairs
@@ -40,17 +41,19 @@ def dd_to_dms_value(dd: float):
         minutes -= 60
         deg += 1
 
-    return deg * sign, minutes, seconds
+    return math.copysign(deg, sign), minutes, seconds
 
 def format_dms(deg: int, minutes: int, seconds: float, is_lat: bool, original_dd: float = None):
     """Format DMS components into a string with two decimal places for seconds."""
     if original_dd is None:
         original_dd = deg
     if is_lat:
-        direction = 'N' if original_dd >= 0 else 'S'
+        # Check original_dd using copysign logic to handle -0.0 vs 0.0 correctly
+        # because -0.0 >= 0 is True in Python. We use math.copysign(1, original_dd).
+        direction = 'N' if math.copysign(1, original_dd) == 1 else 'S'
     else:
-        direction = 'E' if original_dd >= 0 else 'W'
-    return f"{abs(deg)}°{minutes:02d}'{seconds:05.2f}\" {direction}"
+        direction = 'E' if math.copysign(1, original_dd) == 1 else 'W'
+    return f"{int(abs(deg))}°{minutes:02d}'{seconds:05.2f}\" {direction}"
 
 def convert_dd_to_dms(coordinates_str: str) -> str:
     """
