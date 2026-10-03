@@ -17,6 +17,7 @@ def _parse_distance_pairs(
     lines = [line.strip() for line in re.split(r"\n|;", text or "") if line.strip()]
     for line in lines:
         parts = re.split(r"[,\s]+", line)
+        # Handle missing coordinates (e.g. only 3 numbers provided)
         if len(parts) < 4:
             invalid.append((line, "Expected lat1, lon1, lat2, lon2"))
             continue

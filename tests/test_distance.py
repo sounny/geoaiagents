@@ -35,3 +35,10 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_distance_three_numbers():
+    result = calculate_distance("48.8,2.3,1.0")
+    assert "No valid coordinate pairs provided." in result
+    assert "_Skipped invalid inputs:_" in result
+    assert "48.8,2.3,1.0" in result
+    assert "Expected lat1, lon1, lat2, lon2" in result
