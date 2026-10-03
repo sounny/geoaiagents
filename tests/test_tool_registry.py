@@ -37,3 +37,19 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_tool_registry_boom_tool():
+    registry = ToolRegistry()
+    def boom_handler(args):
+        raise ValueError("boom")
+
+    registry.register_tool(
+        name="boom_tool",
+        description="A tool that goes boom",
+        parameters={},
+        handler=boom_handler
+    )
+    result = registry.invoke("boom_tool", {})
+    assert isinstance(result, str)
+    assert "Error running" in result
+    assert "boom_tool" in result
