@@ -34,3 +34,25 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_dd_to_dms_value_paris_components():
+    deg, minutes, seconds = dd_to_dms_value(48.8566)
+    assert deg == 48
+    assert minutes == 51
+    assert abs(seconds - 23.76) < 0.05
+
+    deg, minutes, seconds = dd_to_dms_value(-0.1278)
+    assert abs(deg) == 0
+    assert minutes >= 7
+    assert abs(seconds - 40.08) < 0.05
+
+def test_dd_to_dms_value_zero_and_negative():
+    deg, minutes, seconds = dd_to_dms_value(0.0)
+    assert deg == 0
+    assert minutes == 0
+    assert abs(seconds - 0) < 0.01
+
+    deg, minutes, seconds = dd_to_dms_value(-2.5)
+    assert deg == -2
+    assert minutes == 30
+    assert abs(seconds - 0) < 0.01
