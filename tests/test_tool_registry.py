@@ -37,3 +37,21 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+
+def test_create_registry_openai_functions_schema_and_contents():
+    registry = create_registry()
+    funcs = registry.openai_functions()
+
+    assert isinstance(funcs, list)
+    assert len(funcs) > 0
+
+    names = set()
+    for func in funcs:
+        assert isinstance(func, dict)
+        assert "name" in func and isinstance(func["name"], str)
+        assert "description" in func and isinstance(func["description"], str)
+        assert "parameters" in func and isinstance(func["parameters"], dict)
+        names.add(func["name"])
+
+    assert 'load_geojson' in names
+    assert 'reverse_geocode_coordinates' in names
