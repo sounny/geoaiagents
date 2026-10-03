@@ -43,3 +43,7 @@ def test_format_invalid_notes():
     formatted = format_invalid_notes([("invalid", "Missing latitude/longitude pair")])
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
+
+def test_format_invalid_notes_empty():
+    assert format_invalid_notes([]) == ""
+    assert format_invalid_notes(()) == ""
