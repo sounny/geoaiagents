@@ -42,3 +42,17 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_dd_to_dms_value_51_25_components():
+    import math
+    import pytest
+    from dd2dms import dd_to_dms_value
+
+    d, m, s = dd_to_dms_value(51.25)
+
+    assert d == 51
+    assert m == 15
+    assert s == pytest.approx(0.0, abs=0.01)
+    assert 0 <= m <= 59
+    assert 0 <= s < 60
+    assert math.copysign(1, d) == math.copysign(1, 51.25)
