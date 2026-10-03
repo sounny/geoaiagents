@@ -34,3 +34,10 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_dd_to_dms_value_rollover_normalize():
+    assert dd_to_dms_value(10) == (10, 0, 0)
+    assert dd_to_dms_value(0.5) == (0, 30, 0)
+    assert dd_to_dms_value(-2.5) == (-2, 30, 0)
+    assert dd_to_dms_value(0.0) == (0, 0, 0)
+    assert dd_to_dms_value(0.999999) == (1, 0, 0)
