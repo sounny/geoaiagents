@@ -11,8 +11,8 @@ import argparse
 def read_requirements(file_path="requirements.txt"):
     """Read and parse requirements from requirements.txt file."""
     if not os.path.exists(file_path):
-        print(f"Error: {file_path} not found!")
-        return []
+        print(f"Error: {file_path} not found!", file=sys.stderr)
+        sys.exit(1)
     
     requirements = []
     with open(file_path, 'r') as f:
@@ -24,7 +24,7 @@ def read_requirements(file_path="requirements.txt"):
     
     return requirements
 
-def install_package(package, method="auto"):
+def install_package(package, method="auto", dry_run=False):
     """Install a single package using pip."""
     if method == "user":
         # Install with --user flag
@@ -40,10 +40,14 @@ def install_package(package, method="auto"):
         method_desc = "normally"
     else:  # auto
         # Try --user first, then fallback to --break-system-packages
-        return install_package_auto(package)
+        return install_package_auto(package, dry_run=dry_run)
     
     try:
         print(f"Installing {package} {method_desc}...")
+        if dry_run:
+            print(f"DRY RUN: Would execute: {' '.join(cmd)}")
+            print(f"✓ Successfully installed {package} (dry-run)")
+            return True
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         print(f"✓ Successfully installed {package}")
         return True
@@ -53,12 +57,18 @@ def install_package(package, method="auto"):
             print(f"Error details: {e.stderr}")
         return False
 
-def install_package_auto(package):
+def install_package_auto(package, dry_run=False):
     """Install a single package using pip with automatic fallback."""
     try:
         print(f"Installing {package}...")
+        cmd_user = [sys.executable, "-m", "pip", "install", "--user", package]
+        if dry_run:
+            print(f"DRY RUN: Would execute: {' '.join(cmd_user)}")
+            print(f"✓ Successfully installed {package} (dry-run)")
+            return True
+
         # Try with --user flag first (safer for managed environments)
-        result = subprocess.run([sys.executable, "-m", "pip", "install", "--user", package], 
+        result = subprocess.run(cmd_user,
                               capture_output=True, text=True, check=True)
         print(f"✓ Successfully installed {package}")
         return True
@@ -67,7 +77,13 @@ def install_package_auto(package):
         # Try with --break-system-packages as fallback
         try:
             print(f"Trying alternative installation for {package}...")
-            result = subprocess.run([sys.executable, "-m", "pip", "install", "--break-system-packages", package], 
+            cmd_sys = [sys.executable, "-m", "pip", "install", "--break-system-packages", package]
+            if dry_run:
+                print(f"DRY RUN: Would execute: {' '.join(cmd_sys)}")
+                print(f"✓ Successfully installed {package} (dry-run)")
+                return True
+
+            result = subprocess.run(cmd_sys,
                                   capture_output=True, text=True, check=True)
             print(f"✓ Successfully installed {package}")
             return True
@@ -82,7 +98,7 @@ def install_package_auto(package):
             print(f"  pip install --break-system-packages {package}")
             return False
 
-def install_all_requirements(file_path="requirements.txt", method="auto"):
+def install_all_requirements(file_path="requirements.txt", method="auto", dry_run=False):
     """Install all packages from requirements file."""
     print(f"Reading requirements from {file_path}")
     requirements = read_requirements(file_path)
@@ -95,11 +111,11 @@ def install_all_requirements(file_path="requirements.txt", method="auto"):
     for req in requirements:
         print(f"  - {req}")
     
-    print(f"\nStarting installation using method: {method}")
+    print(f"\nStarting installation using method: {method}" + (" (DRY RUN)" if dry_run else ""))
     
     success_count = 0
     for package in requirements:
-        if install_package(package, method):
+        if install_package(package, method, dry_run=dry_run):
             success_count += 1
     
     print(f"\nInstallation complete: {success_count}/{len(requirements)} packages installed successfully")
@@ -138,9 +154,15 @@ Examples:
         help="Installation method (default: auto)"
     )
     
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Simulate the installation without actually installing packages"
+    )
+
     args = parser.parse_args()
     
-    install_all_requirements(args.requirements_file, args.method)
+    install_all_requirements(args.requirements_file, args.method, args.dry_run)
 
 if __name__ == "__main__":
     main()
