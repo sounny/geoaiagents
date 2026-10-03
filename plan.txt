@@ -1,0 +1,11 @@
+1. Modify `file_loaders.py`:
+   - In `load_csv`: Strip the UTF-8 BOM `\ufeff` from the CSV string before passing to `csv.DictReader`.
+   - In `load_kml`: Return `"Error: No coordinates found in KML data."` if parsing fails, input is empty, or no coordinates are extracted.
+   - In `load_geojson`: Return `"Error: No coordinates found in GeoJSON data."` if parsing fails or no coordinates are extracted.
+   - In `load_geojson`: Import `format_invalid_notes` from `validation`. If unsupported geometries (e.g. LineString, Polygon) are encountered, track them as invalid inputs using their type. Do NOT parse their coordinates as list items by adding an explicit check for list types vs geometry types. Note: GeoJSON Point geometries might use lists. But `Point` and `MultiPoint` geometries are explicitly requested to be handled.
+2. In `load_geojson`:
+   - Point geometries handle coordinates array `[lon, lat]`
+   - MultiPoint geometries handle coordinates array `[[lon, lat], [lon, lat]]`
+   - Ignore Polygon, LineString, etc. and record them as invalid. The recorded notes should be formatted using `validation.format_invalid_notes(invalid_entries)` and appended to the markdown table output. Wait, `format_invalid_notes` takes a sequence of `(raw_text, reason)`. We can use `(type, "Unsupported geometry type")` for invalid inputs. The memory states: `- \`raw_input\` (reason)` - e.g. `- \`Polygon\` (Unsupported geometry type)` or whatever reason we choose. Memory specifies: "track them as invalid inputs and appending a formatted rejection note using `validation.format_invalid_notes()`." Wait, "track them as invalid inputs" in what format? The memory explicitly says: "rejects other geometries (e.g., `LineString`, `Polygon`) by tracking them as invalid inputs and appending a formatted rejection note using `validation.format_invalid_notes()`." It seems we just need to pass `(obj["type"], "Unsupported geometry")` to `invalid_entries`, and append `format_invalid_notes(invalid_entries)` to the end.
+   - Wait, `format_invalid_notes` adds `\n_Skipped invalid inputs:_\n- ...`.
+3. Verify test cases in `test_file_loaders_dev.py` and run full tests.
