@@ -43,3 +43,12 @@ def test_format_invalid_notes():
     formatted = format_invalid_notes([("invalid", "Missing latitude/longitude pair")])
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
+
+
+def test_is_valid_lat_lon_locked_boundaries():
+    assert is_valid_lat_lon(89.9, 179.9) is True
+    assert is_valid_lat_lon(90.0, 0.0) is True
+    assert is_valid_lat_lon(-90.0, 180.0) is True
+    assert is_valid_lat_lon(0.0, -180.0) is True
+    assert is_valid_lat_lon(90.001, 0.0) is False
+    assert is_valid_lat_lon(0.0, -180.0001) is False

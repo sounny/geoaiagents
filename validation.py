@@ -12,7 +12,7 @@ from typing import List, Sequence, Tuple
 
 def is_valid_lat_lon(lat: float, lon: float) -> bool:
     """Return True if the coordinates fall within WGS84 bounds."""
-
+    # Ensure ranges are strictly checked without widening.
     return -90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0
 
 
