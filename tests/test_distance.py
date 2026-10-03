@@ -35,3 +35,26 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_distance_paris_london():
+    text = "48.8566,2.3522,51.5074,-0.1278"
+    result = calculate_distance(text)
+
+    assert "Point A Lat" in result
+    assert "Distance (km)" in result
+    assert "Distance (mi)" in result
+
+    lines = result.strip().split("\n")
+    assert len(lines) == 3, "Expected exactly one data row plus header and separator"
+
+    # Extract the distance in km from the data row
+    data_row = lines[2]
+    columns = [col.strip() for col in data_row.split("|")]
+
+    # columns[5] should be Distance (km) due to:
+    # | Point A Lat | Point A Lon | Point B Lat | Point B Lon | Distance (km) | Distance (mi) |
+    # 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+
+    distance_str = columns[5]
+    distance = float(distance_str)
+    assert distance > 0.0
