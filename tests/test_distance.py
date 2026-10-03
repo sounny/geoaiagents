@@ -35,3 +35,26 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_distance_conversion():
+    text = "48.8566,2.3522,51.5074,-0.1278"
+    result = calculate_distance(text)
+
+    # Split the result into lines
+    lines = result.strip().split("\n")
+
+    # We expect 3 lines: headers, separator, and 1 data row
+    assert len(lines) == 3
+
+    # The third line is the data row
+    data_row = lines[2]
+
+    # Split by pipe '|' and clean up spaces
+    # The columns are: empty, Point A Lat, Point A Lon, Point B Lat, Point B Lon, Distance (km), Distance (mi), empty
+    columns = [col.strip() for col in data_row.split("|")]
+
+    km = float(columns[5])
+    mi = float(columns[6])
+
+    # Assert mi is roughly km * 0.621371
+    assert abs(mi - km * 0.621371) < 0.02
