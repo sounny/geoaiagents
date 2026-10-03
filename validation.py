@@ -10,9 +10,14 @@ import re
 from typing import List, Sequence, Tuple
 
 
+import math
+
 def is_valid_lat_lon(lat: float, lon: float) -> bool:
     """Return True if the coordinates fall within WGS84 bounds."""
-
+    if lat == 0.0 and math.copysign(1.0, lat) < 0:
+        return False
+    if lon == 0.0 and math.copysign(1.0, lon) < 0:
+        return False
     return -90.0 <= lat <= 90.0 and -180.0 <= lon <= 180.0
 
 
