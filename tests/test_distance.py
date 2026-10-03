@@ -14,6 +14,11 @@ def test_haversine_km():
     distance = _haversine_km(40.7128, -74.0060, 51.5074, -0.1278)
     assert 5500 < distance < 5600
 
+def test_haversine_km_not_the_equator_case():
+    distance = _haversine_km(-1.2921, 36.8219, 0.3476, 32.5825)
+    assert abs(distance - 500) / 500 < 0.15
+    assert _haversine_km(-1.2921, 36.8219, -1.2921, 36.8219) == 0
+
 def test_calculate_distance():
     text = "40.7128,-74.0060,51.5074,-0.1278"
     result = calculate_distance(text)
