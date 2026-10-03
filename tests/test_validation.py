@@ -43,3 +43,39 @@ def test_format_invalid_notes():
     formatted = format_invalid_notes([("invalid", "Missing latitude/longitude pair")])
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
+
+def test_is_valid_lat_lon_locked_boundaries():
+    assert is_valid_lat_lon(90.0, 0.0) is True
+    assert is_valid_lat_lon(-90.0, 180.0) is True
+    assert is_valid_lat_lon(0.0, -180.0) is True
+    assert is_valid_lat_lon(-89.9, -179.9) is True
+    assert is_valid_lat_lon(90.001, 0.0) is False
+    assert is_valid_lat_lon(0.0, -180.0001) is False
+
+def test_parse_coordinate_pairs_space_separated():
+    pairs, invalid = parse_coordinate_pairs("48.8566 2.3522")
+    assert pairs == [(48.8566, 2.3522)]
+    assert not invalid
+
+    pairs_out, invalid_out = parse_coordinate_pairs("91 0")
+    assert not pairs_out
+    assert len(invalid_out) == 1
+    assert invalid_out[0][0] == "91 0"
+    assert "Out of range" in invalid_out[0][1]
+
+def test_format_invalid_notes_two_bullet_scenario():
+    assert format_invalid_notes([]) == ""
+    invalid = [("a,b", "Not a number"), ("99,1", "Out of range")]
+    result = format_invalid_notes(invalid)
+    assert "_Skipped invalid inputs:_" in result
+    assert "- `a,b` (Not a number)" in result
+    assert "- `99,1` (Out of range)" in result
+
+def test_format_invalid_notes_three_entry_path():
+    invalid = [("91,0", "Out of range"), ("x,y", "Not a number"), ("1", "Missing")]
+    result = format_invalid_notes(invalid)
+    assert "_Skipped invalid inputs:_" in result
+    assert "`91,0`" in result
+    assert "`x,y`" in result
+    assert "`1`" in result
+    assert "Out of range" in result
