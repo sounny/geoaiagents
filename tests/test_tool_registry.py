@@ -59,3 +59,10 @@ def test_tool_registry_builtin_openai_functions_convert_dd_to_dms_membership():
         assert "name" in f and f["name"]
         assert "description" in f and f["description"]
         assert "parameters" in f and f["parameters"]
+
+def test_parse_tool_args_pure_json_parsing_helper_behavior():
+    assert parse_tool_args({"a": 1}) == {"a": 1}
+    assert parse_tool_args(42) == {}
+    assert parse_tool_args(None) == {}
+    assert parse_tool_args('[1,2,3]') == {}
+    assert parse_tool_args('not-json') == {}
