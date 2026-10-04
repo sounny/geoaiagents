@@ -24,6 +24,8 @@ def load_geojson(geojson: str) -> str:
         if isinstance(obj, dict):
             if obj.get("type") == "Point":
                 c = obj.get("coordinates", [])
+                if c is None:
+                    c = []
                 if len(c) >= 2:
                     lon, lat = c[:2]
                     coords.append((lat, lon))

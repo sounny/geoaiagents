@@ -18,3 +18,7 @@ def test_load_geojson_feature_collection_one_point():
     assert "| Latitude | Longitude |" in res
     assert "48.85" in res
     assert "2.35" in res
+
+def test_load_geojson_feature_null_geometry_no_network_no_billing():
+    res = load_geojson('{"type":"Feature","geometry":null}')
+    assert res.startswith("| Latitude | Longitude |")
