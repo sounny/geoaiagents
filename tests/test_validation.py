@@ -51,3 +51,22 @@ def test_format_invalid_notes():
     formatted = format_invalid_notes([("invalid", "Missing latitude/longitude pair")])
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
+
+def test_parse_coordinate_pairs_space_separated_locked():
+    # Test valid space-separated and semicolon-delimited coordinates
+    valid_text = "35.6762 139.6503; 34.6937 135.5023"
+    pairs, invalid = parse_coordinate_pairs(valid_text)
+    assert pairs == [(35.6762, 139.6503), (34.6937, 135.5023)]
+    assert not invalid
+
+    # Test invalid coordinates (out of range lat)
+    pairs1, invalid1 = parse_coordinate_pairs("91 0")
+    assert not pairs1
+    assert len(invalid1) == 1
+    assert "Out of range" in invalid1[0][1]
+
+    # Test invalid coordinates (out of range lon)
+    pairs2, invalid2 = parse_coordinate_pairs("0 181")
+    assert not pairs2
+    assert len(invalid2) == 1
+    assert "Out of range" in invalid2[0][1]
