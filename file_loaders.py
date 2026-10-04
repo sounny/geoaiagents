@@ -72,27 +72,67 @@ def load_csv(csv_text: str) -> str:
     """Parse CSV text and return a markdown table of coordinates."""
     coords = []
     f = io.StringIO(csv_text)
+
+    # Try reading as a simple list first to check for headerless numeric rows
     try:
-        reader = csv.DictReader(f)
+        reader = csv.reader(f)
+        rows = list(reader)
     except Exception:
         return _table(coords)
-    if not reader.fieldnames:
+
+    if not rows:
         return _table(coords)
+
+    def is_number(s):
+        try:
+            float(s.strip())
+            return True
+        except ValueError:
+            return False
+
+    first_row = None
+    for r in rows:
+        if any(cell.strip() for cell in r):
+            first_row = r
+            break
+
+    if first_row and len(first_row) >= 2 and is_number(first_row[0]) and is_number(first_row[1]):
+        # Headerless CSV of coordinates
+        for row in rows:
+            if len(row) >= 2:
+                try:
+                    coords.append((float(row[0].strip()), float(row[1].strip())))
+                except ValueError:
+                    pass
+        return _table(coords)
+
+    # Otherwise fallback to DictReader logic
+    f.seek(0)
+    try:
+        d_reader = csv.DictReader(f)
+    except Exception:
+        return _table(coords)
+
+    if not d_reader.fieldnames:
+        return _table(coords)
+
     lat_field = None
     lon_field = None
-    for name in reader.fieldnames:
-        lname = name.lower()
+    for name in d_reader.fieldnames:
+        lname = name.strip().lower()
         if lname in ("lat", "latitude", "y") and lat_field is None:
             lat_field = name
         if lname in ("lon", "lng", "longitude", "x") and lon_field is None:
             lon_field = name
+
     if not lat_field or not lon_field:
         return _table(coords)
-    for row in reader:
+
+    for row in d_reader:
         try:
             lat = float(row[lat_field])
             lon = float(row[lon_field])
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
             continue
         coords.append((lat, lon))
     return _table(coords)
