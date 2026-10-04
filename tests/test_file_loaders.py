@@ -18,3 +18,19 @@ def test_load_geojson_feature_collection_one_point():
     assert "| Latitude | Longitude |" in res
     assert "48.85" in res
     assert "2.35" in res
+
+from file_loaders import load_kml
+
+def test_load_kml_linestring_does_not_raise_lock_markdown():
+    kml = '''<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Placemark>
+    <LineString>
+      <coordinates>
+        -122.36,37.82,0 -122.37,37.83,0
+      </coordinates>
+    </LineString>
+  </Placemark>
+</kml>'''
+    res = load_kml(kml)
+    assert res == '| Latitude | Longitude |\n|---------:|----------:|\n| 37.82 | -122.36 |\n| 37.83 | -122.37 |'
