@@ -71,3 +71,16 @@ def test_dd_to_dms_value_51_25_components():
     assert 0 <= m <= 59
     assert 0 <= s < 60
     assert math.copysign(1, d) == math.copysign(1, 51.25)
+
+def test_dd_to_dms_value_88_888_components():
+    import math
+    import pytest
+    from dd2dms import dd_to_dms_value
+
+    d, m, s = dd_to_dms_value(88.888)
+    assert d == 88
+    assert m == 53
+    assert s == pytest.approx(16.8, abs=0.01)
+    assert 0 <= m <= 59
+    assert 0 <= s < 60
+    assert math.copysign(1, d) == math.copysign(1, 88.888)
