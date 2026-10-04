@@ -40,3 +40,13 @@ def test_haversine_km_not_the_equator_case():
     distance = _haversine_km(-33.9249, 18.4241, -29.8587, 31.0218)
     assert abs(distance - 1200) / 1200 < 0.15
     assert _haversine_km(-33.9249, 18.4241, -33.9249, 18.4241) == 0
+
+def test_calculate_distance_identical_and_invalid():
+    res1 = calculate_distance('35.6762,139.6503,35.6762,139.6503')
+    assert '0.00' in res1
+
+    res2 = calculate_distance('91,0,10,10')
+    assert 'No valid coordinate pairs provided.' in res2
+    assert '_Skipped invalid inputs:_' in res2
+    assert '91,0,10,10' in res2
+    assert 'Point A out of range' in res2
