@@ -17,3 +17,12 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+def test_geocode_locations_multiline_positive(mocker):
+    mocker.patch("geocode.get_coordinates", return_value=("Mocked Address", 10.0, 20.0))
+    from geocode import geocode_locations
+    result = geocode_locations("Paris\nLondon")
+    assert "Paris" in result
+    assert "London" in result
+    lines = result.strip().split("\n")
+    assert len(lines) == 4
