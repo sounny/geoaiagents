@@ -5,6 +5,7 @@
 import json
 import argparse
 import os
+import math
 from openai import OpenAI
 
 from validation import format_invalid_notes, parse_coordinate_pairs
@@ -17,7 +18,7 @@ using OpenAI function-calling to pass data through the LLM.
 # Conversion helper functions
 def dd_to_dms_value(dd: float):
     """Convert a decimal degree value to DMS components with float seconds using total seconds."""
-    sign = -1 if dd < 0 else 1
+    sign = -1.0 if math.copysign(1.0, dd) < 0 else 1.0
     abs_dd = abs(dd)
     # Total seconds from decimal degrees
     total_seconds = abs_dd * 3600.0
@@ -40,17 +41,20 @@ def dd_to_dms_value(dd: float):
         minutes -= 60
         deg += 1
 
-    return deg * sign, minutes, seconds
+    final_deg = float(deg) * sign if deg == 0 else int(deg * sign)
+    return final_deg, minutes, seconds
 
-def format_dms(deg: int, minutes: int, seconds: float, is_lat: bool, original_dd: float = None):
+def format_dms(deg: float, minutes: int, seconds: float, is_lat: bool, original_dd: float = None):
     """Format DMS components into a string with two decimal places for seconds."""
     if original_dd is None:
-        original_dd = deg
+        original_dd = float(deg)
+
+    is_positive = math.copysign(1.0, original_dd) >= 0
     if is_lat:
-        direction = 'N' if original_dd >= 0 else 'S'
+        direction = 'N' if is_positive else 'S'
     else:
-        direction = 'E' if original_dd >= 0 else 'W'
-    return f"{abs(deg)}°{minutes:02d}'{seconds:05.2f}\" {direction}"
+        direction = 'E' if is_positive else 'W'
+    return f"{abs(int(deg))}°{minutes:02d}'{seconds:05.2f}\" {direction}"
 
 def convert_dd_to_dms(coordinates_str: str) -> str:
     """
