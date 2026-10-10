@@ -1,5 +1,5 @@
 import pytest
-from geocode import get_coordinates, reverse_geocode_coordinates
+from geocode import get_coordinates, reverse_geocode_coordinates, parse_locations
 
 def test_get_coordinates_timeout_or_error(mocker):
     # Mock _geocode_limiter to raise an exception
@@ -17,3 +17,12 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+def test_parse_locations_newline():
+    assert parse_locations("Paris\nLondon") == ["Paris", "London"]
+
+def test_parse_locations_semicolon_trim():
+    assert parse_locations("Paris; London ; ;") == ["Paris", "London"]
+
+def test_parse_locations_empty():
+    assert parse_locations("") == []
