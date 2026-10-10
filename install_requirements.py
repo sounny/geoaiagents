@@ -10,6 +10,9 @@ import argparse
 
 def read_requirements(file_path="requirements.txt"):
     """Read and parse requirements from requirements.txt file."""
+    if file_path is None:
+        print("Error: requirements file path is missing!")
+        return []
     if not os.path.exists(file_path):
         print(f"Error: {file_path} not found!")
         return []
