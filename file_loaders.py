@@ -14,11 +14,14 @@ def _table(coords):
 
 def load_geojson(geojson: str) -> str:
     """Parse GeoJSON text and return a markdown table of point coordinates."""
+    if not geojson or not geojson.strip():
+        raise ValueError("Empty GeoJSON string")
+
     coords = []
     try:
         data = json.loads(geojson)
-    except Exception:
-        return _table(coords)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid GeoJSON: {e}")
 
     def extract(obj):
         if isinstance(obj, dict):
@@ -31,7 +34,10 @@ def load_geojson(geojson: str) -> str:
                 for f in obj.get("features", []):
                     extract(f.get("geometry"))
             elif obj.get("type") == "Feature":
-                extract(obj.get("geometry"))
+                geom = obj.get("geometry")
+                if geom is not None and not isinstance(geom, dict):
+                    raise ValueError("Feature geometry must be an object or null")
+                extract(geom)
             else:
                 for v in obj.values():
                     extract(v)
