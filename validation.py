@@ -19,6 +19,9 @@ def is_valid_lat_lon(lat: float, lon: float) -> bool:
 def parse_coordinate_pairs(text: str) -> Tuple[List[Tuple[float, float]], List[Tuple[str, str]]]:
     """Parse newline- or semicolon-delimited coordinates into numeric pairs.
 
+    Treats tab-separated and mixed comma/space lines as valid. Extra tokens
+    (like altitude) on a line are ignored.
+
     Returns a tuple of (valid_pairs, invalid_entries). `invalid_entries` is a
     list of (raw_text, reason) tuples for display to the user.
     """
