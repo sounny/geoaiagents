@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 import re
-from typing import List, Sequence, Tuple
+from typing import List, Tuple
 
 from validation import format_invalid_notes, is_valid_lat_lon
 
