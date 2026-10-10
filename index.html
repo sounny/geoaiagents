@@ -1897,7 +1897,7 @@
                                     <tr><th>DMS Latitude</th><th>DMS Longitude</th><th>DD Latitude</th><th>DD Longitude</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td>${parts[0]}</td><td>${parts[1]}</td><td>${lat.toFixed(5)}</td><td>${lon.toFixed(5)}</td></tr>
+                                    <tr><td>${escapeHtml(parts[0])}</td><td>${escapeHtml(parts[1])}</td><td>${lat.toFixed(5)}</td><td>${lon.toFixed(5)}</td></tr>
                                 </tbody>
                             </table>
                         `;
