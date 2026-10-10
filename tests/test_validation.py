@@ -9,6 +9,8 @@ def test_is_valid_lat_lon():
     assert is_valid_lat_lon(0, 181) is False
     assert is_valid_lat_lon(-91, 0) is False
     assert is_valid_lat_lon(0, -181) is False
+    assert is_valid_lat_lon(90.0001, 0) is False
+    assert is_valid_lat_lon(0, 180.0001) is False
 
 def test_is_valid_lat_lon_locked_boundaries():
     assert is_valid_lat_lon(90.0, 0.0) is True
@@ -51,3 +53,9 @@ def test_format_invalid_notes():
     formatted = format_invalid_notes([("invalid", "Missing latitude/longitude pair")])
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
+
+def test_is_valid_lat_lon_exact_bounds():
+    assert is_valid_lat_lon(90, 180) is True
+    assert is_valid_lat_lon(-90, -180) is True
+    assert is_valid_lat_lon(90.0001, 0) is False
+    assert is_valid_lat_lon(0, 180.0001) is False
