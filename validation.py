@@ -28,6 +28,7 @@ def parse_coordinate_pairs(text: str) -> Tuple[List[Tuple[float, float]], List[T
     lines = [line.strip() for line in re.split(r"\n|;", text or "") if line.strip()]
     for line in lines:
         parts = re.split(r"[,\s]+", line)
+        # 1 token -> missing pair; non-numeric -> not a number
         if len(parts) < 2:
             invalid.append((line, "Missing latitude/longitude pair"))
             continue
