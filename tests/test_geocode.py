@@ -17,3 +17,13 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+def test_get_coordinates_empty_string(mocker):
+    mocker.patch("geocode._geocode_limiter", side_effect=AssertionError("Should not call geocoder"))
+    result = get_coordinates("")
+    assert result == (None, None, None)
+
+def test_get_coordinates_whitespace_string(mocker):
+    mocker.patch("geocode._geocode_limiter", side_effect=AssertionError("Should not call geocoder"))
+    result = get_coordinates("   ")
+    assert result == (None, None, None)
