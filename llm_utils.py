@@ -14,7 +14,7 @@ def call_llm_with_retry(client, max_retries=3, **kwargs):
         except Exception as e:
             if attempt == max_retries - 1:
                 logging.error(f"LLM call failed after {max_retries} attempts: {e}")
-                raise ValueError(f"LLM call failed after {max_retries} attempts: {e}") from e
+                raise
             logging.warning(f"LLM call failed on attempt {attempt + 1}: {e}. Retrying...")
             time.sleep(1)
 
