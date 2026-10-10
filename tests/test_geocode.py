@@ -17,3 +17,12 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+def test_parse_locations_mixed_delimiters(mocker):
+    # Ensure no network calls are made by geopy
+    mocker.patch("geocode._geocode_limiter", side_effect=AssertionError("Network called!"))
+    mocker.patch("geocode._reverse_limiter", side_effect=AssertionError("Network called!"))
+    from geocode import parse_locations
+
+    assert parse_locations('Paris; London\nBerlin') == ['Paris', 'London', 'Berlin']
+    assert parse_locations('  Tokyo  ;  ') == ['Tokyo']
