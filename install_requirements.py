@@ -31,6 +31,7 @@ def install_package(package, method="auto"):
         cmd = [sys.executable, "-m", "pip", "install", "--user", package]
         method_desc = "with --user flag"
     elif method == "system":
+        # Note: When using method='system', this explicitly includes the --break-system-packages flag for pip.
         # Install system-wide (may require --break-system-packages)
         cmd = [sys.executable, "-m", "pip", "install", "--break-system-packages", package]
         method_desc = "system-wide"
