@@ -17,3 +17,9 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+def test_geocode_locations_empty():
+    from geocode import geocode_locations
+    result = geocode_locations("")
+    expected = "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|"
+    assert result.strip() == expected
