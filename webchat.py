@@ -136,6 +136,7 @@ def run_tool(function_call) -> tuple[str, str]:
 
 def respond(message: str, history: list[dict], upload_file=None):
     """Handle a chat message and return the agent's reply."""
+    global LAST_MAP_HTML
     if upload_file is not None:
         try:
             with open(upload_file.name, "r", encoding="utf-8", errors="ignore") as f:
@@ -145,18 +146,23 @@ def respond(message: str, history: list[dict], upload_file=None):
             pass
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
-    response = call_llm_with_retry(
-        client,
-        model=MODEL_NAME,
-        messages=messages,
-        functions=functions,
-        function_call="auto",
-        max_tokens=1000,
-        frequency_penalty=1,
-    )
+    try:
+        response = call_llm_with_retry(
+            client,
+            model=MODEL_NAME,
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+    except Exception as e:
+        reply = f"Error communicating with provider: {e}"
+        messages.append({"role": "assistant", "content": reply})
+        return reply, LAST_MAP_HTML, "\n".join(log_history), ""
+
     msg = response.choices[0].message
     logging.debug("LLM response: %s", msg)
-    global LAST_MAP_HTML
     map_html = ""
     table = ""
     if msg.function_call:
@@ -170,15 +176,19 @@ def respond(message: str, history: list[dict], upload_file=None):
         messages.append(
             {"role": "function", "name": msg.function_call.name, "content": table}
         )
-        second = call_llm_with_retry(
-            client,
-            model=MODEL_NAME,
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
-        reply = second.choices[0].message.content
-        logging.info("LLM response received")
+        try:
+            second = call_llm_with_retry(
+                client,
+                model=MODEL_NAME,
+                messages=messages,
+                max_tokens=1000,
+                frequency_penalty=1,
+            )
+            reply = second.choices[0].message.content
+            logging.info("LLM response received")
+        except Exception as e:
+            reply = f"Error communicating with provider: {e}"
+            messages.append({"role": "assistant", "content": reply})
     else:
         reply = msg.content
         logging.info("LLM response received")
@@ -201,14 +211,18 @@ def respond(message: str, history: list[dict], upload_file=None):
             messages.append(
                 {"role": "function", "name": "geocode_locations", "content": table}
             )
-            second = call_llm_with_retry(
-            client,
-            model=MODEL_NAME,
-            messages=messages,
-            max_tokens=1000,
-            frequency_penalty=1,
-        )
-            reply = second.choices[0].message.content
+            try:
+                second = call_llm_with_retry(
+                    client,
+                    model=MODEL_NAME,
+                    messages=messages,
+                    max_tokens=1000,
+                    frequency_penalty=1,
+                )
+                reply = second.choices[0].message.content
+            except Exception as e:
+                reply = f"Error communicating with provider: {e}"
+                messages.append({"role": "assistant", "content": reply})
     if map_html:
         LAST_MAP_HTML = map_html
     else:
