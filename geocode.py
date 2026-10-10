@@ -83,6 +83,9 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
 
+    if not pairs:
+        return "Error: No valid coordinate pairs provided."
+
     rows = []
     for lat, lon in pairs:
         try:
