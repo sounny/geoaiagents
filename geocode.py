@@ -8,6 +8,7 @@ import json
 from llm_utils import call_llm_with_retry  # to parse and format JSON for function arguments
 import argparse
 import os
+from functools import lru_cache
 # Third-party imports
 from openai import OpenAI  # OpenAI client for LLM interaction
 from geopy.geocoders import Nominatim  # Nominatim geocoder for OpenStreetMap
@@ -24,6 +25,7 @@ _reverse_limiter = RateLimiter(_geolocator.reverse, min_delay_seconds=1, max_ret
 
 # Geocoding helper functions
 
+@lru_cache(maxsize=1024)
 def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en"):
     """Query Nominatim for a single location string.
 
