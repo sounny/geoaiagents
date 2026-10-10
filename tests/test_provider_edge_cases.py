@@ -1,10 +1,13 @@
 import pytest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 import sys
+import os
+import importlib
 
 from tool_registry import parse_tool_args, create_registry
 import humboldt
 import geoai_cli
+import webchat
 
 def test_parse_tool_args_malformed():
     """Test that malformed JSON from a provider is handled gracefully."""
@@ -80,3 +83,63 @@ def test_retry_exhaustion_geoai_cli(mocker, capsys):
     captured = capsys.readouterr()
     assert "[INFO] Reached max tool-call steps for this turn." in captured.out
     assert mock_client.chat.completions.create.call_count == 2
+
+def test_provider_selection_configured():
+    """Test that configured provider (OPENAI_MODEL) takes precedence."""
+    env_vars = {
+        "OPENAI_MODEL": "openai-configured-model",
+        "HUMBOLDT_MODEL": "fallback-model",
+        "PATH": os.environ.get("PATH", "")
+    }
+    with patch.dict(os.environ, env_vars, clear=True):
+        importlib.reload(humboldt)
+        parser = humboldt.build_parser()
+        args = parser.parse_args([])
+        assert args.model == "openai-configured-model"
+
+        importlib.reload(geoai_cli)
+        parser_cli = geoai_cli._build_parser()
+        args_cli = parser_cli.parse_args(["chat"])
+        assert args_cli.model == "openai-configured-model"
+
+        importlib.reload(webchat)
+        assert webchat.MODEL_NAME == "openai-configured-model"
+
+def test_provider_selection_fallback():
+    """Test that fallback provider (HUMBOLDT_MODEL) is used when OPENAI_MODEL is unavailable."""
+    env_vars = {
+        "HUMBOLDT_MODEL": "fallback-model",
+        "PATH": os.environ.get("PATH", "")
+    }
+    with patch.dict(os.environ, env_vars, clear=True):
+        importlib.reload(humboldt)
+        parser = humboldt.build_parser()
+        args = parser.parse_args([])
+        assert args.model == "fallback-model"
+
+        importlib.reload(geoai_cli)
+        parser_cli = geoai_cli._build_parser()
+        args_cli = parser_cli.parse_args(["chat"])
+        assert args_cli.model == "fallback-model"
+
+        importlib.reload(webchat)
+        assert webchat.MODEL_NAME == "fallback-model"
+
+def test_provider_selection_unavailable():
+    """Test that default provider is used when no configured or fallback providers are available."""
+    env_vars = {
+        "PATH": os.environ.get("PATH", "")
+    }
+    with patch.dict(os.environ, env_vars, clear=True):
+        importlib.reload(humboldt)
+        parser = humboldt.build_parser()
+        args = parser.parse_args([])
+        assert args.model == "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
+
+        importlib.reload(geoai_cli)
+        parser_cli = geoai_cli._build_parser()
+        args_cli = parser_cli.parse_args(["chat"])
+        assert args_cli.model == "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
+
+        importlib.reload(webchat)
+        assert webchat.MODEL_NAME == "Phi-4-mini-cpu-int4-rtn-block-32-acc-level-4-onnx"
