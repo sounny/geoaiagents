@@ -17,3 +17,13 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+def test_parse_locations_drop_empty_tokens(mocker):
+    mocker.patch("geocode._geocode_limiter", side_effect=AssertionError("Should not geocode"))
+    mocker.patch("geocode._reverse_limiter", side_effect=AssertionError("Should not reverse geocode"))
+    from geocode import parse_locations
+
+    assert parse_locations('Paris;') == ['Paris']
+    assert parse_locations(';Lyon;') == ['Lyon']
+    assert parse_locations('') == []
+    assert parse_locations('A\n\nB') == ['A', 'B']
