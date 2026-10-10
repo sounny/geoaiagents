@@ -17,3 +17,7 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+def test_reverse_geocode_empty_string():
+    result = reverse_geocode_coordinates('')
+    assert result == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|"
