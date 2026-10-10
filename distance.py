@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 import re
-from typing import List, Sequence, Tuple
+from typing import List, Tuple
 
 from validation import format_invalid_notes, is_valid_lat_lon
 
@@ -26,10 +26,14 @@ def _parse_distance_pairs(
             invalid.append((line, "Not a number"))
             continue
         if not is_valid_lat_lon(lat1, lon1):
-            invalid.append((line, "Point A out of range (-90 <= lat <= 90, -180 <= lon <= 180)"))
+            invalid.append(
+                (line, "Point A out of range (-90 <= lat <= 90, -180 <= lon <= 180)")
+            )
             continue
         if not is_valid_lat_lon(lat2, lon2):
-            invalid.append((line, "Point B out of range (-90 <= lat <= 90, -180 <= lon <= 180)"))
+            invalid.append(
+                (line, "Point B out of range (-90 <= lat <= 90, -180 <= lon <= 180)")
+            )
             continue
         pairs.append((lat1, lon1, lat2, lon2))
     return pairs, invalid
@@ -41,9 +45,10 @@ def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     phi2 = math.radians(lat2)
     delta_phi = math.radians(lat2 - lat1)
     delta_lambda = math.radians(lon2 - lon1)
-    a = math.sin(delta_phi / 2.0) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(
-        delta_lambda / 2.0
-    ) ** 2
+    a = (
+        math.sin(delta_phi / 2.0) ** 2
+        + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2.0) ** 2
+    )
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return radius_km * c
 
