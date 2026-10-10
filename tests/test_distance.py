@@ -14,6 +14,10 @@ def test_haversine_km():
     distance = _haversine_km(40.7128, -74.0060, 51.5074, -0.1278)
     assert 5500 < distance < 5600
 
+def test_haversine_km_one_degree_latitude():
+    distance = _haversine_km(0, 0, 1, 0)
+    assert abs(distance - 111.195) < 0.5
+
 def test_calculate_distance():
     text = "40.7128,-74.0060,51.5074,-0.1278"
     result = calculate_distance(text)
