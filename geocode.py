@@ -83,13 +83,19 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
 
+    cache = {}
     rows = []
     for lat, lon in pairs:
+        if (lat, lon) in cache:
+            rows.append((lat, lon, cache[(lat, lon)]))
+            continue
         try:
             location = _reverse_limiter((lat, lon), language=language, timeout=timeout)
             address = location.address if location else "Not found"
+            cache[(lat, lon)] = address
         except (GeocoderTimedOut, GeocoderServiceError, Exception):
             address = "Not found"
+            cache[(lat, lon)] = address
         rows.append((lat, lon, address))
     table = [
         "| Latitude | Longitude | Address |",
