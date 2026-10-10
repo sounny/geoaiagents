@@ -28,15 +28,15 @@ def install_package(package, method="auto"):
     """Install a single package using pip."""
     if method == "user":
         # Install with --user flag
-        cmd = [sys.executable, "-m", "pip", "install", "--user", package]
+        cmd = [sys.executable, "-m", "pip", "install", "--user", "--", package]
         method_desc = "with --user flag"
     elif method == "system":
         # Install system-wide (may require --break-system-packages)
-        cmd = [sys.executable, "-m", "pip", "install", "--break-system-packages", package]
+        cmd = [sys.executable, "-m", "pip", "install", "--break-system-packages", "--", package]
         method_desc = "system-wide"
     elif method == "normal":
         # Standard pip install (may fail on managed environments)
-        cmd = [sys.executable, "-m", "pip", "install", package]
+        cmd = [sys.executable, "-m", "pip", "install", "--", package]
         method_desc = "normally"
     else:  # auto
         # Try --user first, then fallback to --break-system-packages
@@ -58,7 +58,7 @@ def install_package_auto(package):
     try:
         print(f"Installing {package}...")
         # Try with --user flag first (safer for managed environments)
-        result = subprocess.run([sys.executable, "-m", "pip", "install", "--user", package], 
+        result = subprocess.run([sys.executable, "-m", "pip", "install", "--user", "--", package],
                               capture_output=True, text=True, check=True)
         print(f"✓ Successfully installed {package}")
         return True
@@ -67,7 +67,7 @@ def install_package_auto(package):
         # Try with --break-system-packages as fallback
         try:
             print(f"Trying alternative installation for {package}...")
-            result = subprocess.run([sys.executable, "-m", "pip", "install", "--break-system-packages", package], 
+            result = subprocess.run([sys.executable, "-m", "pip", "install", "--break-system-packages", "--", package],
                                   capture_output=True, text=True, check=True)
             print(f"✓ Successfully installed {package}")
             return True
