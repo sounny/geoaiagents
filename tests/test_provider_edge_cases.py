@@ -80,3 +80,41 @@ def test_retry_exhaustion_geoai_cli(mocker, capsys):
     captured = capsys.readouterr()
     assert "[INFO] Reached max tool-call steps for this turn." in captured.out
     assert mock_client.chat.completions.create.call_count == 2
+
+def test_malformed_response_missing_choices(mocker):
+    """Test that missing choices triggers a retry/failure."""
+    from llm_utils import call_llm_with_retry
+
+    mock_client = mocker.MagicMock()
+    mock_resp = mocker.MagicMock()
+    # Missing choices entirely
+    del mock_resp.choices
+
+    mock_client.chat.completions.create.return_value = mock_resp
+
+    # Should exhaust retries and fail
+    with pytest.raises(ValueError, match="LLM call failed after"):
+        call_llm_with_retry(mock_client, max_retries=2, model="dummy")
+
+    assert mock_client.chat.completions.create.call_count == 2
+
+def test_malformed_response_missing_message(mocker):
+    """Test that missing message in choices triggers a retry/failure."""
+    from llm_utils import call_llm_with_retry
+
+    mock_client = mocker.MagicMock()
+
+    mock_choice = mocker.MagicMock()
+    # Missing message in the choice
+    mock_choice.message = None
+
+    mock_resp = mocker.MagicMock()
+    mock_resp.choices = [mock_choice]
+
+    mock_client.chat.completions.create.return_value = mock_resp
+
+    # Should exhaust retries and fail
+    with pytest.raises(ValueError, match="LLM call failed after"):
+        call_llm_with_retry(mock_client, max_retries=2, model="dummy")
+
+    assert mock_client.chat.completions.create.call_count == 2
