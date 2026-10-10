@@ -8,7 +8,21 @@ def test_parse_tool_args_valid_json():
     assert parse_tool_args('{"key": "value"}') == {"key": "value"}
 
 def test_parse_tool_args_invalid_json():
-    assert parse_tool_args('{"key": "value"') == {}
+    import pytest
+    with pytest.raises(ValueError, match="Invalid JSON"):
+        parse_tool_args('{"key": "value"')
+
+def test_tool_registry_invoke_happy_path():
+    result = create_registry().invoke('convert_dd_to_dms', '48.8566,2.3522')
+    assert "Latitude" in result or "DMS" in result
+
+def test_tool_registry_invoke_happy_path_json():
+    result = create_registry().invoke('convert_dd_to_dms', '{"coordinates": "48.8566,2.3522"}')
+    assert "Latitude" in result or "DMS" in result
+
+def test_tool_registry_invoke_invalid_json():
+    result = create_registry().invoke('convert_dd_to_dms', '{"coordinates": "48.8566,2.3522"')
+    assert "Error running convert_dd_to_dms: Invalid JSON" in result
 
 def test_parse_tool_args_json_array():
     assert parse_tool_args('["value"]') == {}
