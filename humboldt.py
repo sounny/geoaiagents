@@ -89,7 +89,7 @@ def build_parser():
     parser = argparse.ArgumentParser(description="Interactive GeoAI agent")
     parser.add_argument(
         "--base-url",
-        default=os.getenv("OPENAI_BASE_URL", "http://localhost:5272/v1/"),
+        default=os.environ.get("OPENAI_BASE_URL") or "http://localhost:5272/v1/",
         help="OpenAI API base URL",
     )
     parser.add_argument(
