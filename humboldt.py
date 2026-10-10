@@ -125,6 +125,83 @@ def build_parser():
     )
     return parser
 
+
+def handle_direct_command(user_input, tool_registry):
+    """Handle direct slash commands."""
+    if user_input.startswith("/geocode "):
+        payload = user_input[len("/geocode "):]
+        print(tool_registry.invoke("geocode_locations", {"locations": payload}))
+        return True
+    if user_input.startswith("/reverse "):
+        payload = user_input[len("/reverse "):]
+        print(tool_registry.invoke("reverse_geocode_coordinates", {"coordinates": payload}))
+        return True
+    if user_input.startswith("/dms "):
+        payload = user_input[len("/dms "):]
+        print(tool_registry.invoke("convert_dd_to_dms", {"coordinates": payload}))
+        return True
+    if user_input.startswith("/distance "):
+        payload = user_input[len("/distance "):]
+        print(tool_registry.invoke("calculate_distance", {"coordinates": payload}))
+        return True
+    return False
+
+def execute_tool_loop(client, args, messages, functions, run_tool_call):
+    """Execute the multi-step tool loop for the LLM."""
+    steps = 0
+    last_content_printed = False
+    while steps <= args.max_steps:
+        response = call_llm_with_retry(
+            client,
+            model=args.model,
+            messages=messages,
+            functions=functions,
+            function_call="auto",
+            max_tokens=1000,
+            frequency_penalty=1,
+        )
+        message = response.choices[0].message
+        if args.debug:
+            print("[DEBUG] LLM message:", message)
+
+        if getattr(message, "function_call", None):
+            call = message.function_call
+            tool_output = run_tool_call(call.name, call.arguments)
+            messages.append({"role": "assistant", "content": None, "function_call": call})
+            messages.append({"role": "function", "name": call.name, "content": tool_output or ""})
+            steps += 1
+            continue
+
+        if message.content:
+            print(message.content)
+            last_content_printed = True
+            break
+
+        break
+
+    if steps > args.max_steps and not last_content_printed:
+        print("[INFO] Reached maximum tool-call steps. Stopping.")
+
+def chat_loop(client, args, messages, tool_registry, functions, run_tool_call):
+    """Run the main REPL chat loop."""
+    while True:
+        user_input = input("Humboldt> (type 'exit' to quit)\n")
+        if user_input.lower() in ("exit", "quit"):
+            print("Exiting Humboldt. Goodbye!")
+            break
+
+        if handle_direct_command(user_input, tool_registry):
+            continue
+
+        messages.append({"role": "user", "content": user_input})
+        if args.debug:
+            print("[DEBUG] Sending to LLM (last 2 msgs):", messages[-2:])
+
+        execute_tool_loop(client, args, messages, functions, run_tool_call)
+
+        if len(messages) > 20:
+            messages = [messages[0]] + messages[-19:]
+
 def main():
     parser = build_parser()
 
@@ -179,73 +256,7 @@ def main():
     if args.debug:
         print("[DEBUG] Using model:", args.model)
 
-    # REPL loop
-    while True:
-        user_input = input("Humboldt> (type 'exit' to quit)\n")
-        if user_input.lower() in ("exit", "quit"):
-            print("Exiting Humboldt. Goodbye!")
-            break
-
-        # Direct tool invocations
-        if user_input.startswith("/geocode "):
-            payload = user_input[len("/geocode "):]
-            print(tool_registry.invoke("geocode_locations", {"locations": payload}))
-            continue
-        if user_input.startswith("/reverse "):
-            payload = user_input[len("/reverse "):]
-            print(tool_registry.invoke("reverse_geocode_coordinates", {"coordinates": payload}))
-            continue
-        if user_input.startswith("/dms "):
-            payload = user_input[len("/dms "):]
-            print(tool_registry.invoke("convert_dd_to_dms", {"coordinates": payload}))
-            continue
-        if user_input.startswith("/distance "):
-            payload = user_input[len("/distance "):]
-            print(tool_registry.invoke("calculate_distance", {"coordinates": payload}))
-            continue
-
-        messages.append({"role": "user", "content": user_input})
-        if args.debug:
-            print("[DEBUG] Sending to LLM (last 2 msgs):", messages[-2:])
-
-        # Multi-step tool loop
-        steps = 0
-        last_content_printed = False
-        while steps <= args.max_steps:
-            response = call_llm_with_retry(
-                client,
-                model=args.model,
-                messages=messages,
-                functions=functions,
-                function_call="auto",
-                max_tokens=1000,
-                frequency_penalty=1,
-            )
-            message = response.choices[0].message
-            if args.debug:
-                print("[DEBUG] LLM message:", message)
-
-            if getattr(message, "function_call", None):
-                call = message.function_call
-                tool_output = run_tool_call(call.name, call.arguments)
-                messages.append({"role": "assistant", "content": None, "function_call": call})
-                messages.append({"role": "function", "name": call.name, "content": tool_output or ""})
-                steps += 1
-                continue
-
-            if message.content:
-                print(message.content)
-                last_content_printed = True
-                break
-
-            break
-
-        if steps > args.max_steps and not last_content_printed:
-            print("[INFO] Reached maximum tool-call steps. Stopping.")
-
-        if len(messages) > 20:
-            messages = [messages[0]] + messages[-19:]
-
+    chat_loop(client, args, messages, tool_registry, functions, run_tool_call)
 
 if __name__ == "__main__":
     main()
