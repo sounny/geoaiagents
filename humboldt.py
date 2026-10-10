@@ -10,6 +10,7 @@ from llm_utils import call_llm_with_retry
 import subprocess
 import sys
 import importlib.util
+import json
 
 
 def check_and_install_dependencies():
@@ -172,6 +173,13 @@ def main():
         if not tool_registry.has_tool(tool_name):
             print(f"[WARN] Unknown tool requested: {tool_name}")
             return None
+
+        if isinstance(raw_args, str):
+            try:
+                json.loads(raw_args or "{}")
+            except json.JSONDecodeError as e:
+                return f"Error: Invalid JSON arguments for tool {tool_name} - {e}"
+
         return tool_registry.invoke(tool_name, raw_args)
 
     # Greet the user
