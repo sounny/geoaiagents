@@ -17,3 +17,13 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+def test_reverse_geocode_out_of_range_skipped_notes(mocker):
+    # Mock to ensure live Nominatim is not called
+    mocker.patch("geocode._reverse_limiter", side_effect=AssertionError("Should not call real Nominatim"))
+
+    result = reverse_geocode_coordinates("91,0")
+
+    assert "| Latitude | Longitude | Address |" in result
+    assert "Skipped" in result or "_Skipped" in result
+    assert "91,0" in result
