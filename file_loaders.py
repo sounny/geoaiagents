@@ -3,6 +3,7 @@ import csv
 import io
 import xml.etree.ElementTree as ET
 import requests
+import functools
 
 
 def _table(coords):
@@ -98,6 +99,7 @@ def load_csv(csv_text: str) -> str:
     return _table(coords)
 
 
+@functools.lru_cache(maxsize=32)
 def fetch_geo_boundaries(iso: str, adm: str = "ADM0") -> str:
     """Download simplified boundaries from geoBoundaries and return a table."""
     url = f"https://www.geoboundaries.org/api/current/gbOpen/{iso.upper()}/{adm}/"
