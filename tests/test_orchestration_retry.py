@@ -20,7 +20,7 @@ def test_call_llm_with_retry_malformed(mock_sleep):
     mock_response.choices = []
     client.chat.completions.create.return_value = mock_response
 
-    with pytest.raises(ValueError, match="LLM call failed after 3 attempts"):
+    with pytest.raises(ValueError, match="Malformed response: \'choices\' missing or empty"):
         call_llm_with_retry(client, max_retries=3)
 
     assert client.chat.completions.create.call_count == 3
