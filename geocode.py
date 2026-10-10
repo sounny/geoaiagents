@@ -1,11 +1,14 @@
-# geocode.py: LLM-driven geocoder using OpenAI function-calling and geopy Nominatim API
+# geocode.py: LLM-driven geocoder using OpenAI function-calling and geopy
+# Nominatim API
 """Run this model in Python
 
 > pip install geopy
 """
 # Standard library imports
 import json
-from llm_utils import call_llm_with_retry  # to parse and format JSON for function arguments
+import concurrent.futures
+# to parse and format JSON for function arguments
+from llm_utils import call_llm_with_retry
 import argparse
 import os
 # Third-party imports
@@ -19,12 +22,24 @@ from validation import format_invalid_notes, parse_coordinate_pairs
 
 # Global RateLimiters to enforce delays across sequential requests
 _geolocator = Nominatim(user_agent="my_geocoder_app")
-_geocode_limiter = RateLimiter(_geolocator.geocode, min_delay_seconds=1, max_retries=2)
-_reverse_limiter = RateLimiter(_geolocator.reverse, min_delay_seconds=1, max_retries=2)
+_geocode_limiter = RateLimiter(
+    _geolocator.geocode,
+    min_delay_seconds=1,
+    max_retries=2)
+_reverse_limiter = RateLimiter(
+    _geolocator.reverse,
+    min_delay_seconds=1,
+    max_retries=2)
 
 # Geocoding helper functions
 
-def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="en"):
+
+def get_coordinates(
+        location_query,
+        *,
+        timeout=1,
+        bounding_box=None,
+        language="en"):
     """Query Nominatim for a single location string.
 
     Parameters
@@ -66,10 +81,15 @@ def parse_locations(locations_str):
     Split a string of locations (newline or semicolon delimited) into a list.
     """
     import re
-    return [line.strip() for line in re.split(r'\n|;', locations_str) if line.strip()]
+    return [line.strip() for line in re.split(
+        r'\n|;', locations_str) if line.strip()]
 
 
-def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en") -> str:
+def reverse_geocode_coordinates(
+        coordinates_str: str,
+        *,
+        timeout=1,
+        language="en") -> str:
     """Reverse geocode lat/lon pairs to the nearest address.
 
     Parameters
@@ -83,14 +103,18 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
     """
     pairs, invalid_entries = parse_coordinate_pairs(coordinates_str)
 
-    rows = []
-    for lat, lon in pairs:
+    def fetch_reverse(pair):
+        lat, lon = pair
         try:
-            location = _reverse_limiter((lat, lon), language=language, timeout=timeout)
+            location = _reverse_limiter(
+                (lat, lon), language=language, timeout=timeout)
             address = location.address if location else "Not found"
         except (GeocoderTimedOut, GeocoderServiceError, Exception):
             address = "Not found"
-        rows.append((lat, lon, address))
+        return (lat, lon, address)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, len(pairs))) as executor:
+        rows = list(executor.map(fetch_reverse, pairs))
     table = [
         "| Latitude | Longitude | Address |",
         "|---------:|----------:|---------|",
@@ -107,14 +131,16 @@ def geocode_locations(locations_str: str) -> str:
     Geocode multiple locations and return a markdown-formatted table.
     """
     locations = parse_locations(locations_str)
-    rows = []
-    for loc in locations:
+
+    def fetch_geocode(loc):
         address, lat, lon = get_coordinates(loc)
-        # Use placeholders on missing data
         address = address or "Not found"
         lat = lat or ""
         lon = lon or ""
-        rows.append((loc, address, lat, lon))
+        return (loc, address, lat, lon)
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, len(locations))) as executor:
+        rows = list(executor.map(fetch_geocode, locations))
     # Build markdown table header
     table = [
         "| Input | Matched Address | Latitude | Longitude |",
@@ -160,8 +186,7 @@ def main():
     system_prompt = (
         "You are a geocoder. The user will give you addresses, places, "
         "and locations. Your job is to convert them to longitude and latitude, "
-        "and provide a table with the original input and coordinates."
-    )
+        "and provide a table with the original input and coordinates.")
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": user_input}
@@ -202,8 +227,11 @@ def main():
         args = json.loads(message.function_call.arguments)
         table = geocode_locations(args["locations"])
         # Append the function call and its result
-        messages.append({"role": "assistant", "content": None, "function_call": message.function_call})
-        messages.append({"role": "function", "name": message.function_call.name, "content": table})
+        messages.append({"role": "assistant", "content": None,
+                        "function_call": message.function_call})
+        messages.append({"role": "function",
+                         "name": message.function_call.name,
+                         "content": table})
         # Send back to LLM for final formatting
         second_resp = call_llm_with_retry(
             client,
