@@ -17,3 +17,10 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+def test_geocode_locations_empty_string(mocker):
+    from geocode import geocode_locations
+    mock_limiter = mocker.patch("geocode._geocode_limiter")
+    result = geocode_locations("")
+    assert mock_limiter.call_count == 0
+    assert result == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|"
