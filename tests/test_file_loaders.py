@@ -18,3 +18,9 @@ def test_load_geojson_feature_collection_one_point():
     assert "| Latitude | Longitude |" in res
     assert "48.85" in res
     assert "2.35" in res
+
+def test_load_geojson_empty_feature_collection_no_numeric_row():
+    fc = '{"type":"FeatureCollection","features":[]}'
+    res = load_geojson(fc)
+    assert "| Latitude | Longitude |" in res
+    assert not any(char.isdigit() for char in res)
