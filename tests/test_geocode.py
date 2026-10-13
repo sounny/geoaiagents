@@ -32,3 +32,27 @@ def test_reverse_geocode_out_of_range_skipped_notes(mocker):
     assert "| Latitude | Longitude | Address |" in result
     assert "91,0" in result
     assert "_Skipped" in result or "Skipped" in result
+
+def test_geocode_locations_empty_and_whitespace(mocker):
+    mocker.patch("geocode._geocode_limiter", side_effect=AssertionError("No network calls allowed"))
+
+    # Test empty
+    result = __import__("geocode").geocode_locations('')
+    assert "| Input | Matched Address | Latitude | Longitude |" in result
+    assert "|-------|-----------------|----------|-----------|" in result
+    # It shouldn't add any rows because parse_locations('') returns []
+    assert len(result.split('\n')) == 2
+
+    # Test whitespace
+    result2 = __import__("geocode").geocode_locations('   ')
+    assert "| Input | Matched Address | Latitude | Longitude |" in result2
+    assert "|-------|-----------------|----------|-----------|" in result2
+    assert len(result2.split('\n')) == 2
+
+def test_geocode_locations_mocked_provider_no_results(mocker):
+    # Mock to return nothing (None)
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+
+    result = __import__("geocode").geocode_locations('Atlantis')
+    assert "| Input | Matched Address | Latitude | Longitude |" in result
+    assert "| Atlantis | Not found |  |  |" in result
