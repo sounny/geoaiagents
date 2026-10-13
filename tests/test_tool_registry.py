@@ -59,3 +59,20 @@ def test_tool_registry_builtin_openai_functions_convert_dd_to_dms_membership():
         assert "name" in f and f["name"]
         assert "description" in f and f["description"]
         assert "parameters" in f and f["parameters"]
+
+def test_tool_registry_name_validation():
+    """Test that tool registry validates names are unique non-empty strings."""
+    registry = ToolRegistry()
+
+    # Test non-string name
+    with pytest.raises(ValueError, match="Tool name must be a string"):
+        registry.register_tool(name=123, description="desc", parameters={}, handler=lambda x: "test")
+
+    # Test empty string name
+    with pytest.raises(ValueError, match="Tool name must be a non-empty string"):
+        registry.register_tool(name="", description="desc", parameters={}, handler=lambda x: "test")
+
+    # Test duplicate name
+    registry.register_tool(name="valid_name", description="desc", parameters={}, handler=lambda x: "test")
+    with pytest.raises(ValueError, match="Tool 'valid_name' is already registered"):
+        registry.register_tool(name="valid_name", description="desc2", parameters={}, handler=lambda x: "test")

@@ -42,6 +42,13 @@ class ToolRegistry:
         parameters: Dict[str, Any],
         handler: ToolHandler,
     ) -> None:
+        if not isinstance(name, str):
+            raise ValueError(f"Tool name must be a string, got {type(name)}")
+        if not name:
+            raise ValueError("Tool name must be a non-empty string")
+        if name in self._tools:
+            raise ValueError(f"Tool '{name}' is already registered")
+
         self._tools[name] = ToolDefinition(
             name=name,
             description=description,
