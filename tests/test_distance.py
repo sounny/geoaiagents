@@ -41,6 +41,19 @@ def test_haversine_km_not_the_equator_case():
     assert abs(distance - 1200) / 1200 < 0.15
     assert _haversine_km(-33.9249, 18.4241, -33.9249, 18.4241) == 0
 
+@pytest.mark.parametrize("a, b, c", [
+    ((40.7128, -74.0060), (51.5074, -0.1278), (48.8566, 2.3522)),
+    ((35.6895, 139.6917), (-33.8688, 151.2093), (-33.9249, 18.4241)),
+    ((-22.9068, -43.1729), (-34.6037, -58.3816), (-33.4489, -70.6693)),
+    ((61.2181, -149.9003), (21.3069, -157.8583), (34.0522, -118.2437)),
+    ((30.0444, 31.2357), (-1.2921, 36.8219), (19.0760, 72.8777)),
+])
+def test_haversine_km_triangle_inequality(a, b, c):
+    d_ac = _haversine_km(a[0], a[1], c[0], c[1])
+    d_ab = _haversine_km(a[0], a[1], b[0], b[1])
+    d_bc = _haversine_km(b[0], b[1], c[0], c[1])
+    assert d_ac <= d_ab + d_bc + 1e-5
+
 def test_calculate_distance_identical_and_invalid():
     res1 = calculate_distance('35.6762,139.6503,35.6762,139.6503')
     assert '0.00' in res1
