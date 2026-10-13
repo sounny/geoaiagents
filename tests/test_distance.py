@@ -42,8 +42,10 @@ def test_haversine_km_not_the_equator_case():
     assert _haversine_km(-33.9249, 18.4241, -33.9249, 18.4241) == 0
 
 def test_calculate_distance_identical_and_invalid():
+    # Merged from test_distance_issue.py
     res1 = calculate_distance('35.6762,139.6503,35.6762,139.6503')
     assert '0.00' in res1
+    assert '35.6762' in res1
 
     res2 = calculate_distance('91,0,10,10')
     assert 'No valid coordinate pairs provided.' in res2
