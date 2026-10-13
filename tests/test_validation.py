@@ -70,3 +70,22 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert not pairs2
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
+
+
+def test_is_valid_lat_lon_property():
+    hypothesis = pytest.importorskip("hypothesis")
+    from hypothesis import given, strategies as st
+    import math
+
+    @given(st.floats(allow_nan=True, allow_infinity=True), st.floats(allow_nan=True, allow_infinity=True))
+    def _property_test(lat, lon):
+        result = is_valid_lat_lon(lat, lon)
+
+        # Determine expected result
+        is_valid_lat = not math.isnan(lat) and not math.isinf(lat) and -90.0 <= lat <= 90.0
+        is_valid_lon = not math.isnan(lon) and not math.isinf(lon) and -180.0 <= lon <= 180.0
+
+        expected = is_valid_lat and is_valid_lon
+        assert result is expected
+
+    _property_test()
