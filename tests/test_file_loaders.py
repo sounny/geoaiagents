@@ -1,4 +1,4 @@
-from file_loaders import load_geojson, load_kml
+from file_loaders import load_csv, load_geojson, load_kml
 
 def test_load_geojson_feature_point_and_invalid():
     res = load_geojson('{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]}}')
@@ -57,3 +57,15 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+def test_empty_file():
+    expected = "| Latitude | Longitude |\n|---------:|----------:|"
+    assert load_csv('') == expected
+    assert load_kml('') == expected
+    assert load_geojson('') == expected
+
+def test_unsupported_file_extension():
+    expected = "| Latitude | Longitude |\n|---------:|----------:|"
+    assert load_csv("data.xyz") == expected
+    assert load_kml("data.xyz") == expected
+    assert load_geojson("data.xyz") == expected
