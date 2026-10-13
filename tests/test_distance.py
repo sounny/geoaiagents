@@ -41,6 +41,20 @@ def test_haversine_km_not_the_equator_case():
     assert abs(distance - 1200) / 1200 < 0.15
     assert _haversine_km(-33.9249, 18.4241, -33.9249, 18.4241) == 0
 
+@pytest.mark.parametrize("lat1, lon1, lat2, lon2", [
+    (40.7128, -74.0060, 51.5074, -0.1278),  # North-West to North-West
+    (-33.9249, 18.4241, -29.8587, 31.0218), # South-East to South-East
+    (35.6762, 139.6503, -33.8688, 151.2093), # North-East to South-East
+    (0.0, 0.0, 0.0, 0.0), # Equator/Prime Meridian to itself
+    (90.0, 0.0, -90.0, 0.0), # North Pole to South Pole
+])
+def test_haversine_km_symmetric(lat1, lon1, lat2, lon2):
+    d1 = _haversine_km(lat1, lon1, lat2, lon2)
+    d2 = _haversine_km(lat2, lon2, lat1, lon1)
+    assert pytest.approx(d1, abs=1e-9) == d2
+    assert _haversine_km(lat1, lon1, lat1, lon1) == 0.0
+    assert _haversine_km(lat2, lon2, lat2, lon2) == 0.0
+
 def test_calculate_distance_identical_and_invalid():
     res1 = calculate_distance('35.6762,139.6503,35.6762,139.6503')
     assert '0.00' in res1
