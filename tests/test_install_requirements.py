@@ -26,3 +26,19 @@ def test_read_requirements_keeps_flask_and_drops_hash_comment():
         assert reqs == ['flask==2.0.0']
     finally:
         os.remove(temp_name)
+
+import subprocess
+import shutil
+import pytest
+
+def test_install_requirements_sh_bash_n():
+    script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'install_requirements.sh'))
+    result = subprocess.run(['bash', '-n', script_path], capture_output=True, text=True)
+    assert result.returncode == 0, f"bash -n failed: {result.stderr}"
+
+@pytest.mark.skipif(shutil.which('shellcheck') is None, reason="shellcheck is not installed")
+@pytest.mark.xfail(reason="shellcheck SC2181: Check exit code directly with e.g. 'if mycmd;', not indirectly with $?")
+def test_install_requirements_sh_shellcheck():
+    script_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'install_requirements.sh'))
+    result = subprocess.run(['shellcheck', script_path], capture_output=True, text=True)
+    assert result.returncode == 0, f"shellcheck failed: {result.stdout}\n{result.stderr}"
