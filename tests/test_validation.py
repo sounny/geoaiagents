@@ -70,3 +70,13 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert not pairs2
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
+
+@pytest.mark.xfail(reason="Directional suffixes (N, S, E, W) currently unsupported")
+def test_parse_coordinate_pairs_directional_suffixes():
+    text = "48.85N, 2.35E\n33S, 70W"
+    pairs, invalid = parse_coordinate_pairs(text)
+    # The current implementation fails to parse this, capturing them in invalid
+    # instead of pairs. But they are valid locations, so we assert that they
+    # should be parsed properly.
+    assert pairs == [(48.85, 2.35), (-33.0, -70.0)]
+    assert not invalid
