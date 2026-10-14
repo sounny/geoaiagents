@@ -76,3 +76,43 @@ def test_tool_registry_name_validation():
     registry.register_tool(name="valid_name", description="desc", parameters={}, handler=lambda x: "test")
     with pytest.raises(ValueError, match="Tool 'valid_name' is already registered"):
         registry.register_tool(name="valid_name", description="desc2", parameters={}, handler=lambda x: "test")
+
+def test_load_plugins_valid_and_broken(tmp_path, monkeypatch):
+    """Test loading plugins from a temporary plugins directory with one valid and one broken plugin."""
+    import sys
+    from tool_registry import _load_plugins
+
+    # Create valid plugin
+    valid_plugin_file = tmp_path / "test_valid_plugin.py"
+    valid_plugin_file.write_text(
+        "def register_tools(registry):\n"
+        "    registry.register_tool(\n"
+        "        name='valid_test_tool',\n"
+        "        description='A valid test tool',\n"
+        "        parameters={}, \n"
+        "        handler=lambda args: 'valid'\n"
+        "    )\n"
+    )
+
+    # Create broken plugin
+    broken_plugin_file = tmp_path / "test_broken_plugin.py"
+    broken_plugin_file.write_text(
+        "raise ImportError('Simulated broken plugin')\n"
+    )
+
+    # Add tmp_path to sys.path so modules can be imported
+    monkeypatch.syspath_prepend(str(tmp_path))
+
+    # Set GEOAI_PLUGIN_MODULES to load both plugins
+    monkeypatch.setenv("GEOAI_PLUGIN_MODULES", "test_valid_plugin, test_broken_plugin")
+
+    # Create registry and load plugins
+    registry = ToolRegistry()
+    _load_plugins(registry)
+
+    # Check that the valid tool was registered
+    assert registry.has_tool("valid_test_tool") is True
+
+    # Clean up sys.modules
+    sys.modules.pop("test_valid_plugin", None)
+    sys.modules.pop("test_broken_plugin", None)
