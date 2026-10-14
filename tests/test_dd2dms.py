@@ -84,3 +84,30 @@ def test_dd_to_dms_value_88_888_components():
     assert 0 <= m <= 59
     assert 0 <= s < 60
     assert math.copysign(1, d) == math.copysign(1, 88.888)
+
+def dms_to_dd_value(deg, minutes, seconds):
+    abs_dd = abs(deg) + minutes / 60.0 + seconds / 3600.0
+    return math.copysign(abs_dd, deg)
+
+@pytest.mark.parametrize("original_dd", [
+    0.0,
+    45.5,
+    -45.5,
+    89.9999,
+    -89.9999,
+    179.9999,
+    -179.9999,
+    12.3456,
+    -12.3456,
+    150.0
+])
+def test_dd_to_dms_round_trip(original_dd):
+    # test round trip within 1e-4
+    deg, minutes, seconds = dd_to_dms_value(original_dd)
+    back_dd = dms_to_dd_value(deg, minutes, seconds)
+
+    # math.copysign correctly handles -0.0
+    if original_dd == 0.0 and math.copysign(1, original_dd) == -1.0:
+        pass # this depends on what test checks
+
+    assert back_dd == pytest.approx(original_dd, abs=1e-4)
