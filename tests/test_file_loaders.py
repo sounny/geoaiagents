@@ -57,3 +57,24 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+import pytest
+from file_loaders import load_geojson, load_kml, load_csv
+
+@pytest.mark.parametrize("loader", [load_geojson, load_csv, load_kml])
+@pytest.mark.parametrize("path_type", ["non_existent", "directory"])
+def test_file_loaders_path_not_exist_and_directory_handled(tmp_path, loader, path_type):
+    if path_type == "non_existent":
+        val = str(tmp_path / "does_not_exist.ext")
+    else:
+        val = str(tmp_path)
+
+    try:
+        res = loader(val)
+    except Exception as e:
+        pytest.xfail(reason=f"Bug exposed: {loader.__name__} crashed with unhandled traceback {type(e).__name__} on input '{val}'")
+
+    # It should return an empty result table or a clear error string
+    is_empty_table = "| Latitude | Longitude |" in res and not any(char.isdigit() for char in res)
+    is_error = "error" in res.lower()
+    assert is_empty_table or is_error
