@@ -27,13 +27,14 @@ def test_parse_coordinate_pairs():
     assert invalid[1][0] == "abc,123"
 
 def test_parse_coordinate_pairs_malformed():
-    pairs, invalid = parse_coordinate_pairs("10,20\ninvalid\n30,200\n40")
+    pairs, invalid = parse_coordinate_pairs("10,20\ninvalid\n30,200\n40\n120, 45")
 
     assert pairs == [(10.0, 20.0)]
-    assert len(invalid) == 3
+    assert len(invalid) == 4
     assert invalid[0] == ("invalid", "Missing latitude/longitude pair")
     assert invalid[1] == ("30,200", "Out of range (-90 <= lat <= 90, -180 <= lon <= 180)")
     assert invalid[2] == ("40", "Missing latitude/longitude pair")
+    assert invalid[3] == ("120, 45", "Out of range (-90 <= lat <= 90, -180 <= lon <= 180)")
 
 def test_parse_coordinate_pairs_not_a_number():
     pairs, invalid = parse_coordinate_pairs("10,foo")
