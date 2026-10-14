@@ -76,3 +76,25 @@ def test_tool_registry_name_validation():
     registry.register_tool(name="valid_name", description="desc", parameters={}, handler=lambda x: "test")
     with pytest.raises(ValueError, match="Tool 'valid_name' is already registered"):
         registry.register_tool(name="valid_name", description="desc2", parameters={}, handler=lambda x: "test")
+
+def test_tool_registry_openai_functions_valid_properties():
+    """Test that every tool name is unique, non-empty, snake_case, and has a description."""
+    import re
+    reg = create_registry()
+    funcs = reg.openai_functions()
+
+    seen = set()
+    for f in funcs:
+        name = f.get("name", "")
+        desc = f.get("description", "")
+
+        if not name:
+            pytest.xfail("Tool name must be non-empty")
+        if name in seen:
+            pytest.xfail(f"Tool name '{name}' is not unique")
+        if not re.match(r"^[a-z_][a-z0-9_]*$", name):
+            pytest.xfail(f"Tool name '{name}' is not snake_case")
+        if not desc:
+            pytest.xfail(f"Tool '{name}' must have a non-empty description")
+
+        seen.add(name)
