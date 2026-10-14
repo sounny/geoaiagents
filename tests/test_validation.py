@@ -70,3 +70,21 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert not pairs2
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
+
+def test_parse_coordinate_pairs_scientific_notation():
+    # Test valid scientific notation
+    pairs, invalid = parse_coordinate_pairs("4.5e1, 1e1")
+    assert pairs == [(45.0, 10.0)]
+    assert not invalid
+
+    # Test out-of-range scientific notation
+    pairs, invalid = parse_coordinate_pairs("1e3, 1e3")
+    assert not pairs
+    assert len(invalid) == 1
+    assert "Out of range" in invalid[0][1]
+
+    # Test invalid float representation
+    pairs, invalid = parse_coordinate_pairs("1e, 2e")
+    assert not pairs
+    assert len(invalid) == 1
+    assert "Not a number" in invalid[0][1]
