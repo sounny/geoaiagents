@@ -26,3 +26,36 @@ def test_read_requirements_keeps_flask_and_drops_hash_comment():
         assert reqs == ['flask==2.0.0']
     finally:
         os.remove(temp_name)
+
+import pytest
+import re
+
+def test_requirements_txt_properties():
+    req_path = os.path.join(os.path.dirname(__file__), '..', 'requirements.txt')
+    if not os.path.exists(req_path):
+        pytest.skip("requirements.txt not found")
+
+    seen_packages = set()
+    missing_version = []
+
+    with open(req_path, 'r') as f:
+        for line in f:
+            line = line.split('#')[0].strip()
+            if not line:
+                continue
+
+            # Simple regex to extract package name and version specifier
+            match = re.match(r'^([A-Za-z0-9_\-]+)(.*)$', line)
+            assert match, f"Line does not name a package: {line}"
+
+            pkg_name, version_spec = match.groups()
+            normalized_pkg = pkg_name.lower().replace('-', '_')
+
+            assert normalized_pkg not in seen_packages, f"Package {pkg_name} appears twice"
+            seen_packages.add(normalized_pkg)
+
+            if not version_spec.strip():
+                missing_version.append(pkg_name)
+
+    if missing_version:
+        pytest.xfail(f"Lines without a version specifier: {', '.join(missing_version)}")
