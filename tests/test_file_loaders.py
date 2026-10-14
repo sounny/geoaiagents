@@ -1,3 +1,4 @@
+import pytest
 from file_loaders import load_geojson, load_kml
 
 def test_load_geojson_feature_point_and_invalid():
@@ -57,3 +58,17 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+@pytest.mark.xfail(reason="Namespace not currently handled")
+def test_load_kml_standard_namespace():
+    kml_ns = """<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Placemark>
+    <Point>
+      <coordinates>10,20,0</coordinates>
+    </Point>
+  </Placemark>
+</kml>"""
+    res = load_kml(kml_ns)
+    assert "20.0" in res
+    assert "10.0" in res
