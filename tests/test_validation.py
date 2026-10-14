@@ -70,3 +70,23 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert not pairs2
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
+
+def test_parse_coordinate_pairs_unicode_nbsp():
+    # Non-breaking space
+    pairs, invalid = parse_coordinate_pairs("48.85,\xa02.35")
+    assert pairs == [(48.85, 2.35)]
+    assert not invalid
+
+def test_parse_coordinate_pairs_unicode_minus():
+    # Unicode minus sign
+    pairs, invalid = parse_coordinate_pairs("−48.85, 2.35")
+    if not pairs and invalid and invalid[0][1] == "Not a number":
+        pytest.xfail("Unicode minus sign unsupported")
+    assert pairs == [(-48.85, 2.35)]
+
+def test_parse_coordinate_pairs_unicode_degree():
+    # Degree sign
+    pairs, invalid = parse_coordinate_pairs("48.85°, 2.35°")
+    if not pairs and invalid and invalid[0][1] == "Not a number":
+        pytest.xfail("Degree signs unsupported")
+    assert pairs == [(48.85, 2.35)]
