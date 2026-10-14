@@ -1,4 +1,5 @@
-from file_loaders import load_geojson, load_kml
+from file_loaders import load_geojson, load_kml, load_csv
+import pytest
 
 def test_load_geojson_feature_point_and_invalid():
     res = load_geojson('{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]}}')
@@ -57,3 +58,61 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+@pytest.mark.xfail(reason="Loaders currently expect string content, not string paths")
+def test_loaders_accept_str_path(tmp_path):
+    geojson_file = tmp_path / "test.geojson"
+    geojson_file.write_text('{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]}}')
+
+    kml_file = tmp_path / "test.kml"
+    kml_file.write_text("""<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <Placemark>
+      <Point>
+        <coordinates>-122.082,37.422,0</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>""")
+
+    csv_file = tmp_path / "test.csv"
+    csv_file.write_text("lat,lon\n48.85,2.35\n")
+
+    res_geojson = load_geojson(str(geojson_file))
+    assert "48.85" in res_geojson
+
+    res_kml = load_kml(str(kml_file))
+    assert "37.422" in res_kml
+
+    res_csv = load_csv(str(csv_file))
+    assert "48.85" in res_csv
+
+@pytest.mark.xfail(reason="Loaders currently expect string content, not Path objects")
+def test_loaders_accept_pathlib_path(tmp_path):
+    geojson_file = tmp_path / "test.geojson"
+    geojson_file.write_text('{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]}}')
+
+    kml_file = tmp_path / "test.kml"
+    kml_file.write_text("""<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <Placemark>
+      <Point>
+        <coordinates>-122.082,37.422,0</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>""")
+
+    csv_file = tmp_path / "test.csv"
+    csv_file.write_text("lat,lon\n48.85,2.35\n")
+
+    res_geojson = load_geojson(geojson_file)
+    assert "48.85" in res_geojson
+
+    res_kml = load_kml(kml_file)
+    assert "37.422" in res_kml
+
+    res_csv = load_csv(csv_file)
+    assert "48.85" in res_csv
