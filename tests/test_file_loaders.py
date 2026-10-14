@@ -1,4 +1,5 @@
-from file_loaders import load_geojson, load_kml
+import pytest
+from file_loaders import load_geojson, load_kml, load_csv
 
 def test_load_geojson_feature_point_and_invalid():
     res = load_geojson('{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]}}')
@@ -57,3 +58,11 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+@pytest.mark.xfail(reason="BOM not handled")
+def test_load_csv_utf8_bom():
+    csv_text = '\ufefflat,lon\n10.0,20.0'
+    res = load_csv(csv_text)
+    assert "| Latitude | Longitude |" in res
+    assert "10.0" in res
+    assert "20.0" in res
