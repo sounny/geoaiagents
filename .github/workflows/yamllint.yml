@@ -1,0 +1,16 @@
+name: YAML Lint
+
+on:
+  pull_request:
+
+jobs:
+  yamllint:
+    name: yamllint
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run yamllint
+        run: |
+          pip install yamllint
+          yamllint -c .yamllint.yaml .github/
