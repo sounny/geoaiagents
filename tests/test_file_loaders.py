@@ -12,12 +12,12 @@ def test_load_kml_two_points_and_empty_document():
   <Document>
     <Placemark>
       <Point>
-        <coordinates>-122.0822035425683,37.42228990140251,0</coordinates>
+        <coordinates>-122.0822035425683,37.42228990140251,100</coordinates>
       </Point>
     </Placemark>
     <Placemark>
       <Point>
-        <coordinates>-122.082,37.422,0</coordinates>
+        <coordinates>-122.082,37.422,50</coordinates>
       </Point>
     </Placemark>
   </Document>
@@ -29,6 +29,8 @@ def test_load_kml_two_points_and_empty_document():
     assert "-122.0822035425683" in res_2_points
     assert "37.422" in res_2_points
     assert "-122.082" in res_2_points
+    assert "100" not in res_2_points
+    assert "50" not in res_2_points
 
     kml_empty_doc = """<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
