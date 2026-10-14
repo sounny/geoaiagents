@@ -1,4 +1,5 @@
-from file_loaders import load_geojson, load_kml
+import pytest
+from file_loaders import load_geojson, load_kml, load_csv
 
 def test_load_geojson_feature_point_and_invalid():
     res = load_geojson('{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]}}')
@@ -57,3 +58,15 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+@pytest.mark.xfail(reason="Semicolon delimiters and decimal commas are not currently supported")
+def test_load_csv_euro_format(tmp_path):
+    csv_content = "Latitude;Longitude\n48,85;2,35\n"
+    csv_file = tmp_path / "euro_format.csv"
+    csv_file.write_text(csv_content)
+
+    res = load_csv(csv_file.read_text())
+
+    assert "| Latitude | Longitude |" in res
+    assert "48.85" in res
+    assert "2.35" in res
