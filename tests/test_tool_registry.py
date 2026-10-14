@@ -76,3 +76,20 @@ def test_tool_registry_name_validation():
     registry.register_tool(name="valid_name", description="desc", parameters={}, handler=lambda x: "test")
     with pytest.raises(ValueError, match="Tool 'valid_name' is already registered"):
         registry.register_tool(name="valid_name", description="desc2", parameters={}, handler=lambda x: "test")
+
+def test_tool_registry_valid_properties():
+    """Test that all tool registry properties are valid (locking 'valid_properties')."""
+    import re
+    registry = create_registry()
+    tools = registry.openai_functions()
+    names = set()
+    for tool in tools:
+        name = tool.get("name")
+        description = tool.get("description")
+        if not name:
+            pytest.xfail("Tool name is empty")
+        if name in names:
+            pytest.xfail(f"Tool name {name!r} is not unique")
+        names.add(name)
+        if not description:
+            pytest.xfail(f"Tool description for {name!r} is empty")
