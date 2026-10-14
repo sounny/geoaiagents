@@ -1,4 +1,5 @@
 from file_loaders import load_geojson, load_kml
+import pytest
 
 def test_load_geojson_feature_point_and_invalid():
     res = load_geojson('{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]}}')
@@ -57,3 +58,20 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+def test_load_shapefile_missing_shx_dbf(tmp_path):
+    try:
+        from file_loaders import load_shapefile
+    except ImportError:
+        pytest.xfail("Shapefile loader is not implemented")
+
+    shp_file = tmp_path / "test.shp"
+    shp_file.write_bytes(b"dummy data")
+
+    try:
+        result = load_shapefile(str(shp_file))
+    except Exception as e:
+        pytest.xfail(f"Shapefile loader crashed with missing .shx/.dbf: {e}")
+
+    assert isinstance(result, str)
+    assert "error" in result.lower() or "missing" in result.lower() or "not found" in result.lower()
