@@ -57,3 +57,20 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+def test_load_geojson_elevation_point_and_linestring():
+    # Point with elevation
+    point_geojson = '{"type": "Feature", "geometry": {"type": "Point", "coordinates": [2.35, 48.85, 100]}}'
+    res_point = load_geojson(point_geojson)
+    assert "| Latitude | Longitude |" in res_point
+    assert "48.85" in res_point
+    assert "2.35" in res_point
+
+    # LineString with elevation
+    linestring_geojson = '{"type": "Feature", "geometry": {"type": "LineString", "coordinates": [[2.35, 48.85, 100], [2.40, 48.90, 200]]}}'
+    res_linestring = load_geojson(linestring_geojson)
+    assert "| Latitude | Longitude |" in res_linestring
+    assert "48.85" in res_linestring
+    assert "2.35" in res_linestring
+    assert "48.9" in res_linestring
+    assert "2.4" in res_linestring
