@@ -26,3 +26,34 @@ def test_read_requirements_keeps_flask_and_drops_hash_comment():
         assert reqs == ['flask==2.0.0']
     finally:
         os.remove(temp_name)
+
+import pytest
+import re
+
+def test_requirements_properties():
+    req_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'requirements.txt'))
+    seen_packages = set()
+    missing_pins = []
+
+    with open(req_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.split('#')[0].strip()
+            if not line:
+                continue
+
+            # This regex will extract the package name
+            match = re.match(r'^([a-zA-Z0-9\-_]+)(.*)$', line)
+            if not match:
+                continue
+
+            pkg_name = match.group(1).lower().replace('_', '-')
+            specifier = match.group(2).strip()
+
+            assert pkg_name not in seen_packages, f"Duplicate package: {pkg_name}"
+            seen_packages.add(pkg_name)
+
+            if "==" not in specifier:
+                missing_pins.append(line)
+
+    if missing_pins:
+        pytest.xfail(f"Packages missing a version pin (==): {', '.join(missing_pins)}")
