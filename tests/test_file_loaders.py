@@ -1,4 +1,29 @@
-from file_loaders import load_geojson, load_kml
+import time
+from file_loaders import load_geojson, load_kml, load_csv
+
+def test_load_csv_10k_rows_under_10s(tmp_path):
+    csv_file = tmp_path / "10k_points.csv"
+
+    # Generate 10,000 rows of coordinate data
+    lines = ["Latitude,Longitude\n"]
+    lines.extend([f"35.{i},139.{i}\n" for i in range(10000)])
+    csv_content = "".join(lines)
+
+    csv_file.write_text(csv_content)
+
+    # Read the file content
+    content_to_load = csv_file.read_text()
+
+    # Measure time
+    start = time.perf_counter()
+    res = load_csv(content_to_load)
+    end = time.perf_counter()
+
+    # Assert time is under 10 seconds
+    assert (end - start) < 10.0
+
+    # Assert there are 10,002 lines (2 header lines + 10,000 data lines)
+    assert len(res.strip().split('\n')) == 10002
 
 def test_load_geojson_feature_point_and_invalid():
     res = load_geojson('{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]}}')
