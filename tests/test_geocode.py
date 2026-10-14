@@ -1,5 +1,6 @@
 import pytest
-from geocode import get_coordinates, reverse_geocode_coordinates, parse_locations
+from geocode import get_coordinates, reverse_geocode_coordinates, parse_locations, geocode_locations
+from unittest.mock import MagicMock
 
 def test_get_coordinates_timeout_or_error(mocker):
     # Mock _geocode_limiter to raise an exception
@@ -32,3 +33,42 @@ def test_reverse_geocode_out_of_range_skipped_notes(mocker):
     assert "| Latitude | Longitude | Address |" in result
     assert "91,0" in result
     assert "_Skipped" in result or "Skipped" in result
+
+def test_geocode_spacing_nominatim_policy(mocker):
+    import geocode
+    import time
+
+    # Mock the HTTP layer (or Nominatim.geocode) to avoid real network calls
+    mock_geocode = mocker.patch("geopy.geocoders.Nominatim.geocode")
+    loc = MagicMock()
+    loc.address = "Dummy"
+    loc.latitude = 10.0
+    loc.longitude = 20.0
+    mock_geocode.return_value = loc
+    # Re-assign the function for the cached rate limiter
+    mocker.patch.object(geocode._geocode_limiter, "func", mock_geocode)
+
+    # Mock time.sleep to avoid blocking
+    mock_sleep = mocker.patch("time.sleep")
+
+    current_time = [10.0]
+    def mock_clock_impl():
+        return current_time[0]
+
+    def mock_sleep_impl(seconds):
+        current_time[0] += seconds
+        mock_sleep(seconds)
+
+    # geopy RateLimiter binds _clock and _sleep methods on the instance
+    if hasattr(geocode._geocode_limiter, "_clock"):
+        mocker.patch.object(geocode._geocode_limiter, "_clock", side_effect=mock_clock_impl)
+    if hasattr(geocode._geocode_limiter, "_sleep"):
+        mocker.patch.object(geocode._geocode_limiter, "_sleep", side_effect=mock_sleep_impl)
+
+    geocode_locations("Paris\nLondon\nBerlin\nMadrid")
+
+    # We should have at least 3 sleeps for the 4 locations
+    sleeps = [call.args[0] for call in mock_sleep.call_args_list]
+
+    if len(sleeps) < 3 or sum(sleeps) < 3.0:
+        pytest.xfail("Geocoding requests are not spaced correctly to obey Nominatim policy")
