@@ -84,3 +84,10 @@ def test_dd_to_dms_value_88_888_components():
     assert 0 <= m <= 59
     assert 0 <= s < 60
     assert math.copysign(1, d) == math.copysign(1, 88.888)
+
+def test_format_dms_outputs_5_deg_05_min_05_28_sec_N():
+    from dd2dms import format_dms
+    # 5.0848 degrees
+    assert format_dms(5, 5, 5.28, True) == "5°05'05.28\" N"
+    # 5.0833 degrees
+    assert format_dms(5, 4, 59.88, True) == "5°04'59.88\" N"
