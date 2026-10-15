@@ -37,6 +37,7 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+    assert registry.has_tool("missing_tool") is False
 def test_tool_registry_builtin_openai_functions_convert_dd_to_dms_membership():
     """Test registry and openai_functions structure (locking convert_dd_to_dms membership)."""
     reg = create_registry()
@@ -76,3 +77,4 @@ def test_tool_registry_name_validation():
     registry.register_tool(name="valid_name", description="desc", parameters={}, handler=lambda x: "test")
     with pytest.raises(ValueError, match="Tool 'valid_name' is already registered"):
         registry.register_tool(name="valid_name", description="desc2", parameters={}, handler=lambda x: "test")
+    assert registry._tools["valid_name"].description == "desc"
