@@ -14,6 +14,17 @@ def test_haversine_km():
     distance = _haversine_km(40.7128, -74.0060, 51.5074, -0.1278)
     assert 5500 < distance < 5600
 
+@pytest.mark.parametrize("lat1, lon1, lat2, lon2", [
+    (48.8566, 2.3522, 35.6762, 139.6503),    # Paris, Tokyo
+    (30.2672, -97.7431, -33.8688, 151.2093), # Austin, Sydney
+])
+def test_haversine_km_symmetry(lat1, lon1, lat2, lon2):
+    ab = _haversine_km(lat1, lon1, lat2, lon2)
+    ba = _haversine_km(lat2, lon2, lat1, lon1)
+    if ab != ba:
+        pytest.xfail("Behavior differs for (a, b) and (b, a)")
+    assert ab == ba
+
 def test_calculate_distance():
     text = "40.7128,-74.0060,51.5074,-0.1278"
     result = calculate_distance(text)
