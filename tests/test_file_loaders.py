@@ -57,3 +57,26 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+import pytest
+
+def test_filter_feature_collection():
+    try:
+        from file_loaders import filter_feature_collection
+    except ImportError:
+        pytest.xfail("FeatureCollection filter helper is missing")
+
+    fc = {
+        "type": "FeatureCollection",
+        "features": [
+            {"type": "Feature", "properties": {"color": "red"}},
+            {"type": "Feature", "properties": {"color": "blue"}},
+            {"type": "Feature", "properties": {"color": "red"}},
+        ]
+    }
+
+    result = filter_feature_collection(fc, "color", "red")
+
+    assert len(result["features"]) == 2
+    for feature in result["features"]:
+        assert feature["properties"]["color"] == "red"
