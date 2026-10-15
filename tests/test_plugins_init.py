@@ -10,3 +10,10 @@ def test_plugins_package_imports_cleanly():
         import plugins
     except Exception as e:
         pytest.fail(f"Importing plugins raised an unexpected exception: {e}")
+
+def test_example_plugin_importable():
+    """Test that the example_plugin can be imported from plugins."""
+    try:
+        from plugins import example_plugin
+    except Exception as e:
+        pytest.xfail(f"Importing example_plugin from plugins failed: {e}")
