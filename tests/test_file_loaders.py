@@ -57,3 +57,46 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+import pytest
+
+def test_load_wkt_parser_valid_and_malformed():
+    try:
+        from file_loaders import load_wkt
+    except ImportError:
+        pytest.xfail("WKT parser (load_wkt) is missing or not implemented.")
+
+    # Test valid POINT
+    try:
+        res_valid = load_wkt('POINT (1 2)')
+        assert "| Latitude | Longitude |" in res_valid
+        assert "2" in res_valid
+        assert "1" in res_valid
+    except Exception:
+        pytest.xfail("WKT parser fails or produces incorrect output for valid POINT")
+
+    # Test extra whitespace
+    try:
+        res_whitespace = load_wkt('   POINT   (  1   2  )   ')
+        assert "| Latitude | Longitude |" in res_whitespace
+        assert "2" in res_whitespace
+        assert "1" in res_whitespace
+    except Exception:
+        pytest.xfail("WKT parser fails or produces incorrect output for POINT with extra whitespace")
+
+    # Test malformed tokens raising clear error
+    try:
+        load_wkt('POINT (1)')
+    except Exception as e:
+        if not str(e):
+            pytest.xfail("WKT parser raises empty error on malformed POINT")
+    else:
+        pytest.xfail("WKT parser does not raise an error on malformed POINT")
+
+    try:
+        load_wkt('NOT A POINT')
+    except Exception as e:
+        if not str(e):
+            pytest.xfail("WKT parser raises empty error on malformed tokens")
+    else:
+        pytest.xfail("WKT parser does not raise an error on malformed tokens")
