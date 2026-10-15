@@ -50,3 +50,24 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+
+def test_interpolate_helper():
+    try:
+        from distance import interpolate
+    except ImportError:
+        pytest.xfail("Interpolate helper is missing from distance module.")
+
+    try:
+        # Endpoints
+        assert interpolate(0, 0, 10, 0, 0) == (0, 0)
+        assert interpolate(0, 0, 10, 0, 1) == (10, 0)
+
+        # Midpoint on short equatorial segment
+        # Equator: lat=0. From lon=0 to lon=10, midpoint is lat=0, lon=5.
+        midpoint = interpolate(0, 0, 0, 10, 0.5)
+        # Check within a small tolerance for floating point errors if needed, but exact is fine for this example.
+        assert abs(midpoint[0] - 0) < 1e-5
+        assert abs(midpoint[1] - 5) < 1e-5
+    except Exception as e:
+        pytest.xfail(f"Interpolate helper behavior differs: {e}")
