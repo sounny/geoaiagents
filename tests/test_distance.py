@@ -50,3 +50,16 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+@pytest.mark.xfail(reason="Ellipsoid radius helper is missing")
+def test_ellipsoid_radius():
+    from distance import get_ellipsoid_radius
+
+    equatorial_radius = get_ellipsoid_radius(0)
+    assert abs(equatorial_radius - 6378137.0) < 1.0
+
+    polar_radius_n = get_ellipsoid_radius(90)
+    assert abs(polar_radius_n - 6356752.3) < 1.0
+
+    polar_radius_s = get_ellipsoid_radius(-90)
+    assert abs(polar_radius_s - 6356752.3) < 1.0
