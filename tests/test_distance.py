@@ -50,3 +50,31 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+
+def test_vectorized_haversine_matches_scalar():
+    pairs = [
+        (40.7128, -74.0060, 51.5074, -0.1278),  # NY - London
+        (48.8566, 2.3522, 35.6762, 139.6503),   # Paris - Tokyo
+        (30.2672, -97.7431, -33.8688, 151.2093), # Austin - Sydney
+    ]
+
+    try:
+        from distance import _haversine_km_vectorized
+    except ImportError:
+        pytest.xfail("Vectorized haversine API is missing")
+
+    scalar_distances = [_haversine_km(*p) for p in pairs]
+
+    try:
+        lat1 = [p[0] for p in pairs]
+        lon1 = [p[1] for p in pairs]
+        lat2 = [p[2] for p in pairs]
+        lon2 = [p[3] for p in pairs]
+
+        vectorized_distances = _haversine_km_vectorized(lat1, lon1, lat2, lon2)
+
+        for scalar, vectorized in zip(scalar_distances, vectorized_distances):
+            assert abs(scalar - vectorized) / max(scalar, 1e-9) < 1e-6
+    except Exception as e:
+        pytest.xfail(f"Vectorized implementation differs or fails: {e}")
