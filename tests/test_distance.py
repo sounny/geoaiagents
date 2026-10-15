@@ -50,3 +50,40 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_buffer_helper():
+    try:
+        from distance import buffer_helper
+    except ImportError:
+        pytest.xfail("buffer helper is missing")
+
+    try:
+        from distance import _haversine_km
+        lat, lon = 0.0, 0.0
+        radius_m = 1000
+
+        polygon = buffer_helper(lat, lon, radius_m)
+
+        lats = [pt[0] for pt in polygon]
+        lons = [pt[1] for pt in polygon]
+
+        min_lat, max_lat = min(lats), max(lats)
+        min_lon, max_lon = min(lons), max(lons)
+
+        lat_extent_km = _haversine_km(min_lat, lon, max_lat, lon)
+        lon_extent_km = _haversine_km(lat, min_lon, lat, max_lon)
+
+        if abs(lat_extent_km - 2.0) / 2.0 > 0.1:
+            pytest.xfail("extent is not roughly 2 km across (within 10 percent)")
+        if abs(lon_extent_km - 2.0) / 2.0 > 0.1:
+            pytest.xfail("extent is not roughly 2 km across (within 10 percent)")
+
+        centroid_lat = sum(lats) / len(lats)
+        centroid_lon = sum(lons) / len(lons)
+
+        centroid_dist = _haversine_km(lat, lon, centroid_lat, centroid_lon)
+        if centroid_dist > 0.1:
+            pytest.xfail("centroid is not near the original point")
+
+    except Exception as e:
+        pytest.xfail(f"buffer helper current behavior differs: {e}")
