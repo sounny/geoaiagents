@@ -14,6 +14,13 @@ def test_haversine_km():
     distance = _haversine_km(40.7128, -74.0060, 51.5074, -0.1278)
     assert 5500 < distance < 5600
 
+    # Antipodal points
+    distance_equator = _haversine_km(0, 0, 0, 180)
+    assert abs(distance_equator - 20015) / 20015 <= 0.005
+
+    distance_poles = _haversine_km(90, 0, -90, 0)
+    assert abs(distance_poles - 20004) / 20004 <= 0.005
+
 def test_calculate_distance():
     text = "40.7128,-74.0060,51.5074,-0.1278"
     result = calculate_distance(text)
