@@ -50,3 +50,10 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+@pytest.mark.xfail(reason="Polygon area helper is missing")
+def test_polygon_area_helper():
+    from distance import polygon_area
+    square = [(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]
+    area = polygon_area(square)
+    assert abs(area - 1.0) < 1e-9
