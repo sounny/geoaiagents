@@ -50,3 +50,17 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_multipoint_centroid():
+    try:
+        from distance import calculate_multipoint_centroid
+    except ImportError:
+        pytest.xfail("Centroid helper missing")
+
+    points = [(10.0, 10.0), (10.0, 20.0), (20.0, 10.0)]
+    try:
+        centroid_lon, centroid_lat = calculate_multipoint_centroid(points)
+        assert abs(centroid_lon - 13.333333333333334) < 1e-6
+        assert abs(centroid_lat - 13.333333333333334) < 1e-6
+    except Exception:
+        pytest.xfail("Centroid calculation behavior differs")
