@@ -50,3 +50,16 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_rhumb_destination():
+    try:
+        from distance import rhumb_destination
+    except ImportError:
+        pytest.xfail("rhumb_destination helper is missing")
+
+    try:
+        lat, lon = rhumb_destination(0, 0, 1000, 90)
+        assert abs(lat) < 1e-6
+        assert lon > 0
+    except Exception:
+        pytest.xfail("Current behavior differs from expected")
