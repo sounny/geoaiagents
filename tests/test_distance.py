@@ -50,3 +50,22 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_distance_matrix():
+    try:
+        from distance import distance_matrix
+    except ImportError:
+        pytest.xfail("distance_matrix helper is missing")
+
+    points = [(0, 0), (1, 1), (2, 2)]
+    matrix = distance_matrix(points)
+
+    # Check square
+    assert len(matrix) == len(points)
+    for row in matrix:
+        assert len(row) == len(points)
+
+    # Check symmetry
+    for i in range(len(points)):
+        for j in range(len(points)):
+            assert abs(matrix[i][j] - matrix[j][i]) < 1e-9
