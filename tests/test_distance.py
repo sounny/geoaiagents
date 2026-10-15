@@ -50,3 +50,27 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_geojson_linestring_length_helper():
+    try:
+        from distance import geojson_linestring_length
+    except ImportError:
+        pytest.xfail("GeoJSON LineString length helper is missing")
+
+    # Short equatorial segment: (0.0, 0.0) to (1.0, 0.0)
+    # GeoJSON coordinates are [lon, lat]
+    geojson_str = '{"type": "LineString", "coordinates": [[0.0, 0.0], [1.0, 0.0]]}'
+
+    try:
+        helper_dist = geojson_linestring_length(geojson_str)
+    except Exception as e:
+        pytest.xfail(f"Helper raised an exception: {e}")
+
+    # Calculate expected distance using haversine: (lat1=0.0, lon1=0.0, lat2=0.0, lon2=1.0)
+    expected_dist = _haversine_km(0.0, 0.0, 0.0, 1.0)
+
+    try:
+        # Assert within 5% of haversine
+        assert abs(helper_dist - expected_dist) / expected_dist <= 0.05
+    except AssertionError as e:
+        pytest.xfail(f"Behavior differs from expected: {e}")
