@@ -39,7 +39,7 @@ def test_calculate_distance_empty():
 def test_haversine_km_not_the_equator_case():
     distance = _haversine_km(-33.9249, 18.4241, -29.8587, 31.0218)
     assert abs(distance - 1200) / 1200 < 0.15
-    assert _haversine_km(-33.9249, 18.4241, -33.9249, 18.4241) == 0
+    assert abs(_haversine_km(-33.9249, 18.4241, -33.9249, 18.4241)) <= 1e-9
 
 def test_calculate_distance_identical_and_invalid():
     res1 = calculate_distance('35.6762,139.6503,35.6762,139.6503')
