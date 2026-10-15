@@ -4,14 +4,20 @@ from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms
 
 import math
 
-def test_dd_to_dms_value_47_0():
-    deg, minutes, seconds = dd_to_dms_value(47.0)
-    assert deg == 47
+@pytest.mark.parametrize("val", [47.0, 45.0, 0.0, -90.0])
+def test_dd_to_dms_value_whole_degrees(val):
+    deg, minutes, seconds = dd_to_dms_value(val)
+    if val == 0.0:
+        # Copysign logic treats 0.0 as +0.0 and deg is 0, so math.copysign(1, 0) is 1.0.
+        # But this code seems to return 0 for 0, which gives +1 for both sides.
+        pass
+
+    assert deg == int(val)
     assert minutes == 0
     assert seconds == 0.0
     assert 0 <= minutes < 60
     assert 0 <= seconds < 60
-    assert math.copysign(1, deg) == math.copysign(1, 47.0)
+    assert math.copysign(1, deg) == math.copysign(1, val)
 
 def test_dd_to_dms_value():
     assert dd_to_dms_value(40.7128) == (40, 42, pytest.approx(46.08, abs=0.01))
