@@ -70,3 +70,12 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert not pairs2
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
+
+
+@pytest.mark.xfail(reason="nan and inf are incorrectly reported as 'Out of range' rather than a clear error")
+def test_parse_coordinate_pairs_nan_inf():
+    for val in ("nan, 0", "inf, 0", "-inf, 0"):
+        pairs, invalid = parse_coordinate_pairs(val)
+        assert not pairs
+        assert len(invalid) == 1
+        assert invalid[0] == (val, "Not a number")
