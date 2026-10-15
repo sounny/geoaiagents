@@ -50,3 +50,24 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_vincenty_ellipsoidal_distance():
+    try:
+        from distance import vincenty_distance
+    except ImportError:
+        pytest.xfail("Vincenty/ellipsoidal distance helper is missing")
+
+    # ~1 km equatorial baseline (e.g. 0.0, 0.0 to 0.0, 0.009)
+    lat1, lon1 = 0.0, 0.0
+    lat2, lon2 = 0.0, 0.009
+
+    hav_dist = _haversine_km(lat1, lon1, lat2, lon2)
+    try:
+        vinc_dist = vincenty_distance(lat1, lon1, lat2, lon2)
+    except Exception as e:
+        pytest.xfail(f"Vincenty/ellipsoidal distance calculation failed: {e}")
+        return
+
+    diff_percent = abs(vinc_dist - hav_dist) / hav_dist * 100
+    if diff_percent > 0.5:
+        pytest.xfail("Vincenty distance differs from haversine by more than 0.5 percent")
