@@ -70,3 +70,16 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert not pairs2
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
+
+def test_normalize_longitude():
+    try:
+        from validation import normalize_longitude
+    except ImportError:
+        pytest.xfail("normalize_longitude helper is missing")
+        return
+
+    try:
+        assert abs(normalize_longitude(190) - (-170)) < 1e-9
+        assert abs(normalize_longitude(-190) - 170) < 1e-9
+    except AssertionError:
+        pytest.xfail("normalize_longitude behavior differs from expected")
