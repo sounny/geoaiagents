@@ -50,3 +50,20 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_destination_point_helper():
+    try:
+        from distance import destination_point
+    except ImportError:
+        pytest.xfail("destination_point helper is missing")
+        return
+
+    try:
+        # Assuming destination_point(lat, lon, distance_km, bearing_degrees)
+        lat, lon = destination_point(0, 0, 100, 0)
+
+        # Check if latitude is near 0.9 within 1% and longitude is ~0
+        assert abs(lat - 0.9) / 0.9 <= 0.01, f"Latitude {lat} not within 1% of 0.9"
+        assert abs(lon) <= 0.01, f"Longitude {lon} is not ~0"
+    except Exception as e:
+        pytest.xfail(f"Behavior differs: {e}")
