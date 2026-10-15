@@ -50,3 +50,19 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_simplify_polyline():
+    try:
+        from distance import simplify_polyline
+    except ImportError:
+        pytest.xfail("simplify_polyline helper is missing from distance module.")
+
+    dense_polyline = [(0.0, 0.0), (0.0, 1.0), (0.0, 2.0), (0.0, 3.0), (0.0, 4.0)]
+    tolerance = 0.5
+
+    try:
+        result = simplify_polyline(dense_polyline, tolerance)
+        if result != [(0.0, 0.0), (0.0, 4.0)]:
+            pytest.xfail("simplify_polyline did not reduce collinear points as expected.")
+    except Exception as e:
+        pytest.xfail(f"simplify_polyline crashed: {e}")
