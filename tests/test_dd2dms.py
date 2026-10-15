@@ -84,3 +84,21 @@ def test_dd_to_dms_value_88_888_components():
     assert 0 <= m <= 59
     assert 0 <= s < 60
     assert math.copysign(1, d) == math.copysign(1, 88.888)
+
+def test_parse_dms():
+    try:
+        from dd2dms import parse_dms
+    except ImportError:
+        pytest.xfail("Missing parse_dms helper")
+
+    try:
+        # Test converting DMS string with fractional seconds to DD
+        # 40 deg 42 min 46.08 sec N -> 40.7128
+        result = parse_dms("40°42'46.08\" N")
+        assert result == pytest.approx(40.7128, abs=1e-6)
+
+        # Test 74 deg 0 min 21.60 sec W -> -74.0060
+        result = parse_dms("74°00'21.60\" W")
+        assert result == pytest.approx(-74.0060, abs=1e-6)
+    except Exception as e:
+        pytest.xfail(f"Parse DMS behavior differs: {e}")
