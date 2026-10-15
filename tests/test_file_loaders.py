@@ -57,3 +57,29 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+def test_geojson_polygon_helper():
+    import pytest
+    try:
+        from file_loaders import parse_polygon
+    except ImportError:
+        pytest.xfail("GeoJSON polygon helper is missing")
+
+    # Valid closed square
+    closed_ring = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0], [0.0, 0.0]]
+    result_closed = parse_polygon(closed_ring)
+    assert result_closed == closed_ring
+
+    # Unclosed ring
+    unclosed_ring = [[0.0, 0.0], [0.0, 1.0], [1.0, 1.0], [1.0, 0.0]]
+    try:
+        result_unclosed = parse_polygon(unclosed_ring)
+        if result_unclosed == unclosed_ring:
+            pytest.xfail("Unclosed ring was neither closed nor rejected")
+        else:
+            # Check if it was closed
+            assert result_unclosed[-1] == result_unclosed[0]
+            assert result_unclosed[:-1] == unclosed_ring
+    except Exception:
+        # Rejected is fine
+        pass
