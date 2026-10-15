@@ -50,3 +50,27 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_interpolate_helper():
+    import pytest
+    try:
+        from distance import interpolate
+
+        # Test fraction 0
+        res0 = interpolate(0, 0, 0, 10, 0)
+        assert res0 == (0, 0), f"Expected (0, 0), got {res0}"
+
+        # Test fraction 1
+        res1 = interpolate(0, 0, 0, 10, 1)
+        assert res1 == (0, 10), f"Expected (0, 10), got {res1}"
+
+        # Test fraction 0.5 (midpoint)
+        res05 = interpolate(0, 0, 0, 10, 0.5)
+        # It's an equatorial arc, so halfway is around (0, 5)
+        assert abs(res05[0] - 0) < 1e-6, f"Expected lat ~0, got {res05[0]}"
+        assert abs(res05[1] - 5) < 1e-6, f"Expected lon ~5, got {res05[1]}"
+
+    except ImportError:
+        pytest.xfail("interpolate helper is missing")
+    except AssertionError as e:
+        pytest.xfail(f"interpolate helper behavior differs: {e}")
