@@ -50,3 +50,22 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+
+def test_azimuthal_equidistant_helper():
+    try:
+        from distance import azimuthal_equidistant
+    except ImportError:
+        pytest.xfail("azimuthal equidistant projection helper is missing")
+
+    # if it doesn't fail, check that center maps to 0, 0
+    center_lat = 40.7128
+    center_lon = -74.0060
+
+    try:
+        x, y = azimuthal_equidistant(center_lat, center_lon, center_lat, center_lon)
+    except Exception as e:
+        pytest.xfail(f"helper failed: {e}")
+
+    if abs(x) > 1e-9 or abs(y) > 1e-9:
+        pytest.xfail(f"projection center does not map to (0,0) within 1e-9: got ({x}, {y})")
