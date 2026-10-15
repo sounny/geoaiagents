@@ -70,3 +70,40 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert not pairs2
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
+
+def test_parse_coordinate_pairs_whitespace_non_numeric_none():
+    # Test extra whitespace
+    pairs, invalid = parse_coordinate_pairs("  10  ,  20  \n  30  ,  40  ")
+    assert pairs == [(10.0, 20.0), (30.0, 40.0)]
+    assert not invalid
+
+    # Test non-numeric
+    pairs, invalid = parse_coordinate_pairs("abc, def")
+    assert not pairs
+    assert len(invalid) == 1
+    assert invalid[0] == ("abc, def", "Not a number")
+
+    # Test None
+    pairs, invalid = parse_coordinate_pairs(None)
+    assert not pairs
+    assert not invalid
+
+@pytest.mark.xfail(reason="nan and inf are incorrectly rejected as 'Out of range' instead of 'Not a number'")
+def test_parse_coordinate_pairs_nan_inf():
+    # Test nan
+    pairs, invalid = parse_coordinate_pairs("nan, 10")
+    assert not pairs
+    assert len(invalid) == 1
+    assert invalid[0] == ("nan, 10", "Not a number")
+
+    # Test inf
+    pairs, invalid = parse_coordinate_pairs("inf, 10")
+    assert not pairs
+    assert len(invalid) == 1
+    assert invalid[0] == ("inf, 10", "Not a number")
+
+    # Test -inf
+    pairs, invalid = parse_coordinate_pairs("-inf, 10")
+    assert not pairs
+    assert len(invalid) == 1
+    assert invalid[0] == ("-inf, 10", "Not a number")
