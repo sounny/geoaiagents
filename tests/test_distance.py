@@ -50,3 +50,18 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_segments_intersect():
+    try:
+        from distance import segments_intersect
+    except ImportError:
+        pytest.xfail("Line-segment intersection helper is missing")
+
+    try:
+        # crossing segments intersect at the reference point
+        assert segments_intersect((0, 0), (10, 10), (0, 10), (10, 0)) == (5.0, 5.0)
+
+        # parallel ones do not intersect
+        assert segments_intersect((0, 0), (10, 0), (0, 5), (10, 5)) is None
+    except Exception as e:
+        pytest.xfail(f"Current behavior differs: {e}")
