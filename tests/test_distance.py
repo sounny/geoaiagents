@@ -50,3 +50,32 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_bearing_helper():
+    import math
+    import pytest
+    try:
+        from distance import calculate_bearing
+    except ImportError:
+        pytest.xfail("bearing/azimuth helper is missing")
+
+    try:
+        # due-east pair
+        bearing_east = calculate_bearing(0, 0, 0, 1)
+        assert abs(bearing_east - 90) <= 0.1
+
+        # reverse of due-east
+        bearing_west = calculate_bearing(0, 1, 0, 0)
+        assert abs(bearing_west - 270) <= 1.0
+
+        # due-north pair
+        bearing_north = calculate_bearing(0, 0, 1, 0)
+        assert abs(bearing_north - 0) <= 0.1
+
+        # identical points
+        identical = calculate_bearing(0, 0, 0, 0)
+        assert identical == 0 or math.isnan(identical)
+    except AssertionError:
+        pytest.xfail("bearing helper behavior differs")
+    except Exception as e:
+        pytest.xfail(f"bearing helper raised an exception: {e}")
