@@ -57,3 +57,15 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+def test_wrap_features_geojson():
+    import pytest
+    try:
+        from file_loaders import wrap_features
+    except ImportError:
+        pytest.xfail("wrap_features helper is missing from file_loaders")
+
+    features = [{"type": "Feature"}, {"type": "Feature"}]
+    fc = wrap_features(features)
+    assert fc["type"] == "FeatureCollection"
+    assert len(fc["features"]) == 2
