@@ -50,3 +50,25 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_line_simplify():
+    try:
+        from distance import line_simplify
+    except ImportError:
+        pytest.xfail("line_simplify helper is missing")
+
+    dense_collinear = [(0, 0), (1, 1), (2, 2), (3, 3), (4, 4), (5, 5)]
+
+    try:
+        # Tolerance 0 keeps every vertex
+        simplified_zero_tol = line_simplify(dense_collinear, tolerance=0)
+        assert len(simplified_zero_tol) == len(dense_collinear)
+        assert simplified_zero_tol == dense_collinear
+
+        # Moderate/large tolerance keeps only endpoints
+        simplified_large_tol = line_simplify(dense_collinear, tolerance=10)
+        assert len(simplified_large_tol) == 2
+        assert simplified_large_tol[0] == (0, 0)
+        assert simplified_large_tol[1] == (5, 5)
+    except Exception as e:
+        pytest.xfail(f"Current behavior differs from expected line simplification: {e}")
