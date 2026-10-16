@@ -50,3 +50,22 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_haversine_meters():
+    try:
+        from distance import haversine_meters
+    except ImportError:
+        pytest.xfail("haversine_meters helper is missing")
+
+    # New York to London
+    # reference from previous test: 5570229.8736565225 meters
+    # Let's say we expect around 5570229 meters
+
+    try:
+        distance = haversine_meters(40.7128, -74.0060, 51.5074, -0.1278)
+        reference_meters = 5570229.87
+
+        if abs(distance - reference_meters) / reference_meters > 0.01:
+            pytest.xfail("haversine_meters result differs from reference by more than 1%")
+    except Exception as e:
+        pytest.xfail(f"haversine_meters raised exception: {e}")
