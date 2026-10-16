@@ -50,3 +50,13 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_degrees_radians_helper():
+    import math
+    try:
+        from distance import degrees_to_radians, radians_to_degrees
+    except ImportError:
+        pytest.xfail("Degrees/radians helper is missing")
+
+    assert math.isclose(degrees_to_radians(180), math.pi, rel_tol=1e-9)
+    assert math.isclose(radians_to_degrees(degrees_to_radians(180)), 180, rel_tol=1e-9)
