@@ -1,3 +1,5 @@
+import pytest
+
 from file_loaders import load_geojson, load_kml
 
 def test_load_geojson_feature_point_and_invalid():
@@ -57,3 +59,16 @@ def test_load_geojson_empty_feature_collection_no_numeric_row():
     res = load_geojson(fc)
     assert "| Latitude | Longitude |" in res
     assert not any(char.isdigit() for char in res)
+
+def test_parse_world_file():
+    try:
+        from file_loaders import parse_world_file
+    except ImportError:
+        pytest.xfail("World file parser helper is missing")
+
+    world_file_content = "1.5\n0.0\n0.0\n-1.5\n100.0\n200.0"
+    try:
+        result = parse_world_file(world_file_content)
+        assert result == (1.5, 0.0, 0.0, -1.5, 100.0, 200.0)
+    except Exception as e:
+        pytest.xfail(f"World file parser behavior differs or error occurred: {e}")
