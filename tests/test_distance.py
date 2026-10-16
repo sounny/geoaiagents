@@ -50,3 +50,16 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_douglas_peucker_simplify():
+    try:
+        from distance import simplify_douglas_peucker
+    except ImportError:
+        pytest.xfail("simplify_douglas_peucker helper is missing")
+
+    # A line with a colinear middle point: (0, 0) -> (5, 5) -> (10, 10)
+    line = [(0, 0), (5, 5), (10, 10)]
+    simplified = simplify_douglas_peucker(line, tolerance=1.0)
+    assert len(simplified) == 2
+    assert simplified[0] == (0, 0)
+    assert simplified[-1] == (10, 10)
