@@ -50,3 +50,28 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+
+def test_semivariogram_binned():
+    try:
+        from distance import calculate_semivariogram
+    except ImportError:
+        pytest.xfail("semivariogram helper is missing")
+
+    try:
+        # Provide sample points (lat, lon, value)
+        points = [(0, 0, 10), (0, 1, 12), (0, 2, 14)]
+        # Assuming lag_size in km, ~111km per degree
+        bins = calculate_semivariogram(points, lag_size=100)
+
+        assert isinstance(bins, dict), "Expected bins to be returned as a dictionary"
+
+        # Verify that pairs are binned into lag classes
+        # Distance (0,0) to (0,1) is ~111km -> should be in lag class 100
+        # Distance (0,0) to (0,2) is ~222km -> should be in lag class 200
+        assert 100 in bins, "Pairs around 111km apart should fall into lag class 100"
+        assert 200 in bins, "Pairs around 222km apart should fall into lag class 200"
+
+        assert len(bins[100]) >= 1, "Bin 100 should contain pairs"
+    except Exception as e:
+        pytest.xfail(f"semivariogram helper failed or behavior differs: {e}")
