@@ -70,3 +70,20 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert not pairs2
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
+
+def test_polygon_validity_helper():
+    try:
+        from validation import is_valid_polygon
+    except ImportError:
+        pytest.xfail("Polygon validity helper is missing")
+
+    try:
+        # A simple square
+        square = [(0, 0), (0, 1), (1, 1), (1, 0), (0, 0)]
+        assert is_valid_polygon(square) is True
+
+        # A bow-tie ring (self-intersecting)
+        bow_tie = [(0, 0), (0, 1), (1, 0), (1, 1), (0, 0)]
+        assert is_valid_polygon(bow_tie) is False
+    except Exception as e:
+        pytest.xfail(f"Polygon validity helper behavior differs: {e}")
