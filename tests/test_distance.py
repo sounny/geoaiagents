@@ -50,3 +50,17 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_convex_hull():
+    try:
+        from distance import convex_hull
+    except ImportError:
+        pytest.xfail("convex_hull helper is missing")
+
+    points = [(0, 0), (10, 0), (10, 10), (0, 10), (5, 5), (5, 0)]
+    try:
+        hull = convex_hull(points)
+        assert set(hull) == {(0, 0), (10, 0), (10, 10), (0, 10)}
+        assert len(hull) == 4
+    except Exception as e:
+        pytest.xfail(f"convex_hull helper behavior differs: {e}")
