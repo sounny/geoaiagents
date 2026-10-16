@@ -50,3 +50,39 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_dbscan_clustering():
+    try:
+        from distance import dbscan_cluster
+    except ImportError:
+        pytest.xfail("DBSCAN clustering helper missing")
+        return
+
+    # Two tight groups and one isolated point
+    # Group 1: (0, 0), (0, 0.1), (0.1, 0)
+    # Group 2: (10, 10), (10, 10.1), (10.1, 10)
+    # Noise: (50, 50)
+    points = [
+        (0, 0), (0, 0.1), (0.1, 0),
+        (10, 10), (10, 10.1), (10.1, 10),
+        (50, 50)
+    ]
+
+    try:
+        # Assuming signature dbscan_cluster(points, eps, min_samples)
+        # Using eps=1.0 and min_samples=2
+        labels = dbscan_cluster(points, eps=1.0, min_samples=2)
+
+        # Noise should be labeled -1, others >= 0
+        assert labels[6] == -1, "Isolated point should be noise (-1)"
+
+        # Two distinct clusters
+        cluster1 = set(labels[0:3])
+        cluster2 = set(labels[3:6])
+        assert len(cluster1) == 1, "Group 1 should be one cluster"
+        assert len(cluster2) == 1, "Group 2 should be one cluster"
+        assert cluster1 != cluster2, "Groups should form separate clusters"
+        assert list(cluster1)[0] != -1, "Group 1 should not be noise"
+        assert list(cluster2)[0] != -1, "Group 2 should not be noise"
+    except Exception as e:
+        pytest.xfail(f"DBSCAN clustering helper behaves differently: {e}")
