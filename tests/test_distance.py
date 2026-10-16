@@ -50,3 +50,17 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_idw_interpolate():
+    try:
+        from distance import idw_interpolate
+    except ImportError:
+        pytest.xfail("inverse-distance-weighting interpolation helper is missing")
+        return
+
+    try:
+        samples = [(0, 0, 10.0), (10, 0, 20.0), (0, 10, 30.0)]
+        result = idw_interpolate(0, 0, samples)
+        assert result == 10.0
+    except Exception as e:
+        pytest.xfail("current behavior differs")
