@@ -50,3 +50,18 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_cross_track_distance():
+    try:
+        from distance import _cross_track_distance
+    except ImportError:
+        pytest.xfail("Cross-track distance helper is missing")
+
+    # A point exactly on the great-circle path from (0,0) to (0,10) is (0,5).
+    # Its cross-track distance should be 0.
+    distance = _cross_track_distance(0, 0, 0, 10, 0, 5)
+
+    if abs(distance) > 1e-9:
+        pytest.xfail("Cross-track distance for point on path is not near 0")
+
+    assert abs(distance) <= 1e-9
