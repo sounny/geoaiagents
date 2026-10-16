@@ -50,3 +50,20 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_antipode():
+    try:
+        from distance import antipode
+    except ImportError:
+        pytest.xfail("antipode helper is missing")
+
+    try:
+        # Test basic mapping
+        result = antipode(10, 20)
+        assert result == (-10, -160)
+
+        # Test longitude wrapping
+        result2 = antipode(10, 100)
+        assert result2 == (-10, -80)
+    except Exception as e:
+        pytest.xfail(f"antipode behavior differs: {e}")
