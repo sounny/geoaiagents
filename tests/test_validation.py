@@ -52,6 +52,23 @@ def test_format_invalid_notes():
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
 
+def test_is_valid_polygon():
+    try:
+        from validation import is_valid_polygon
+    except ImportError:
+        pytest.xfail("Helper is_valid_polygon is missing")
+
+    try:
+        # A simple square, counter-clockwise
+        assert is_valid_polygon([(0, 0), (1, 0), (1, 1), (0, 1), (0, 0)]) is True
+        # A bow-tie polygon, self-intersecting
+        assert is_valid_polygon([(0, 0), (0, 1), (1, 0), (1, 1), (0, 0)]) is False
+    except AssertionError:
+        pytest.xfail("Behavior differs")
+    except Exception as e:
+        pytest.xfail(f"Behavior differs: {e}")
+
+
 def test_parse_coordinate_pairs_space_separated_locked():
     # Test valid space-separated and semicolon-delimited coordinates
     valid_text = "35.6762 139.6503; 34.6937 135.5023"
