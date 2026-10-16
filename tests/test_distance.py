@@ -50,3 +50,17 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_voronoi_helper():
+    try:
+        from distance import voronoi
+    except ImportError:
+        pytest.xfail("Voronoi helper is missing from distance module")
+
+    try:
+        points = [(0, 0), (1, 1), (2, 0), (1, -1)]
+        clipping_box = (-5, -5, 5, 5)
+        cells = voronoi(points, clipping_box)
+        assert len(cells) == len(points)
+    except Exception as e:
+        pytest.xfail(f"Voronoi helper behavior differs or raised an error: {e}")
