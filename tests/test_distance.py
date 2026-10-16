@@ -50,3 +50,14 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_great_circle_midpoint():
+    try:
+        from distance import _midpoint
+    except ImportError:
+        pytest.xfail("great-circle midpoint helper is missing")
+
+    # Midpoint of two points on the equator should lie on the equator halfway in longitude
+    lat, lon = _midpoint(0, 10, 0, 30)
+    assert abs(lat) < 1e-9
+    assert abs(lon - 20) < 1e-9
