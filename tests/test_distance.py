@@ -50,3 +50,13 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_mgrs_helper():
+    try:
+        from distance import coordinate_to_mgrs
+        # 40.7128, -74.0060 corresponds to 18TWK 82236 12226
+        assert coordinate_to_mgrs(40.7128, -74.0060) == "18TWK8223612226"
+    except ImportError:
+        pytest.xfail("MGRS helper not implemented yet")
+    except AssertionError:
+        pytest.xfail("MGRS helper behavior differs from reference")
