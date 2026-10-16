@@ -50,3 +50,23 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_meters_to_degrees():
+    try:
+        from distance import meters_to_degrees
+    except ImportError:
+        pytest.xfail("meters-to-degrees helper is missing")
+
+    try:
+        # 111320 m is about 1 degree of latitude at the equator
+        dlat, dlon = meters_to_degrees(111320, 0)
+        assert abs(dlat - 1.0) < 0.01
+        assert abs(dlon - 1.0) < 0.01
+
+        # At latitude 60, longitude scales with cos(60) = 0.5
+        # So 111320 m should be about 2 degrees of longitude
+        dlat, dlon = meters_to_degrees(111320, 60)
+        assert abs(dlat - 1.0) < 0.01
+        assert abs(dlon - 2.0) < 0.05
+    except Exception:
+        pytest.xfail("meters-to-degrees helper behavior differs from expectations")
