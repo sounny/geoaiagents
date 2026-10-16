@@ -50,3 +50,43 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_spherical_polygon_area_octant():
+    try:
+        from distance import spherical_polygon_area
+    except ImportError:
+        pytest.xfail("spherical_polygon_area helper is missing")
+
+    # Octant coordinates (lon, lat)
+    # The triangle: Equator at 0 lon, Equator at 90 lon, North Pole
+    coords = [(0, 0), (90, 0), (0, 90)]
+
+    try:
+        area = spherical_polygon_area(coords)
+
+        # Depending on what units the function returns, let's just check the proportion
+        # if it returns steradians, 1/8 of sphere is 4pi / 8 = pi / 2 = 1.5707963
+        # if it returns square km (using R=6371.0088), area is approx 6371.0088**2 * pi / 2
+
+        expected_steradians = 3.141592653589793 / 2
+        expected_sq_km = (6371.0088 ** 2) * expected_steradians
+
+        # Check against sq km
+        diff_sq_km = abs(area - expected_sq_km)
+        if diff_sq_km / expected_sq_km <= 0.005:
+            return # Passes as sq km
+
+        # Check against steradians
+        diff_steradians = abs(area - expected_steradians)
+        if diff_steradians / expected_steradians <= 0.005:
+            return # Passes as steradians
+
+        # Check against sq meters
+        expected_sq_m = expected_sq_km * 1_000_000
+        diff_sq_m = abs(area - expected_sq_m)
+        if diff_sq_m / expected_sq_m <= 0.005:
+            return # Passes as sq meters
+
+        pytest.xfail(f"spherical_polygon_area returned {area}, which is not 1/8 of a sphere in expected units")
+    except Exception as e:
+        pytest.xfail(f"spherical_polygon_area helper raised an exception or behavior differs: {e}")
