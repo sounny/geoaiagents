@@ -50,3 +50,18 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_google_polyline_helper():
+    try:
+        from distance import encode_polyline, decode_polyline
+    except ImportError:
+        pytest.xfail("Google polyline helper (encode_polyline/decode_polyline) is missing.")
+
+    original_points = [(38.5, -120.2), (40.7, -120.95), (43.252, -126.453)]
+    encoded = encode_polyline(original_points)
+    decoded = decode_polyline(encoded)
+
+    assert len(original_points) == len(decoded)
+    for (orig_lat, orig_lon), (dec_lat, dec_lon) in zip(original_points, decoded):
+        assert abs(orig_lat - dec_lat) < 1e-5
+        assert abs(orig_lon - dec_lon) < 1e-5
