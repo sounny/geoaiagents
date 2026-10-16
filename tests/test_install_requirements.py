@@ -26,3 +26,16 @@ def test_read_requirements_keeps_flask_and_drops_hash_comment():
         assert reqs == ['flask==2.0.0']
     finally:
         os.remove(temp_name)
+
+def test_requirements_txt_is_valid():
+    """Verify that all requirements in requirements.txt can be parsed by packaging.requirements."""
+    import packaging.requirements
+
+    req_file_path = os.path.join(os.path.dirname(__file__), '..', 'requirements.txt')
+    reqs = read_requirements(req_file_path)
+
+    assert len(reqs) > 0, "requirements.txt should not be empty"
+
+    for req in reqs:
+        # This will raise packaging.requirements.InvalidRequirement if the line is malformed
+        packaging.requirements.Requirement(req)
