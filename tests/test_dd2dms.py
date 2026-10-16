@@ -84,3 +84,18 @@ def test_dd_to_dms_value_88_888_components():
     assert 0 <= m <= 59
     assert 0 <= s < 60
     assert math.copysign(1, d) == math.copysign(1, 88.888)
+
+def test_parse_dms_coordinate():
+    try:
+        from dd2dms import parse_dms
+    except ImportError:
+        pytest.xfail("parse_dms helper is missing")
+
+    # 40 26 46 N -> 40.446111
+    # 79 58 56 W -> -79.982222
+
+    lat = parse_dms("40 26 46 N")
+    assert lat == pytest.approx(40.446111, abs=1e-6)
+
+    lon = parse_dms("79 58 56 W")
+    assert lon == pytest.approx(-79.982222, abs=1e-6)
