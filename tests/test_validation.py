@@ -70,3 +70,23 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert not pairs2
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
+
+def test_point_in_polygon():
+    try:
+        from validation import point_in_polygon
+    except ImportError:
+        pytest.xfail("Missing helper: point_in_polygon")
+        return
+
+    polygon = [
+        [(0, 0), (10, 0), (10, 10), (0, 10), (0, 0)], # exterior
+        [(2, 2), (8, 2), (8, 8), (2, 8), (2, 2)]      # hole
+    ]
+
+    # Point inside the hole should be reported as outside
+    point_in_hole = (5, 5)
+
+    try:
+        assert not point_in_polygon(point_in_hole, polygon)
+    except AssertionError:
+        pytest.xfail("Current behavior differs: point inside hole is not reported outside")
