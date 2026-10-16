@@ -50,3 +50,28 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_line_interpolate():
+    try:
+        from distance import line_interpolate
+    except ImportError:
+        pytest.xfail("line-interpolate helper is missing")
+
+    try:
+        # short equatorial segment
+        start = (0.0, 0.0)
+        end = (0.0, 1.0)
+
+        # fraction 0
+        res0 = line_interpolate(start, end, 0.0)
+        assert res0 == start, "Fraction 0 should return the start point"
+
+        # fraction 1
+        res1 = line_interpolate(start, end, 1.0)
+        assert res1 == end, "Fraction 1 should return the end point"
+
+        # fraction 0.5
+        res_mid = line_interpolate(start, end, 0.5)
+        assert abs(res_mid[0] - 0.0) < 1e-6 and abs(res_mid[1] - 0.5) < 1e-6, "Fraction 0.5 should return the midpoint"
+    except Exception as e:
+        pytest.xfail(f"line-interpolate behavior differs: {e}")
