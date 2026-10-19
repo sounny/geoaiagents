@@ -15,3 +15,5 @@ __pycache__/
 
 # OS files
 .DS_Store
+venv2/
+venv2/
