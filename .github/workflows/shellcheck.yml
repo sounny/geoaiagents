@@ -10,7 +10,7 @@ jobs:
     name: Run ShellCheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run ShellCheck
         # Exclude SC2181: Check exit code directly with e.g. 'if mycmd;', not indirectly with $?.
         run: shellcheck -e SC2181 install_requirements.sh
