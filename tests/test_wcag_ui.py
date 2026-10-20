@@ -7,6 +7,9 @@ class A11yParser(HTMLParser):
         super().__init__()
         self.elements_by_id = {}
         self.labels_for = []
+        self.has_html_lang = False
+        self.has_title = False
+        self.has_viewport_meta = False
 
     def handle_starttag(self, tag, attrs):
         attr_dict = dict(attrs)
@@ -18,6 +21,12 @@ class A11yParser(HTMLParser):
         if tag == 'label' and 'for' in attr_dict:
             self.labels_for.append(attr_dict['for'])
 
+        if tag == 'html' and 'lang' in attr_dict:
+            self.has_html_lang = True
+        if tag == 'title':
+            self.has_title = True
+        if tag == 'meta' and attr_dict.get('name') == 'viewport':
+            self.has_viewport_meta = True
 def test_index_html_wcag_labels():
     index_path = os.path.join(os.path.dirname(__file__), '..', 'index.html')
     with open(index_path, 'r', encoding='utf-8') as f:
@@ -51,6 +60,18 @@ def test_index_html_wcag_focus():
         html_content = f.read()
 
     assert ":focus-visible" in html_content, "Missing :focus-visible CSS rules for accessibility."
+
+def test_index_html_wcag_structure():
+    index_path = os.path.join(os.path.dirname(__file__), '..', 'index.html')
+    with open(index_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+
+    parser = A11yParser()
+    parser.feed(html_content)
+
+    assert parser.has_html_lang, "The <html> tag must have a 'lang' attribute."
+    assert parser.has_title, "A <title> tag is required."
+    assert parser.has_viewport_meta, "A <meta name='viewport'> tag is required."
 
 if __name__ == '__main__':
     pytest.main(['-v', __file__])
