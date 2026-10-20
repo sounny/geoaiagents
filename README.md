@@ -241,4 +241,4 @@ Contributions are welcome! Please open issues or pull requests on GitHub.
 
 ## License
 
-This project is licensed under the terms of the [LICENSE](LICENSE) file.
+This project is licensed under the [MIT License](LICENSE).
