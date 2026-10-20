@@ -1,0 +1,41 @@
+name: gitleaks
+
+"on":
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  pull-requests: write
+
+jobs:
+  scan:
+    name: gitleaks
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          wget https://github.com/gitleaks/gitleaks/releases/download/v8.18.2/gitleaks_8.18.2_linux_x64.tar.gz
+          tar -xvzf gitleaks_8.18.2_linux_x64.tar.gz
+          ./gitleaks detect -v --report-format json --report-path gitleaks-report.json || true
+      - name: Parse and list findings in PR description
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f gitleaks-report.json ]; then
+            FINDINGS=$(jq -r '.[] | "- File: \(.File) (Rule: \(.RuleID))"' gitleaks-report.json | sort -u)
+            if [ -n "$FINDINGS" ]; then
+              # Append findings to the PR description, or replace if already present
+              ORIGINAL_BODY=$(gh pr view ${{ github.event.pull_request.number }} --json body -q .body)
+              CLEAN_BODY=$(echo "$ORIGINAL_BODY" | sed '/## Gitleaks Findings/,$d')
+              gh pr edit ${{ github.event.pull_request.number }} --body "$CLEAN_BODY"$'\n\n## Gitleaks Findings\n'"$FINDINGS"
+            fi
+          fi
