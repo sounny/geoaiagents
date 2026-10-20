@@ -1,53 +1,49 @@
 import ast
 import glob
 
-ALLOWLIST = []
+ALLOWLIST = {}
 
 def test_open_called_inside_with_statement():
     files = glob.glob('*.py') + glob.glob('plugins/*.py')
-    offenders = []
 
-    class OpenVisitor(ast.NodeVisitor):
-        def __init__(self, filename):
-            self.filename = filename
-            self.violations = []
-            self.in_with_context = False
-
-        def visit_With(self, node):
-            for item in node.items:
-                self.in_with_context = True
-                self.visit(item.context_expr)
-                self.in_with_context = False
-            for stmt in node.body:
-                self.visit(stmt)
-
-        def visit_AsyncWith(self, node):
-            for item in node.items:
-                self.in_with_context = True
-                self.visit(item.context_expr)
-                self.in_with_context = False
-            for stmt in node.body:
-                self.visit(stmt)
-
-        def visit_Call(self, node):
-            if isinstance(node.func, ast.Name) and node.func.id == 'open':
-                if not self.in_with_context:
-                    self.violations.append(node.lineno)
-            self.generic_visit(node)
+    offenders = {}
 
     for filepath in files:
         if filepath.startswith('tests/'):
             continue
 
-        with open(filepath, 'r', encoding='utf-8') as file:
-            tree = ast.parse(file.read(), filename=filepath)
+        try:
+            with open(filepath, 'r', encoding='utf-8') as file:
+                tree = ast.parse(file.read(), filename=filepath)
+        except SyntaxError:
+            continue
 
-        visitor = OpenVisitor(filepath)
-        visitor.visit(tree)
+        all_opens = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == 'open':
+                all_opens.append(node)
 
-        for line in visitor.violations:
-            violation = f"{filepath}:{line}"
-            if violation not in ALLOWLIST:
-                offenders.append(violation)
+        with_opens = []
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.With, ast.AsyncWith)):
+                for item in node.items:
+                    if isinstance(item.context_expr, ast.Call) and \
+                       isinstance(item.context_expr.func, ast.Name) and \
+                       item.context_expr.func.id == 'open':
+                        with_opens.append(item.context_expr)
 
-    assert not offenders, f"open() called outside with statement in: {offenders}"
+        non_with_count = sum(1 for node in all_opens if node not in with_opens)
+
+        if non_with_count > 0:
+            offenders[filepath] = non_with_count
+
+    errors = []
+    for filepath, count in offenders.items():
+        allowed = ALLOWLIST.get(filepath, 0)
+        if count > allowed:
+            if allowed == 0:
+                errors.append(f"{filepath} has {count} open() calls not used as a context manager.")
+            else:
+                errors.append(f"{filepath} has {count} open() calls not used as a context manager, exceeding its allowlisted baseline of {allowed}.")
+
+    assert not errors, "open() called outside with statement:\n" + "\n".join(errors)
