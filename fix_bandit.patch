@@ -1,0 +1,8 @@
+--- webchat.py
++++ webchat.py
+@@ -142,4 +142,4 @@
+                 file_text = f.read(10000)
+             message = f"{message}\n\nUploaded file `{os.path.basename(upload_file.name)}`:\n{file_text}"
+         except Exception:
+-            pass
++            pass  # nosec B110

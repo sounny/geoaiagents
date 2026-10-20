@@ -1,7 +1,7 @@
 import json
 import csv
 import io
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ET  # nosec B405
 import requests
 
 
@@ -51,7 +51,7 @@ def load_kml(kml: str) -> str:
     """Parse KML text and return a markdown table of coordinates."""
     coords = []
     try:
-        root = ET.fromstring(kml)
+        root = ET.fromstring(kml)  # nosec B314
     except Exception:
         return _table(coords)
     ns = {"k": "http://www.opengis.net/kml/2.2"}

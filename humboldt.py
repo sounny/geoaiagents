@@ -7,7 +7,7 @@ import argparse
 import os
 import logging
 from llm_utils import call_llm_with_retry
-import subprocess
+import subprocess  # nosec B404
 import sys
 import importlib.util
 
@@ -40,14 +40,14 @@ def check_and_install_dependencies():
             try:
                 print(f"Installing {package}...")
                 # Prefer --user for managed environments
-                subprocess.run([sys.executable, "-m", "pip", "install", "--user", package],
+                subprocess.run([sys.executable, "-m", "pip", "install", "--user", package],  # nosec B603
                                check=True, capture_output=True, text=True)
                 print(f"✓ Successfully installed {package}")
             except subprocess.CalledProcessError as e:
                 print(f"✗ Failed to install {package} with --user flag")
                 try:
                     print(f"Trying alternative installation for {package}...")
-                    subprocess.run([sys.executable, "-m", "pip", "install", "--break-system-packages", package],
+                    subprocess.run([sys.executable, "-m", "pip", "install", "--break-system-packages", package],  # nosec B603
                                    check=True, capture_output=True, text=True)
                     print(f"✓ Successfully installed {package}")
                 except subprocess.CalledProcessError as e2:

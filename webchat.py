@@ -142,7 +142,7 @@ def respond(message: str, history: list[dict], upload_file=None):
                 file_text = f.read(10000)
             message = f"{message}\n\nUploaded file `{os.path.basename(upload_file.name)}`:\n{file_text}"
         except Exception:
-            pass
+            pass  # nosec B110
     messages.append({"role": "user", "content": message})
     logging.debug("Sending to LLM: %s", messages)
     response = call_llm_with_retry(

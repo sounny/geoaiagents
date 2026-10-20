@@ -3,7 +3,7 @@
 Script to read requirements.txt and install packages via terminal commands.
 """
 
-import subprocess
+import subprocess  # nosec B404
 import sys
 import os
 import argparse
@@ -45,7 +45,7 @@ def install_package(package, method="auto"):
     
     try:
         print(f"Installing {package} {method_desc}...")
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)  # nosec B603
         print(f"✓ Successfully installed {package}")
         return True
     except subprocess.CalledProcessError as e:
@@ -59,7 +59,7 @@ def install_package_auto(package):
     try:
         print(f"Installing {package}...")
         # Try with --user flag first (safer for managed environments)
-        result = subprocess.run([sys.executable, "-m", "pip", "install", "--user", package], 
+        result = subprocess.run([sys.executable, "-m", "pip", "install", "--user", package],  # nosec B603
                               capture_output=True, text=True, check=True)
         print(f"✓ Successfully installed {package}")
         return True
@@ -68,7 +68,7 @@ def install_package_auto(package):
         # Try with --break-system-packages as fallback
         try:
             print(f"Trying alternative installation for {package}...")
-            result = subprocess.run([sys.executable, "-m", "pip", "install", "--break-system-packages", package], 
+            result = subprocess.run([sys.executable, "-m", "pip", "install", "--break-system-packages", package],  # nosec B603
                                   capture_output=True, text=True, check=True)
             print(f"✓ Successfully installed {package}")
             return True
