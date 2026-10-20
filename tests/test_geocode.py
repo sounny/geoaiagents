@@ -32,3 +32,20 @@ def test_reverse_geocode_out_of_range_skipped_notes(mocker):
     assert "| Latitude | Longitude | Address |" in result
     assert "91,0" in result
     assert "_Skipped" in result or "Skipped" in result
+
+def test_get_coordinates_first_result_on_multiple_candidates(mocker):
+    import geocode
+    mock_response = [
+        {"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "First Place", "importance": 0.9, "class": "place", "type": "city"},
+        {"place_id": 2, "lat": "41.0", "lon": "-71.0", "display_name": "Second Place", "importance": 0.8, "class": "place", "type": "city"}
+    ]
+    # Mock network calls to geocode API
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=mock_response)
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value=mock_response)
+    # Mock time.sleep to bypass RateLimiter delays
+    mocker.patch("time.sleep")
+
+    addr, lat, lon = geocode.get_coordinates("Mockville")
+    assert addr == "First Place"
+    assert lat == 40.0
+    assert lon == -70.0
