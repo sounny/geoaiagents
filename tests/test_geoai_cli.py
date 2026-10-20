@@ -1,6 +1,6 @@
 from geoai_cli import SYSTEM_PROMPT
 
-def test_system_prompt_content():
+def test_geoai_cli_system_prompt_constant_membership():
     """
     Verify that SYSTEM_PROMPT is a non-empty string and contains the required
     substrings: 'Humboldt', 'geocode_locations', and ('GeoAI' or 'Geospatial').
