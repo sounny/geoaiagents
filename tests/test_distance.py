@@ -51,3 +51,13 @@ def test_calculate_distance_identical_and_invalid():
     assert '_Skipped invalid inputs:_' in res2
     assert '91,0,10,10' in res2
     assert 'Point A out of range' in res2
+
+def test_azimuth_to_cardinal():
+    try:
+        from distance import azimuth_to_cardinal
+    except ImportError:
+        pytest.xfail("Helper azimuth_to_cardinal is missing")
+    assert azimuth_to_cardinal(0) == 'N'
+    assert azimuth_to_cardinal(90) == 'E'
+    assert azimuth_to_cardinal(180) == 'S'
+    assert azimuth_to_cardinal(270) == 'W'
