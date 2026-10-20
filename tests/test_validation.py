@@ -9,6 +9,8 @@ def test_is_valid_lat_lon():
     assert is_valid_lat_lon(0, 181) is False
     assert is_valid_lat_lon(-91, 0) is False
     assert is_valid_lat_lon(0, -181) is False
+    assert is_valid_lat_lon(90, 0) is True
+    assert is_valid_lat_lon(-90, 0) is True
 
 def test_is_valid_lat_lon_locked_boundaries():
     assert is_valid_lat_lon(90.0, 0.0) is True
