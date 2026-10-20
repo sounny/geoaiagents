@@ -24,7 +24,7 @@ def test_no_tuple_asserts():
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Assert):
-                if isinstance(node.test, ast.Tuple):
+                if isinstance(node.test, ast.Tuple) and len(node.test.elts) > 0:
                     if filename not in ALLOWLIST or node.lineno not in ALLOWLIST[filename]:
                         offenders.append(f"{filename}:{node.lineno}")
 
