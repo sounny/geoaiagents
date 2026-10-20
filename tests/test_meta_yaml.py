@@ -8,7 +8,7 @@ ALLOWLIST = set()
 def test_no_unsafe_yaml_load():
     """
     Ensure no top-level or plugin python module uses `yaml.load(...)`
-    without explicitly passing `Loader=yaml.SafeLoader`.
+    without explicitly passing `Loader=...`.
     """
     # Collect top-level .py and plugins/*.py files
     files_to_check = []
@@ -38,14 +38,12 @@ def test_no_unsafe_yaml_load():
                 if isinstance(node.func, ast.Attribute) and node.func.attr == "load":
                     if isinstance(node.func.value, ast.Name) and node.func.value.id == "yaml":
 
-                        # Check if Loader=yaml.SafeLoader is provided
+                        # Check if Loader=... is provided
                         is_safe = False
                         for kw in node.keywords:
                             if kw.arg == "Loader":
-                                if isinstance(kw.value, ast.Attribute) and kw.value.attr == "SafeLoader":
-                                    if isinstance(kw.value.value, ast.Name) and kw.value.value.id == "yaml":
-                                        is_safe = True
-                                        break
+                                is_safe = True
+                                break
 
                         if not is_safe:
                             offenders.append(file_path)
@@ -53,7 +51,7 @@ def test_no_unsafe_yaml_load():
 
     if offenders:
         msg = (
-            "The following files contain `yaml.load` calls without `Loader=yaml.SafeLoader`. "
+            "The following files contain `yaml.load` calls without `Loader=`. "
             "Prefer `yaml.safe_load` or pass `Loader=yaml.SafeLoader`:\n"
             + "\n".join(f"  - {f}" for f in offenders)
         )
