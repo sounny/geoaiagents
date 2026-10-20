@@ -51,6 +51,7 @@ def test_haversine_km():
     # New York to London
     distance = _haversine_km(40.7128, -74.0060, 51.5074, -0.1278)
     assert 5500 < distance < 5600
+    assert abs(_haversine_km(0, 0, 0, 0)) < 1e-6
 
     # Antipodal points
     distance_equator = _haversine_km(0, 0, 0, 180)
