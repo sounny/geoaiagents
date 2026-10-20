@@ -1,0 +1,7 @@
+[coverage:run]
+source = .
+omit =
+    tests/*
+    plugins/example_plugin.py
+
+[coverage:report]
