@@ -219,7 +219,7 @@ A starter module is included at `plugins/example_plugin.py`.
 Dependencies for the project are managed in `requirements.txt`.
 
 ### Running Automated Tests
-Automated testing is performed using `pytest` and `pytest-mock`.
+Automated testing is performed using `pytest` and `pytest-mock`. Install test dependencies via `pip install -r requirements-dev.txt`.
 You can run the tests by executing:
 ```bash
 pytest tests/
