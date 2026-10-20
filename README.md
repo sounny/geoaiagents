@@ -10,7 +10,7 @@ Autonomous AI agents for GIS, Remote Sensing, and Planetary Spatial Workflows.
 
 ## Requirements
 
-- Python 3.8 or higher
+- Python 3.8 or higher (specified in `.python-version`)
 - geopy >=2.0
 - openai >=1.0
 - requests >=2.0
