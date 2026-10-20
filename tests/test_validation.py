@@ -70,3 +70,16 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert not pairs2
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
+
+def test_swap_axis_order():
+    try:
+        from validation import swap_axis_order
+    except ImportError:
+        pytest.xfail("swap_axis_order helper is missing")
+
+    # Assert (lat, lon) to (lon, lat) swaps coordinates
+    assert swap_axis_order((10.0, 20.0)) == (20.0, 10.0)
+
+    # Assert extra dimensions are preserved
+    assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
+    assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
