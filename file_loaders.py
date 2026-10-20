@@ -81,9 +81,9 @@ def load_csv(csv_text: str) -> str:
     try:
         reader = csv.DictReader(f)
     except Exception:
-        return _table(coords)
+        return "Error: No coordinates found in CSV data."
     if not reader.fieldnames:
-        return _table(coords)
+        return "Error: No coordinates found in CSV data."
     lat_field = None
     lon_field = None
     for name in reader.fieldnames:
@@ -101,6 +101,8 @@ def load_csv(csv_text: str) -> str:
         except (ValueError, KeyError):
             continue
         coords.append((lat, lon))
+    if not coords:
+        return "Error: No coordinates found in CSV data."
     return _table(coords)
 
 

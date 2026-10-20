@@ -1,0 +1,1 @@
+{"title": "Fixing CSV loading empty coords edge case", "description": "When fixing load_csv in file_loaders.py to return an error string instead of an empty table for data-less CSVs, ensure you use `sed` replacements very carefully. In one attempt I accidentally deleted the `coords.append((lat, lon))` line while updating the end of the loop, which broke loading valid CSVs."}
