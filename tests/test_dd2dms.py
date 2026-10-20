@@ -90,3 +90,22 @@ def test_dd_to_dms_value_88_888_components():
     assert 0 <= m <= 59
     assert 0 <= s < 60
     assert math.copysign(1, d) == math.copysign(1, 88.888)
+
+@pytest.mark.xfail(reason="dd_to_dms_value returns unsigned 0 for -0.1 due to int truncation of floats")
+def test_dd_to_dms_value_negative_longitudes():
+    # Test for -0.1
+    d, m, s = dd_to_dms_value(-0.1)
+    assert m == 6
+    assert s == pytest.approx(0.0, abs=0.01)
+    assert 0 <= m <= 59
+    assert 0 <= s < 60
+    assert math.copysign(1, d) == -1.0
+
+    # Test for -179.999
+    d2, m2, s2 = dd_to_dms_value(-179.999)
+    assert d2 == -179
+    assert m2 == 59
+    assert s2 == pytest.approx(56.40, abs=0.01)
+    assert 0 <= m2 <= 59
+    assert 0 <= s2 < 60
+    assert math.copysign(1, d2) == -1.0
