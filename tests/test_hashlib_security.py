@@ -54,14 +54,14 @@ def test_hashlib_weak_hash_usage():
         offenders = find_hashlib_weak_calls(filepath)
         all_offenders.extend(offenders)
 
-    # Check against allowlist
-    unexpected_offenders = [
-        offender for offender in all_offenders
-        if offender not in ALLOWLIST
-    ]
+    if len(all_offenders) > len(ALLOWLIST):
+        # Check against allowlist to show which ones are new
+        unexpected_offenders = [
+            offender for offender in all_offenders
+            if offender not in ALLOWLIST
+        ]
 
-    if unexpected_offenders:
-        error_msg = "Found unexpected uses of weak hashes (hashlib.md5 or hashlib.sha1):\n"
+        error_msg = "Total weak hashes (hashlib.md5 or hashlib.sha1) exceeded the baseline:\n"
         for offender in unexpected_offenders:
             error_msg += f"- {offender[0]}:{offender[2]} used {offender[1]}\n"
         error_msg += f"\nCurrent total: {len(all_offenders)}. Allowed baseline: {len(ALLOWLIST)}."
