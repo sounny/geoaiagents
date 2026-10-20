@@ -45,3 +45,19 @@ def test_call_llm_with_retry_timeout_then_success(mock_sleep):
     assert response == mock_response
     assert client.chat.completions.create.call_count == 3
     assert mock_sleep.call_count == 2
+
+def test_call_llm_with_retry_happy_path_fast():
+    """
+    Test that a successful call does not invoke sleep or any retries.
+    """
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.choices = ["happy_choice"]
+    client.chat.completions.create.return_value = mock_response
+
+    with patch('time.sleep') as mock_sleep:
+        response = call_llm_with_retry(client, max_retries=3)
+
+    assert response == mock_response
+    assert client.chat.completions.create.call_count == 1
+    mock_sleep.assert_not_called()

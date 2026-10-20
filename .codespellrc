@@ -1,0 +1,2 @@
+[codespell]
+skip = *.png,*.jpg,*.jpeg,*.gif,*.svg,*.json,*.lock,*.csv,*.kml,*.geojson,tests/data/*,dist/*,build/*,.git/*

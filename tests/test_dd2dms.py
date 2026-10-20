@@ -1,5 +1,17 @@
+import math
 import pytest
 from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms
+
+import math
+
+def test_dd_to_dms_value_47_0():
+    deg, minutes, seconds = dd_to_dms_value(47.0)
+    assert deg == 47
+    assert minutes == 0
+    assert seconds == 0.0
+    assert 0 <= minutes < 60
+    assert 0 <= seconds < 60
+    assert math.copysign(1, deg) == math.copysign(1, 47.0)
 
 def test_dd_to_dms_value():
     assert dd_to_dms_value(40.7128) == (40, 42, pytest.approx(46.08, abs=0.01))
@@ -12,6 +24,17 @@ def test_dd_to_dms_value():
     assert dd_to_dms_value(-0.5) == (0, 30, 0.0)
     assert dd_to_dms_value(1.0) == (1, 0, 0.0)
     assert dd_to_dms_value(-1.0) == (-1, 0, 0.0)
+
+def test_dd_to_dms_value_75_125_degrees_minutes_seconds():
+    deg, minutes, seconds = dd_to_dms_value(75.125)
+
+    assert deg == 75
+    assert minutes == 7
+    assert seconds == pytest.approx(30.0, abs=0.01)
+
+    assert 0 <= minutes <= 59
+    assert 0 <= seconds < 60
+    assert math.copysign(1, deg) == math.copysign(1, 75.125)
 
 def test_format_dms():
     assert format_dms(40, 42, 46.08, True) == "40°42'46.08\" N"
@@ -34,3 +57,30 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
+def test_dd_to_dms_value_51_25_components():
+    import math
+    import pytest
+    from dd2dms import dd_to_dms_value
+
+    d, m, s = dd_to_dms_value(51.25)
+
+    assert d == 51
+    assert m == 15
+    assert s == pytest.approx(0.0, abs=0.01)
+    assert 0 <= m <= 59
+    assert 0 <= s < 60
+    assert math.copysign(1, d) == math.copysign(1, 51.25)
+
+def test_dd_to_dms_value_88_888_components():
+    import math
+    import pytest
+    from dd2dms import dd_to_dms_value
+
+    d, m, s = dd_to_dms_value(88.888)
+    assert d == 88
+    assert m == 53
+    assert s == pytest.approx(16.8, abs=0.01)
+    assert 0 <= m <= 59
+    assert 0 <= s < 60
+    assert math.copysign(1, d) == math.copysign(1, 88.888)

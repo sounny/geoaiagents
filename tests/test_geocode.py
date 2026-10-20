@@ -1,5 +1,5 @@
 import pytest
-from geocode import get_coordinates, reverse_geocode_coordinates
+from geocode import get_coordinates, reverse_geocode_coordinates, parse_locations
 
 def test_get_coordinates_timeout_or_error(mocker):
     # Mock _geocode_limiter to raise an exception
@@ -17,3 +17,18 @@ def test_reverse_geocode_invalid_inputs():
     assert "_Skipped invalid inputs:_" in result
     assert "abc, def" in result
     assert "100, 200" in result
+
+def test_parse_locations_mixed_delimiters_and_tabs_not_newline_only(mocker):
+    mocker.patch("geocode._geocode_limiter", side_effect=AssertionError("No network calls allowed"))
+    mocker.patch("geocode._reverse_limiter", side_effect=AssertionError("No network calls allowed"))
+    assert parse_locations('Paris; London\nBerlin') == ['Paris', 'London', 'Berlin']
+    assert parse_locations('  Tokyo  ;  ') == ['Tokyo']
+    assert parse_locations('Lyon\tMarseille') == ['Lyon\tMarseille']
+    assert parse_locations('   ') == []
+
+def test_reverse_geocode_out_of_range_skipped_notes(mocker):
+    mocker.patch("geocode._reverse_limiter", side_effect=AssertionError("No network calls allowed"))
+    result = reverse_geocode_coordinates("91,0")
+    assert "| Latitude | Longitude | Address |" in result
+    assert "91,0" in result
+    assert "_Skipped" in result or "Skipped" in result

@@ -17,9 +17,10 @@ def read_requirements(file_path="requirements.txt"):
     requirements = []
     with open(file_path, 'r') as f:
         for line in f:
-            line = line.strip()
-            # Skip empty lines and comments
-            if line and not line.startswith('#'):
+            # Drop comments and strip trailing/leading spaces
+            line = line.split('#')[0].strip()
+            # Skip empty lines
+            if line:
                 requirements.append(line)
     
     return requirements
