@@ -2,12 +2,10 @@ import ast
 from pathlib import Path
 import pytest
 
-# Expected offenders mapping: "filename:ClassName": count
-# Example: "webchat.py:WebchatTool": 26
-ALLOWLIST = {
-    "tool_registry.py:ToolRegistry": 5,
-    "webchat.py:GradioLogHandler": 1,
-}
+# Baseline for modules currently exceeding the 25 methods per class limit
+# Format: {"filename:ClassName": count}
+# Example: {"webchat.py:WebchatTool": 26}
+EXPECTED_OFFENDERS = {}
 
 def get_python_files():
     root_dir = Path(__file__).parent.parent
@@ -48,7 +46,7 @@ def test_class_method_count():
 
                 if method_count > 25:
                     key = f"{rel_path}:{node.name}"
-                    allowed_count = ALLOWLIST.get(key, 0)
+                    allowed_count = EXPECTED_OFFENDERS.get(key, 0)
 
                     if method_count > allowed_count:
                         if allowed_count == 0:
@@ -58,3 +56,12 @@ def test_class_method_count():
 
     if errors:
         pytest.fail("Classes with too many methods found:\n" + "\n".join(errors))
+
+    total_offenders = sum(
+        1 for filepath in files_to_check
+        for node in ast.walk(ast.parse(filepath.read_text(encoding="utf-8")))
+        if isinstance(node, ast.ClassDef) and sum(1 for child in node.body if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef))) > 25
+    )
+
+    if total_offenders > len(EXPECTED_OFFENDERS):
+        pytest.fail(f"Total number of offenders ({total_offenders}) exceeds the baseline ({len(EXPECTED_OFFENDERS)}).")
