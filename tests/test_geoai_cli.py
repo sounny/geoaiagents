@@ -41,3 +41,41 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+def test_argument_parsing_fuzz(capsys):
+    import random
+    from geoai_cli import _build_parser
+    import string
+
+    random.seed(42)
+    inputs = [
+        "", "a" * 10000, "👍🏽 unicode 🔥 \u200b", "NaN", "Infinity", "-Infinity",
+        "48.8, 2.3", "New York", "invalid", "{}", "[]",
+    ]
+    for _ in range(90):
+        chars = [random.choice(string.printable) for _ in range(random.randint(0, 50))]
+        inputs.append("".join(chars))
+
+    parser = _build_parser()
+
+    for _ in range(200):
+        args = []
+        commands = ["list-tools", "run-tool", "geocode", "reverse", "dms", "distance", "boundaries", "chat"]
+        if random.choice([True, False]):
+            args.append(random.choice(commands))
+
+        for _ in range(random.randint(0, 5)):
+            if random.choice([True, False]) and args:
+                args.append("--payload")
+            elif random.choice([True, False]) and args:
+                args.append("--adm")
+            elif random.choice([True, False]) and args:
+                args.append("--debug")
+            args.append(random.choice(inputs))
+
+        try:
+            parser.parse_args(args)
+        except SystemExit:
+            pass
+        except Exception as e:
+            pytest.fail(f"Unexpected crash during argument parsing: {e}")
