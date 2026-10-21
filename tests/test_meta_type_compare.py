@@ -6,7 +6,7 @@ ALLOWLIST = {}
 
 def test_no_type_equality_comparison():
     """
-    Ensure top-level .py modules and plugins/*.py do not compare using type(x) == Y or type(x) is Y.
+    Ensure top-level .py modules and plugins/*.py do not compare using type(x) == Y, type(x) != Y, type(x) is Y, or type(x) is not Y.
     They should use isinstance() instead.
     """
     files = glob.glob("*.py") + glob.glob("plugins/*.py")
@@ -30,7 +30,7 @@ def test_no_type_equality_comparison():
                     left_operand = node.left if i == 0 else node.comparators[i-1]
 
                     if isinstance(left_operand, ast.Call) and isinstance(left_operand.func, ast.Name) and left_operand.func.id == "type":
-                        if isinstance(op, (ast.Eq, ast.Is)):
+                        if isinstance(op, (ast.Eq, ast.NotEq, ast.Is, ast.IsNot)):
                             if filepath in ALLOWLIST and node.lineno in ALLOWLIST[filepath]:
                                 continue
 
@@ -41,12 +41,20 @@ def test_no_type_equality_comparison():
                             elif isinstance(comparator, ast.Attribute):
                                 y_name = comparator.attr
 
-                            op_str = "==" if isinstance(op, ast.Eq) else "is"
+                            if isinstance(op, ast.Eq):
+                                op_str = "=="
+                            elif isinstance(op, ast.NotEq):
+                                op_str = "!="
+                            elif isinstance(op, ast.Is):
+                                op_str = "is"
+                            else:
+                                op_str = "is not"
+
                             offenders.append(
                                 f"{filepath}:{node.lineno} - Found `type(x) {op_str} {y_name}`. Use isinstance(x, {y_name}) instead."
                             )
 
     if offenders:
-        error_msg = "Found type comparisons (type(x) == Y or type(x) is Y). Please use isinstance() instead:\n"
+        error_msg = "Found type comparisons (type(x) == Y, type(x) != Y, type(x) is Y, or type(x) is not Y). Please use isinstance() instead:\n"
         error_msg += "\n".join(offenders)
         assert False, error_msg
