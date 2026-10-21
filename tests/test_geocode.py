@@ -49,3 +49,85 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_public_functions_fuzz(mocker):
+    from geocode import get_coordinates, parse_locations, reverse_geocode_coordinates, geocode_locations
+    import random
+    from geopy.exc import GeocoderTimedOut, GeocoderServiceError
+
+
+    class MockLocation:
+        def __init__(self, address, latitude, longitude):
+            self.address = address
+            self.latitude = latitude
+            self.longitude = longitude
+            self.raw = {}
+
+    def mock_geocode_limiter(*args, **kwargs):
+        if not args or not isinstance(args[0], str) or not args[0]:
+            return None
+        return MockLocation("Mock Address", 10.0, 20.0)
+
+    def mock_reverse_limiter(*args, **kwargs):
+        if not args or not isinstance(args[0], tuple):
+            return None
+        return MockLocation("Mock Reverse Address", args[0][0], args[0][1])
+
+    mocker.patch("geocode._geocode_limiter", side_effect=mock_geocode_limiter)
+    mocker.patch("geocode._reverse_limiter", side_effect=mock_reverse_limiter)
+
+
+    random.seed(42)
+    inputs = [
+        "", " ", "\n", "\t", None, [], {}, (),
+        "a" * 10000, "a,b;" * 5000,
+        "München", "北京", "🌟🌍",
+        float('nan'), float('inf'), float('-inf'), 1e308, -1e308,
+        123, 45.67,
+        "91.0, 181.0", "-100.0, -200.0", "a, b", "10, 20, 30"
+    ]
+    while len(inputs) < 200:
+        c = random.choice([0, 1, 2, 3])
+        if c == 0:
+            inputs.append("".join(chr(random.randint(32, 126)) for _ in range(random.randint(1, 100))))
+        elif c == 1:
+            inputs.append(random.uniform(-1000, 1000))
+        elif c == 2:
+            inputs.append(str(random.uniform(-90, 90)) + "," + str(random.uniform(-180, 180)))
+        elif c == 3:
+            inputs.append(random.choice([True, False, None]))
+
+    allowed_exceptions = (GeocoderTimedOut, GeocoderServiceError, TypeError, ValueError, AttributeError)
+
+    for inp in inputs:
+        # get_coordinates
+        try:
+            res = get_coordinates(inp)
+        except Exception as e:
+            assert isinstance(e, allowed_exceptions)
+        else:
+            assert isinstance(res, tuple)
+
+        # parse_locations
+        try:
+            res = parse_locations(inp)
+        except Exception as e:
+            assert isinstance(e, allowed_exceptions)
+        else:
+            assert isinstance(res, list)
+
+        # reverse_geocode_coordinates
+        try:
+            res = reverse_geocode_coordinates(inp)
+        except Exception as e:
+            assert isinstance(e, allowed_exceptions)
+        else:
+            assert isinstance(res, str)
+
+        # geocode_locations
+        try:
+            res = geocode_locations(inp)
+        except Exception as e:
+            assert isinstance(e, allowed_exceptions)
+        else:
+            assert isinstance(res, str)
