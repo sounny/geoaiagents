@@ -40,6 +40,11 @@ def test_no_literal_write_paths():
                         if isinstance(node.args[0], ast.Constant) and isinstance(node.args[0].value, str):
                             path_is_literal = True
 
+                    for kw in node.keywords:
+                        if kw.arg == "file":
+                            if isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+                                path_is_literal = True
+
                     if len(node.args) >= 2:
                         if isinstance(node.args[1], ast.Constant) and isinstance(node.args[1].value, str):
                             mode_val = node.args[1].value
@@ -49,7 +54,9 @@ def test_no_literal_write_paths():
                             if isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
                                 mode_val = kw.value.value
 
-                    if path_is_literal and mode_val in ("w", "a", "wb", "a+", "w+", "r+"):
+                    is_write_mode = any(c in mode_val for c in ("w", "a", "x", "+"))
+
+                    if path_is_literal and is_write_mode:
                         offenders.append(f"{filepath}:{node.lineno}")
 
     assert not offenders, f"Found open(..., write_mode) with literal paths in tests: {', '.join(offenders)}"
