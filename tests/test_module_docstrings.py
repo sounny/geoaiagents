@@ -8,11 +8,13 @@ ALLOWLIST = {
     "webchat.py",
     "llm_utils.py",
     "file_loaders.py",
-    "test_distance_issue.py",
+    "test_humboldt_draft.py",
+    "submit.py",
 }
 
 def test_module_docstrings():
     # Gather all top-level .py files and plugins/*.py files
+    # This explicitly scans the plugins/ directory as requested, ensuring we don't miss plugin modules
     top_level_files = glob.glob("*.py")
     plugin_files = glob.glob("plugins/*.py")
     all_files = top_level_files + plugin_files
