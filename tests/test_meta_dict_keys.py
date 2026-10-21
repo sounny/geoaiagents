@@ -37,3 +37,39 @@ def test_no_keys_in_membership():
                                 offenders.append(f"{basename}:{node.lineno}")
 
     assert not offenders, f"Found 'x in d.keys()' membership tests in files: {', '.join(offenders)}"
+
+
+FOR_KEYS_ALLOWLIST = [
+]
+
+
+def test_no_for_loops_over_keys():
+    """
+    Test that top-level .py modules and plugins/*.py do not contain for loops
+    iterating over d.keys() directly. Iterate the dict instead.
+    """
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    files = glob.glob(os.path.join(project_root, "*.py")) + glob.glob(os.path.join(project_root, "plugins", "*.py"))
+
+    offenders = []
+
+    for filepath in files:
+        basename = os.path.basename(filepath)
+        if basename in FOR_KEYS_ALLOWLIST:
+            continue
+
+        with open(filepath, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        try:
+            tree = ast.parse(content, filename=filepath)
+        except SyntaxError:
+            continue
+
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.For, ast.AsyncFor)):
+                if isinstance(node.iter, ast.Call):
+                    if isinstance(node.iter.func, ast.Attribute) and node.iter.func.attr == "keys":
+                        offenders.append(f"{basename}:{node.lineno}")
+
+    assert not offenders, f"Found 'for x in d.keys():' loops in files: {', '.join(offenders)}"
