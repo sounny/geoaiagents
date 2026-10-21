@@ -131,3 +131,48 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_dd2dms_fuzz():
+    import random
+    random.seed(42)
+
+    inputs = [
+        "", " ", "\n", "\t", "a" * 1000, "こんにちは", "40.0, -70.0",
+        "NaN", "Infinity", "-Infinity", None, 1, 0, -0.0,
+        float('nan'), float('inf'), float('-inf'),
+        1e300, -1e300, 1e-300, -1e-300,
+        [], {}, set(), (1, 2),
+    ]
+
+    for _ in range(300):
+        if random.random() < 0.5:
+            inputs.append(random.uniform(-1000, 1000))
+        else:
+            inputs.append("".join(chr(random.randint(0, 10000)) for _ in range(random.randint(0, 100))))
+
+    expected_exceptions = (TypeError, ValueError, OverflowError)
+
+    for val in inputs:
+        # convert_dd_to_dms: documented to accept str
+        try:
+            res = convert_dd_to_dms(val)
+            assert isinstance(res, str)
+        except expected_exceptions:
+            pass
+
+        # dd_to_dms_value: documented to accept float
+        try:
+            res = dd_to_dms_value(val)
+            assert isinstance(res, tuple) and len(res) == 3
+            assert isinstance(res[0], (int, float))
+            assert isinstance(res[1], int)
+            assert isinstance(res[2], float)
+        except expected_exceptions:
+            pass
+
+        # format_dms: documented to accept (float, int, float, bool, float=None)
+        try:
+            res = format_dms(val, val, val, bool(val), val)
+            assert isinstance(res, str)
+        except expected_exceptions:
+            pass
