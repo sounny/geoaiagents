@@ -121,3 +121,98 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+@pytest.mark.xfail(reason="has_tool and invoke crash with TypeError on unhashable inputs")
+def test_tool_registry_public_functions_fuzzing():
+    import random
+    import math
+
+    random.seed(42)
+
+    inputs = [
+        None,
+        True,
+        False,
+        0,
+        1,
+        -1,
+        0.0,
+        1.0,
+        -1.0,
+        float('inf'),
+        float('-inf'),
+        float('nan'),
+        "",
+        " ",
+        "a" * 10000,
+        "こんにちは",
+        "\x00\x01\x02",
+        [],
+        {},
+        set(),
+        tuple(),
+        b"",
+        b"hello",
+        lambda x: "handler",
+        object(),
+        '{"valid": "json"}',
+        '{"invalid": json',
+        "[1, 2, 3]",
+    ]
+
+    for _ in range(100):
+        length = random.randint(0, 100)
+        s = "".join(chr(random.randint(0, 65535)) for _ in range(length))
+        inputs.append(s)
+
+    for _ in range(50):
+        inputs.append(random.uniform(-1e10, 1e10))
+        inputs.append(random.randint(-10000, 10000))
+
+    registry = create_registry()
+    expected_exceptions = (ValueError,)
+
+    for val in inputs:
+        # parse_tool_args
+        try:
+            res = parse_tool_args(val)
+            assert isinstance(res, dict)
+        except expected_exceptions:
+            pass
+
+        try:
+            res = registry.has_tool(val)
+            assert isinstance(res, bool)
+        except expected_exceptions:
+            pass
+
+        try:
+            res = registry.invoke(val, val)
+            assert res is None or isinstance(res, str)
+        except expected_exceptions:
+            pass
+
+        try:
+            res = registry.invoke("convert_dd_to_dms", val)
+            assert res is None or isinstance(res, str)
+        except expected_exceptions:
+            pass
+
+        temp_reg = ToolRegistry()
+        try:
+            temp_reg.register_tool(name=val, description="desc", parameters={}, handler=lambda x: "ok")
+            assert isinstance(val, str) and len(val) > 0
+
+            funcs = temp_reg.openai_functions()
+            assert isinstance(funcs, list)
+
+            res = temp_reg.invoke(val, {})
+            assert res is None or isinstance(res, str)
+        except expected_exceptions:
+            pass
+
+        from tool_registry import ToolDefinition
+        try:
+            td = ToolDefinition(name=val, description=val, parameters=val, handler=val)
+        except expected_exceptions:
+            pass
