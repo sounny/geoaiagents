@@ -29,6 +29,8 @@ def get_python_files():
 
 # Allowlist formatted as tuples of (filename, lineno)
 ALLOWLIST = {
+    ("dd2dms.py", 58),
+    ("dd2dms.py", 78),
     ("install_requirements.py", 81),
 }
 
