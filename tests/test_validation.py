@@ -94,3 +94,105 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+import random
+import string
+
+def test_validation_fuzz():
+    random.seed(42)
+
+    def rand_input():
+        # Choices covering wrong types, strings, numbers, NaN, None, etc.
+        choices = [
+            random.uniform(-1000, 1000),
+            random.uniform(-180, 180),
+            random.uniform(-90, 90),
+            0.0,
+            float('inf'),
+            float('-inf'),
+            float('nan'),
+            None,
+            [],
+            {},
+            True,
+            False,
+        ]
+
+        # Add random strings
+        length = random.choice([0, 10, 100, 1000])
+        chars = string.ascii_letters + string.digits + string.punctuation + ' \\n\\t\\r;' + 'ñçéœ∑œ®†¥¨ˆøπ'
+        random_str = ''.join(random.choice(chars) for _ in range(length))
+        choices.append(random_str)
+
+        return random.choice(choices)
+
+    # Allowed exception types the module uses or python uses for wrong types implicitly
+    allowed_exceptions = (ValueError, TypeError, AttributeError)
+
+    for _ in range(500):
+        lat = rand_input()
+        lon = rand_input()
+        try:
+            res = is_valid_lat_lon(lat, lon)
+            assert isinstance(res, bool)
+        except allowed_exceptions:
+            pass
+        except AssertionError:
+            raise
+        except Exception as e:
+            pytest.fail(f"Unexpected exception for is_valid_lat_lon({repr(lat)}, {repr(lon)}): {e}")
+
+    for _ in range(500):
+        text = rand_input()
+        try:
+            res = parse_coordinate_pairs(text)
+            assert isinstance(res, tuple) and len(res) == 2
+            assert isinstance(res[0], list) and isinstance(res[1], list)
+        except allowed_exceptions:
+            pass
+        except AssertionError:
+            raise
+        except Exception as e:
+            pytest.fail(f"Unexpected exception for parse_coordinate_pairs({repr(text)}): {type(e)} {e}")
+
+    for _ in range(500):
+        # Generate some valid lists of tuples, and some completely wrong inputs
+        if random.random() < 0.5:
+            invalid_entries = rand_input()
+        else:
+            invalid_entries = []
+            for _ in range(random.randint(0, 10)):
+                invalid_entries.append((rand_input(), rand_input()))
+
+        try:
+            res = format_invalid_notes(invalid_entries)
+            assert isinstance(res, str)
+        except allowed_exceptions:
+            pass
+        except AssertionError:
+            raise
+        except Exception as e:
+            pytest.fail(f"Unexpected exception for format_invalid_notes(): {type(e)} {e}")
+
+    try:
+        from validation import swap_axis_order
+    except ImportError:
+        pass
+
+    if 'swap_axis_order' in locals():
+        for _ in range(500):
+            if random.random() < 0.5:
+                axis_input = rand_input()
+            else:
+                axis_input = (rand_input(), rand_input())
+                if random.random() < 0.5:
+                    axis_input += (rand_input(),)
+            try:
+                res = swap_axis_order(axis_input)
+                assert isinstance(res, tuple) or isinstance(res, list)
+            except allowed_exceptions:
+                pass
+            except AssertionError:
+                raise
+            except Exception as e:
+                pytest.fail(f"Unexpected exception for swap_axis_order(): {type(e)} {e}")
