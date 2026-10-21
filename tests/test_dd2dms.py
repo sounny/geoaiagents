@@ -2,7 +2,6 @@ import math
 import pytest
 from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms
 
-import math
 
 @pytest.mark.parametrize("val", [47.0, 45.0, 0.0, -90.0])
 def test_dd_to_dms_value_whole_degrees(val):
@@ -19,6 +18,7 @@ def test_dd_to_dms_value_whole_degrees(val):
     assert 0 <= seconds < 60
     assert math.copysign(1, deg) == math.copysign(1, val)
 
+
 def test_dd_to_dms_value():
     assert dd_to_dms_value(40.7128) == (40, 42, pytest.approx(46.08, abs=0.01))
     assert dd_to_dms_value(-74.0060) == (-74, 0, pytest.approx(21.6, abs=0.01))
@@ -26,9 +26,11 @@ def test_dd_to_dms_value():
 
     # test rollover (seconds that round to 60.00 must carry into the next minute/degree)
     assert dd_to_dms_value(0.999999) == (1, 0, 0)
+    assert dd_to_dms_value(10.9999999) == (11, 0, 0.0)
 
     # values between -1 and 0 still produce a zero degree component
     import math
+
     deg, m, s = dd_to_dms_value(0.5)
     assert (deg, m, s) == (0, 30, 0.0)
     assert math.copysign(1.0, deg) == 1.0
@@ -44,6 +46,7 @@ def test_dd_to_dms_value():
     assert dd_to_dms_value(1.0) == (1, 0, 0.0)
     assert dd_to_dms_value(-1.0) == (-1, 0, 0.0)
 
+
 def test_dd_to_dms_value_75_125_degrees_minutes_seconds():
     deg, minutes, seconds = dd_to_dms_value(75.125)
 
@@ -54,6 +57,7 @@ def test_dd_to_dms_value_75_125_degrees_minutes_seconds():
     assert 0 <= minutes <= 59
     assert 0 <= seconds < 60
     assert math.copysign(1, deg) == math.copysign(1, 75.125)
+
 
 def test_format_dms():
     assert format_dms(40, 42, 46.08, True) == "40°42'46.08\" N"
@@ -78,6 +82,7 @@ def test_convert_dd_to_dms():
     assert "40°42'46.08\" N" in result
     assert "74°00'21.60\" W" in result
 
+
 def test_convert_dd_to_dms_near_zero_direction():
     # Degrees between -1 and 0 must keep S/W (the degree component truncates to 0).
     res = convert_dd_to_dms("-0.5, -0.5\n0.5, 0.5")
@@ -85,6 +90,7 @@ def test_convert_dd_to_dms_near_zero_direction():
     assert "0°30'00.00\" W" in res
     assert "0°30'00.00\" N" in res
     assert "0°30'00.00\" E" in res
+
 
 def test_dd_to_dms_value_51_25_components():
     import math
@@ -100,6 +106,7 @@ def test_dd_to_dms_value_51_25_components():
     assert 0 <= s < 60
     assert math.copysign(1, d) == math.copysign(1, 51.25)
 
+
 def test_dd_to_dms_value_88_888_components():
     import math
     import pytest
@@ -113,7 +120,10 @@ def test_dd_to_dms_value_88_888_components():
     assert 0 <= s < 60
     assert math.copysign(1, d) == math.copysign(1, 88.888)
 
-@pytest.mark.xfail(reason="dd_to_dms_value returns unsigned 0 for -0.1 due to int truncation of floats")
+
+@pytest.mark.xfail(
+    reason="dd_to_dms_value returns unsigned 0 for -0.1 due to int truncation of floats"
+)
 def test_dd_to_dms_value_negative_longitudes():
     # Test for -0.1
     d, m, s = dd_to_dms_value(-0.1)
