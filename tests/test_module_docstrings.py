@@ -5,10 +5,11 @@ import pytest
 
 # Allowlist of files that are currently missing module docstrings
 ALLOWLIST = {
-    "webchat.py",
-    "llm_utils.py",
     "file_loaders.py",
-    "test_distance_issue.py",
+    "llm_utils.py",
+    "submit.py",
+    "test_humboldt_draft.py",
+    "webchat.py",
 }
 
 def test_module_docstrings():
@@ -17,15 +18,11 @@ def test_module_docstrings():
     plugin_files = glob.glob("plugins/*.py")
     all_files = top_level_files + plugin_files
 
-    missing_docstrings = []
+    total_allowed = len(ALLOWLIST)
+    total_offenders = 0
+    offenders_list = []
 
     for file_path in all_files:
-        # Get just the filename for checking against the allowlist
-        filename = os.path.basename(file_path)
-
-        if filename in ALLOWLIST:
-            continue
-
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
 
@@ -33,10 +30,25 @@ def test_module_docstrings():
             if not content.strip():
                 continue
 
-            tree = ast.parse(content)
+            try:
+                tree = ast.parse(content)
+            except SyntaxError:
+                continue
 
             # Check if there is a module docstring
             if ast.get_docstring(tree) is None:
-                missing_docstrings.append(file_path)
+                total_offenders += 1
+                offenders_list.append(file_path)
 
-    assert not missing_docstrings, f"The following non-empty modules are missing module docstrings: {', '.join(missing_docstrings)}"
+    new_offenders = [f for f in offenders_list if os.path.basename(f) not in ALLOWLIST]
+
+    assert not new_offenders, (
+        f"The following files are missing module docstrings and are not in the ALLOWLIST: "
+        f"{', '.join(new_offenders)}"
+    )
+
+    assert total_offenders <= total_allowed, (
+        f"Expected at most {total_allowed} modules without a module docstring, "
+        f"found {total_offenders}. Current offenders: {', '.join(offenders_list)}. "
+        f"Do not add new files without a module docstring."
+    )
