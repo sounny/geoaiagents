@@ -120,3 +120,99 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+
+import random
+import inspect
+import distance
+
+def test_distance_public_functions_random_inputs():
+    random.seed(42)
+
+    # Generate random string inputs
+    str_inputs = [
+        "",
+        "   ",
+        "abc,def,ghi,jkl",
+        "10,20,30,40",
+        "0,0,0,0",
+        "90,180,-90,-180",
+        "NaN,NaN,NaN,NaN",
+        "inf,inf,inf,inf",
+        "-inf,-inf,-inf,-inf",
+        "91,0,0,0",
+        "0,181,0,0",
+        "0,0,-91,0",
+        "0,0,0,-181",
+        "0",
+        "0,0,0",
+        "0,0,0,0,0",
+        "1.23e100,0,0,0",
+        "\x00\x01\x02\x03",
+        "¡™£¢∞§¶•ªº–≠",
+        "lat1,lon1,lat2,lon2",
+        "10\n20\n30\n40",
+        "10;20;30;40",
+    ]
+
+    for _ in range(50):
+        length = random.randint(0, 100)
+        s = "".join(chr(random.randint(0, 0x10FFFF)) for _ in range(length))
+        str_inputs.append(s)
+
+    for _ in range(50):
+        parts = []
+        for _ in range(random.randint(1, 6)):
+            r = random.random()
+            if r < 0.1:
+                parts.append("NaN")
+            elif r < 0.2:
+                parts.append("inf")
+            elif r < 0.3:
+                parts.append("-inf")
+            elif r < 0.4:
+                parts.append("abc")
+            else:
+                parts.append(str(random.uniform(-1e308, 1e308)))
+        str_inputs.append(",".join(parts))
+
+    float_inputs = [
+        0.0, -0.0, 1.0, -1.0, float('inf'), float('-inf'), float('nan'),
+        1e308, -1e308, 1e-308, -1e-308,
+        90.0, -90.0, 180.0, -180.0, 91.0, -91.0, 181.0, -181.0,
+    ]
+    for _ in range(50):
+        float_inputs.append(random.uniform(-1e308, 1e308))
+
+    public_funcs = [
+        obj for name, obj in inspect.getmembers(distance, inspect.isfunction)
+        if not name.startswith("_") and obj.__module__ == "distance" and name != "main"
+    ]
+
+    for func in public_funcs:
+        sig = inspect.signature(func)
+
+        for _ in range(200):
+            args = []
+            for name, param in sig.parameters.items():
+                if param.annotation == str:
+                    args.append(random.choice(str_inputs))
+                elif param.annotation == float or param.annotation == int:
+                    args.append(random.choice(float_inputs))
+                else:
+                    args.append(random.choice(str_inputs)) # default fallback
+
+            try:
+                result = func(*args)
+                if sig.return_annotation != inspect._empty:
+                    if sig.return_annotation == str:
+                        assert isinstance(result, str)
+                    elif sig.return_annotation == float:
+                        assert isinstance(result, float)
+                    # if there are other annotations, we could check them
+            except ValueError:
+                # module uses ValueError
+                pass
+            except Exception as e:
+                # Should not crash with other exceptions
+                raise AssertionError(f"Unexpected crash in {func.__name__} with args {args}: {e}")
