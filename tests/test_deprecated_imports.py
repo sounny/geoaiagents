@@ -4,7 +4,7 @@ import os
 import pytest
 
 # Deprecated modules we want to avoid
-DEPRECATED_MODULES = {"imp", "distutils", "asynchat", "asyncore"}
+DEPRECATED_MODULES = {"imp", "distutils", "asynchat", "asyncore", "smtpd"}
 
 # Allowlist for existing offenders: {filepath: {module_names}}
 # We check if a file has an allowed deprecated module
