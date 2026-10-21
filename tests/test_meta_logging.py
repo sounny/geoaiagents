@@ -47,7 +47,7 @@ def test_no_logging_basicconfig_outside_main():
     allowlist = {
         'geoai_cli.py': [222],
         'webchat.py': [23],
-        'humboldt.py': [148]
+        'humboldt.py': [226]
     }
 
     files_to_check = glob('*.py') + glob('plugins/*.py')
