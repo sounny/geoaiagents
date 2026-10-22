@@ -49,3 +49,60 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+import sys
+import logging
+import types
+from unittest.mock import MagicMock
+from geocode import main
+
+def test_geocode_main_normal_logging(mocker, caplog):
+    mocker.patch("sys.argv", ["geocode.py", "--api-key", "secret123"])
+    mocker.patch("builtins.input", return_value="London")
+
+    mock_client = MagicMock()
+    mock_response = types.SimpleNamespace(
+        choices=[
+            types.SimpleNamespace(
+                message=types.SimpleNamespace(
+                    function_call=None,
+                    content="Mocked"
+                )
+            )
+        ]
+    )
+    mock_client.chat.completions.create.return_value = mock_response
+    mocker.patch("geocode.OpenAI", return_value=mock_client)
+
+    mock_loc = types.SimpleNamespace(address="Fake London", latitude=51.5, longitude=-0.1)
+    mocker.patch("geocode._geocode_limiter", return_value=mock_loc)
+
+    with caplog.at_level(logging.DEBUG):
+        main()
+
+    # Normal execution should not log any warnings or errors
+    warning_error_logs = [record.levelname for record in caplog.records if record.levelname in ('WARNING', 'ERROR')]
+    assert len(warning_error_logs) == 0
+    assert "secret123" not in caplog.text
+
+
+def test_geocode_main_failing_logging(mocker, caplog):
+    mocker.patch("sys.argv", ["geocode.py", "--api-key", "secret123"])
+    mocker.patch("builtins.input", return_value="London")
+
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.side_effect = Exception("API error")
+    mocker.patch("geocode.OpenAI", return_value=mock_client)
+
+    mock_loc = types.SimpleNamespace(address="Fake London", latitude=51.5, longitude=-0.1)
+    mocker.patch("geocode._geocode_limiter", return_value=mock_loc)
+
+    with caplog.at_level(logging.DEBUG):
+        main()
+
+    # API failure should trigger warning and error logs from llm_utils retry logic
+    warning_error_logs = [record.levelname for record in caplog.records if record.levelname in ('WARNING', 'ERROR')]
+    assert len(warning_error_logs) > 0
+
+    assert any("API error" in record.message for record in caplog.records)
+    assert "secret123" not in caplog.text
