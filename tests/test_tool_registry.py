@@ -121,3 +121,41 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_tool_registry_idempotency(mocker):
+    import random
+    random.seed(42)
+
+    # Mock external file_loaders, geocode, dd2dms, distance tools used in tool_registry
+    mocker.patch("tool_registry.geocode_locations", return_value="mock_geocode")
+    mocker.patch("tool_registry.reverse_geocode_coordinates", return_value="mock_rev_geocode")
+    mocker.patch("tool_registry.convert_dd_to_dms", return_value="mock_dd_to_dms")
+    mocker.patch("tool_registry.calculate_distance", return_value="mock_distance")
+    mocker.patch("tool_registry.load_geojson", return_value="mock_geojson")
+    mocker.patch("tool_registry.load_kml", return_value="mock_kml")
+    mocker.patch("tool_registry.load_csv", return_value="mock_csv")
+    mocker.patch("tool_registry.fetch_geo_boundaries", return_value="mock_fetch_geo")
+
+    # parse_tool_args
+    arg1 = parse_tool_args('{"key": "value"}')
+    arg2 = parse_tool_args('{"key": "value"}')
+    assert arg1 == arg2
+
+    # create_registry
+    reg1 = create_registry()
+    reg2 = create_registry()
+
+    # openai_functions
+    func1 = reg1.openai_functions()
+    func2 = reg2.openai_functions()
+    assert func1 == func2
+
+    # has_tool
+    has1 = reg1.has_tool("convert_dd_to_dms")
+    has2 = reg2.has_tool("convert_dd_to_dms")
+    assert has1 == has2
+
+    # invoke
+    inv1 = reg1.invoke("convert_dd_to_dms", '{"coordinates": "48.8566,2.3522"}')
+    inv2 = reg2.invoke("convert_dd_to_dms", '{"coordinates": "48.8566,2.3522"}')
+    assert inv1 == inv2
