@@ -41,3 +41,31 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+def test_argparse_errors(capsys):
+    from geoai_cli import _build_parser
+    parser = _build_parser()
+
+    with pytest.raises(SystemExit) as exc:
+        parser.parse_args([None])
+    assert exc.value.code == 2
+
+    with pytest.raises(SystemExit) as exc:
+        parser.parse_args([""])
+    assert exc.value.code == 2
+
+    with pytest.raises(SystemExit) as exc:
+        parser.parse_args(["chat", "--max-steps", "abc"])
+    assert exc.value.code == 2
+
+    with pytest.raises(SystemExit) as exc:
+        parser.parse_args(["chat", "--max-steps", ""])
+    assert exc.value.code == 2
+
+    with pytest.raises(SystemExit) as exc:
+        parser.parse_args(["run-tool"])
+    assert exc.value.code == 2
+
+    with pytest.raises(SystemExit) as exc:
+        parser.parse_args(["chat", "--max-steps", "9" * 5000])
+    assert exc.value.code == 2
