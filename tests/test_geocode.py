@@ -49,3 +49,50 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_parse_locations_large_string():
+    import geocode
+    large_input = "City\n" * 10000
+    result = geocode.parse_locations(large_input)
+    assert len(result) == 10000
+    assert result[0] == "City"
+
+def test_parse_locations_large_list():
+    import pytest
+    import geocode
+    large_input = ["City"] * 10000
+    with pytest.raises(TypeError):
+        geocode.parse_locations(large_input)
+
+def test_parse_locations_large_dict():
+    import pytest
+    import geocode
+    large_input = {f"City{i}": i for i in range(10000)}
+    with pytest.raises(TypeError):
+        geocode.parse_locations(large_input)
+
+def test_reverse_geocode_large_string(mocker):
+    import geocode
+    large_input = "40.0, -70.0\n" * 10000
+    # Mock network call to return a fixed address
+    mock_result = mocker.Mock()
+    mock_result.address = "Mock Address"
+    mocker.patch.object(geocode, "_reverse_limiter", return_value=mock_result)
+
+    result = geocode.reverse_geocode_coordinates(large_input)
+    assert "| Latitude | Longitude | Address |" in result
+    assert "Mock Address" in result
+    assert "40.0" in result
+    assert "-70.0" in result
+
+def test_geocode_locations_large_string(mocker):
+    import geocode
+    large_input = "City\n" * 10000
+    # Mock network call
+    mocker.patch.object(geocode, "get_coordinates", return_value=("Mock City", 40.0, -70.0))
+
+    result = geocode.geocode_locations(large_input)
+    assert "| Input | Matched Address | Latitude | Longitude |" in result
+    assert "Mock City" in result
+    assert "40.0" in result
+    assert "-70.0" in result
