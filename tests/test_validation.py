@@ -94,3 +94,36 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_validation_idempotency(mocker):
+    import random
+
+    random.seed(42)
+    out1_is_valid = is_valid_lat_lon(45.0, 90.0)
+    random.seed(42)
+    out2_is_valid = is_valid_lat_lon(45.0, 90.0)
+    assert out1_is_valid == out2_is_valid
+
+    text_input = "45.0, 90.0\ninvalid, data"
+    random.seed(42)
+    out1_parse = parse_coordinate_pairs(text_input)
+    random.seed(42)
+    out2_parse = parse_coordinate_pairs(text_input)
+    assert out1_parse == out2_parse
+
+    invalid_entries = [("invalid, data", "Not a number")]
+    random.seed(42)
+    out1_format = format_invalid_notes(invalid_entries)
+    random.seed(42)
+    out2_format = format_invalid_notes(invalid_entries)
+    assert out1_format == out2_format
+
+    try:
+        from validation import swap_axis_order
+        random.seed(42)
+        out1_swap = swap_axis_order((10.0, 20.0))
+        random.seed(42)
+        out2_swap = swap_axis_order((10.0, 20.0))
+        assert out1_swap == out2_swap
+    except ImportError:
+        pass
