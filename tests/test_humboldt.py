@@ -26,3 +26,30 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+@pytest.mark.parametrize("max_steps_val, expected_exit", [
+    ("0", None),
+    ("1", None),
+    (str(-sys.maxsize), None),
+    (str(sys.maxsize), None),
+    ("", SystemExit),
+    ("ñ", SystemExit),
+])
+def test_humboldt_max_steps_boundaries(mocker, max_steps_val, expected_exit):
+    mocker.patch('humboldt.check_and_install_dependencies')
+    mocker.patch('openai.OpenAI')
+
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message.content = "Mocked response"
+    mock_response.choices[0].message.function_call = None
+    mocker.patch('humboldt.call_llm_with_retry', return_value=mock_response)
+
+    mocker.patch('builtins.input', side_effect=['exit'])
+    mocker.patch('sys.argv', ['humboldt.py', '--max-steps', max_steps_val])
+
+    if expected_exit:
+        with pytest.raises(expected_exit):
+            main()
+    else:
+        main()
