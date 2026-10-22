@@ -121,3 +121,33 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_tool_registry_invoke_very_large_string(mocker):
+    registry = create_registry()
+    mocker.patch("tool_registry.convert_dd_to_dms", return_value="Mocked response")
+
+    # 10 MB string
+    large_str_content = "A" * 10 * 1024 * 1024
+
+    result = registry.invoke('convert_dd_to_dms', large_str_content)
+    assert result == "Mocked response"
+
+def test_tool_registry_invoke_very_large_list(mocker):
+    registry = create_registry()
+    mocker.patch("tool_registry.convert_dd_to_dms", return_value="Mocked response")
+
+    # 1 million element list
+    large_list = ["A"] * 1000000
+
+    result = registry.invoke('convert_dd_to_dms', large_list)
+    assert result == "Mocked response"
+
+def test_tool_registry_invoke_very_large_dict(mocker):
+    registry = create_registry()
+    mocker.patch("tool_registry.convert_dd_to_dms", return_value="Mocked response")
+
+    # Large dictionary (100k keys)
+    large_dict = {f"key_{i}": "value" for i in range(100000)}
+
+    result = registry.invoke('convert_dd_to_dms', large_dict)
+    assert result == "Mocked response"
