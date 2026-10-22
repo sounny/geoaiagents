@@ -66,6 +66,8 @@ def test_load_kml_two_points_and_empty_document():
     res_empty = load_geojson('{}')
     assert res_empty.startswith("| Latitude | Longitude |")
 
+@pytest.mark.xfail(reason="load_geojson raises ValueError on bad JSON instead of returning an empty table")
+def test_load_geojson_bad_json_behavior():
     res_bad = load_geojson('{bad')
     assert res_bad.startswith("| Latitude | Longitude |")
 
@@ -93,3 +95,23 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+def test_load_geojson_empty_string():
+    with pytest.raises(ValueError) as excinfo:
+        load_geojson("")
+    assert str(excinfo.value) == "Empty GeoJSON string"
+
+def test_load_geojson_invalid_json():
+    with pytest.raises(ValueError) as excinfo:
+        load_geojson("{bad")
+    msg = str(excinfo.value)
+    assert msg.startswith("Invalid GeoJSON:")
+    # Ensure the message is non-empty and contains the underlying decode error
+    assert len(msg) > len("Invalid GeoJSON: ")
+    assert "Expecting property name" in msg
+
+def test_load_geojson_invalid_feature_geometry():
+    invalid_geom_fc = '{"type": "Feature", "geometry": "invalid"}'
+    with pytest.raises(ValueError) as excinfo:
+        load_geojson(invalid_geom_fc)
+    assert str(excinfo.value) == "Feature geometry must be an object or null"
