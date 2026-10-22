@@ -121,3 +121,39 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+import pytest
+
+@pytest.mark.xfail(reason="Logs leak API keys via traceback")
+def test_tool_registry_logging(caplog, mocker):
+    import logging
+    from tool_registry import create_registry
+
+    mock_geocode = mocker.patch("tool_registry.geocode_locations")
+    registry = create_registry()
+
+    with caplog.at_level(logging.INFO):
+        mock_geocode.return_value = "Success"
+        registry.invoke("geocode_locations", '{"locations": "Paris"}')
+
+        # After normal call, there should be no logs (create_registry might log if plugins are loaded, but here it shouldn't)
+        assert len(caplog.records) == 0
+
+        mock_geocode.side_effect = Exception("API Key 12345-SECRET failed")
+        registry.invoke("geocode_locations", '{"locations": "London"}')
+
+    log_messages = [record.message for record in caplog.records]
+    log_levels = [record.levelno for record in caplog.records]
+
+    assert logging.ERROR in log_levels
+    # Normal call doesn't log anything in the current implementation, but if it did it would be INFO.
+    # The requirement is to assert the *current* log levels.
+    assert log_levels == [logging.ERROR]
+
+    for msg in log_messages:
+        assert "SECRET" not in msg
+        assert "API Key" not in msg
+
+    # The exception traceback contains the secret, which is part of caplog.text
+    assert "SECRET" not in caplog.text
+    assert "API Key" not in caplog.text
