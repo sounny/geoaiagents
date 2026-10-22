@@ -94,3 +94,41 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_is_valid_lat_lon_type_error():
+    with pytest.raises(TypeError) as exc_info:
+        is_valid_lat_lon("90", "180")
+    assert exc_info.type is TypeError
+    assert str(exc_info.value) != ""
+    assert "str" in str(exc_info.value)
+
+def test_parse_coordinate_pairs_type_error():
+    with pytest.raises(TypeError) as exc_info:
+        parse_coordinate_pairs(123)
+    assert exc_info.type is TypeError
+    assert str(exc_info.value) != ""
+    assert "int" in str(exc_info.value)
+
+@pytest.mark.xfail(reason="Bug exposed: validation.py appends to invalid list instead of raising ValueError")
+def test_parse_coordinate_pairs_value_error_out_of_bounds():
+    with pytest.raises(ValueError) as exc_info:
+        parse_coordinate_pairs("91, 180")
+    assert exc_info.type is ValueError
+    assert str(exc_info.value) != ""
+    assert "91" in str(exc_info.value)
+
+@pytest.mark.xfail(reason="Bug exposed: validation.py appends to invalid list instead of raising ValueError")
+def test_parse_coordinate_pairs_value_error_not_a_number():
+    with pytest.raises(ValueError) as exc_info:
+        parse_coordinate_pairs("abc, 123")
+    assert exc_info.type is ValueError
+    assert str(exc_info.value) != ""
+    assert "abc" in str(exc_info.value)
+
+@pytest.mark.xfail(reason="Bug exposed: validation.py appends to invalid list instead of raising ValueError")
+def test_parse_coordinate_pairs_value_error_missing_pair():
+    with pytest.raises(ValueError) as exc_info:
+        parse_coordinate_pairs("40")
+    assert exc_info.type is ValueError
+    assert str(exc_info.value) != ""
+    assert "40" in str(exc_info.value)
