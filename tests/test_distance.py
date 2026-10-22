@@ -24,6 +24,17 @@ def test_parse_distance_pairs_empty():
     pairs, invalid = _parse_distance_pairs('')
     assert pairs == []
 
+def test_parse_distance_pairs_none():
+    pairs, invalid = _parse_distance_pairs(None)
+    assert pairs == []
+    assert invalid == []
+
+def test_parse_distance_pairs_wrong_type():
+    with pytest.raises(TypeError):
+        _parse_distance_pairs(123)
+    with pytest.raises(TypeError):
+        _parse_distance_pairs([1, 2, 3])
+
 def test_parse_distance_pairs_point_a_out_of_range():
     pairs, invalid = _parse_distance_pairs('91.0,0.0,0.0,0.0')
     assert pairs == []
@@ -46,6 +57,17 @@ def test_parse_distance_pairs_all_zero():
     pairs, invalid = _parse_distance_pairs('0.0,0.0,0.0,0.0')
     assert pairs == [(0.0, 0.0, 0.0, 0.0)]
     assert invalid == []
+
+def test_haversine_km_errors():
+    with pytest.raises(TypeError):
+        _haversine_km(None, 0, 0, 0)
+    with pytest.raises(TypeError):
+        _haversine_km("91", "0", "0", "0")
+
+def test_haversine_km_out_of_range():
+    # _haversine_km evaluates without error even for out-of-range coordinates
+    distance = _haversine_km(91, 0, 0, 0)
+    assert abs(distance - 10118.75) < 0.1
 
 def test_haversine_km():
     # New York to London
@@ -81,6 +103,14 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_distance_none():
+    result = calculate_distance(None)
+    assert result == "No valid coordinate pairs provided."
+
+def test_calculate_distance_wrong_type():
+    with pytest.raises(TypeError):
+        calculate_distance(123)
 
 def test_haversine_km_not_the_equator_case():
     distance = _haversine_km(-33.9249, 18.4241, -29.8587, 31.0218)
