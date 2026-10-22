@@ -131,3 +131,68 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+import sys
+import logging
+from types import SimpleNamespace
+from unittest.mock import patch, MagicMock
+from dd2dms import main
+
+def test_main_normal_call_logs(caplog, mocker):
+    mocker.patch("sys.argv", ["dd2dms.py", "--api-key", "secret-key-12345"])
+    mocker.patch("builtins.input", return_value="40.7128,-74.0060")
+    mocker.patch("builtins.print")
+
+    mock_openai_client = MagicMock()
+    # Create a valid mock response matching what llm_utils.py expects
+    # hasattr(response, 'choices') and response.choices
+    # hasattr(response.choices[0], 'message') and response.choices[0].message
+    mock_response = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                message=SimpleNamespace(
+                    function_call=None,
+                    content="Mocked valid response"
+                )
+            )
+        ]
+    )
+    mock_openai_client.chat.completions.create.return_value = mock_response
+    mock_openai_class = mocker.patch("dd2dms.OpenAI", return_value=mock_openai_client)
+
+    with caplog.at_level(logging.DEBUG):
+        main()
+
+    # Assert no secrets are in the log output
+    assert "secret-key" not in caplog.text
+
+    # Assert no warning or errors were logged
+    warnings = [r for r in caplog.records if r.levelno >= logging.WARNING]
+    assert len(warnings) == 0
+
+
+def test_main_failing_call_logs(caplog, mocker):
+    mocker.patch("sys.argv", ["dd2dms.py", "--api-key", "secret-key-67890"])
+    mocker.patch("builtins.input", return_value="40.7128,-74.0060")
+    mocker.patch("builtins.print")
+
+    mock_openai_client = MagicMock()
+    # Mock to throw an Exception
+    mock_openai_client.chat.completions.create.side_effect = Exception("Mocked API Timeout or Error")
+    mock_openai_class = mocker.patch("dd2dms.OpenAI", return_value=mock_openai_client)
+
+    # Disable sleep in retry to speed up the test
+    mocker.patch("time.sleep")
+
+    with caplog.at_level(logging.DEBUG):
+        main()
+
+    # Assert no secrets are in the log output
+    assert "secret-key" not in caplog.text
+
+    # Check that warning and error logs exist
+    warnings = [r for r in caplog.records if r.levelno == logging.WARNING]
+    errors = [r for r in caplog.records if r.levelno == logging.ERROR]
+
+    assert len(warnings) > 0, "Expected WARNING logs due to retries"
+    assert len(errors) > 0, "Expected ERROR logs due to final failure"
