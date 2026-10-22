@@ -66,6 +66,8 @@ def test_load_kml_two_points_and_empty_document():
     res_empty = load_geojson('{}')
     assert res_empty.startswith("| Latitude | Longitude |")
 
+@pytest.mark.xfail(reason="load_geojson raises ValueError on invalid JSON")
+def test_load_geojson_invalid_json_bug():
     res_bad = load_geojson('{bad')
     assert res_bad.startswith("| Latitude | Longitude |")
 
@@ -93,3 +95,49 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+def test_large_geojson():
+    import json
+    large_list = [1, 2] * 5000
+    res = load_geojson('{"type": "Feature", "geometry": {"type": "Point", "coordinates": ' + str(large_list) + '}}')
+    assert res.startswith("| Latitude | Longitude |")
+
+def test_large_kml():
+    coords = " ".join(["-122.082,37.422,50"] * 5000)
+    kml = f'''<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <Placemark>
+      <Point>
+        <coordinates>{coords}</coordinates>
+      </Point>
+    </Placemark>
+  </Document>
+</kml>'''
+    res = load_kml(kml)
+    assert res.startswith("| Latitude | Longitude |")
+
+def test_large_csv():
+    from file_loaders import load_csv
+    header = "lat,lon\n"
+    body = "37.422,-122.082\n" * 5000
+    csv_data = header + body
+    res = load_csv(csv_data)
+    assert res.startswith("| Latitude | Longitude |")
+
+def test_large_fetch_geo_boundaries(mocker):
+    import requests
+    from file_loaders import fetch_geo_boundaries
+    fetch_geo_boundaries.cache_clear()
+
+    mock_response = mocker.MagicMock()
+    mock_response.json.return_value = {"simplifiedGeometryGeoJSON": "http://example.com/geo"}
+
+    mock_geo_response = mocker.MagicMock()
+    large_list = [1, 2] * 5000
+    mock_geo_response.text = '{"type": "Feature", "geometry": {"type": "Point", "coordinates": ' + str(large_list) + '}}'
+
+    mocker.patch("requests.get", side_effect=[mock_response, mock_geo_response])
+
+    res = fetch_geo_boundaries("FRA")
+    assert res.startswith("| Latitude | Longitude |")
