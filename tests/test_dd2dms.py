@@ -131,3 +131,35 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_dd_to_dms_value_errors():
+    with pytest.raises(TypeError):
+        dd_to_dms_value(None)
+    with pytest.raises(TypeError):
+        dd_to_dms_value("")
+    with pytest.raises(TypeError):
+        dd_to_dms_value("40.0")
+
+    # out of range value
+    assert dd_to_dms_value(400) == (400, 0, 0.0)
+
+def test_format_dms_errors():
+    with pytest.raises(TypeError):
+        format_dms(None, 0, 0, True)
+    with pytest.raises(TypeError):
+        format_dms(0, None, 0, True)
+    with pytest.raises(TypeError):
+        format_dms(0, 0, None, True)
+    with pytest.raises(ValueError):
+        format_dms("", 0, 0, True)
+
+    # out of range value
+    assert format_dms(400, 0, 0, True) == "400°00'00.00\" N"
+
+def test_convert_dd_to_dms_errors():
+    # None and empty string produce just the header
+    assert convert_dd_to_dms(None) == "| Latitude (DD) | Longitude (DD) | Latitude (DMS) | Longitude (DMS) |\n|--------------:|---------------:|---------------|---------------|"
+    assert convert_dd_to_dms("") == "| Latitude (DD) | Longitude (DD) | Latitude (DMS) | Longitude (DMS) |\n|--------------:|---------------:|---------------|---------------|"
+
+    with pytest.raises(TypeError):
+        convert_dd_to_dms(123)
