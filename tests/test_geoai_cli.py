@@ -41,3 +41,20 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+@pytest.mark.parametrize("args, expected_error_snippet, offending_value", [
+    (['geoai_cli.py', 'chat', '--max-steps', 'not_an_int'], 'invalid int value', 'not_an_int'),
+    (['geoai_cli.py', 'invalid_command'], 'invalid choice', 'invalid_command'),
+    (['geoai_cli.py', 'run-tool'], 'the following arguments are required', 'tool_name'),
+    (['geoai_cli.py', 'boundaries'], 'the following arguments are required', 'iso'),
+    (['geoai_cli.py', 'chat', '--unrecognized_flag', 'foo'], 'unrecognized arguments', '--unrecognized_flag'),
+])
+def test_cli_argument_parsing_errors(mocker, capsys, args, expected_error_snippet, offending_value):
+    mocker.patch('sys.argv', args)
+    with pytest.raises(SystemExit) as excinfo:
+        main()
+    assert excinfo.value.code == 2
+    captured = capsys.readouterr()
+    assert captured.err != ""
+    assert expected_error_snippet in captured.err
+    assert offending_value in captured.err
