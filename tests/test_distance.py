@@ -120,3 +120,42 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+def test_distance_logging_normal(caplog):
+    import logging
+    caplog.set_level(logging.DEBUG)
+    text = "40.7128,-74.0060,51.5074,-0.1278"
+    calculate_distance(text)
+
+    # Assert current log levels
+    assert len(caplog.records) == 0
+
+    # Check that no secrets appear in the logs
+    for record in caplog.records:
+        msg = record.getMessage().lower()
+        assert "secret" not in msg
+        assert "api_key" not in msg
+        assert "apikey" not in msg
+
+def test_distance_logging_failing(caplog, monkeypatch):
+    import logging
+    caplog.set_level(logging.DEBUG)
+    text = "40.7128,-74.0060,51.5074,-0.1278"
+
+    def mock_haversine_km(*args, **kwargs):
+        raise ValueError("Simulated external failure")
+
+    monkeypatch.setattr("distance._haversine_km", mock_haversine_km)
+
+    with pytest.raises(ValueError, match="Simulated external failure"):
+        calculate_distance(text)
+
+    # Assert current log levels
+    assert len(caplog.records) == 0
+
+    # Check that no secrets appear in the logs
+    for record in caplog.records:
+        msg = record.getMessage().lower()
+        assert "secret" not in msg
+        assert "api_key" not in msg
+        assert "apikey" not in msg
