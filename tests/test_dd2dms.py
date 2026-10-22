@@ -131,3 +131,17 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_dd2dms_main_idempotency():
+    import random
+
+    input_coords = "40.7128,-74.0060\n34.0522,-118.2437"
+
+    random.seed(42)
+    out1 = convert_dd_to_dms(input_coords)
+
+    random.seed(42)
+    out2 = convert_dd_to_dms(input_coords)
+
+    assert out1 == out2
+    assert "40°42'46.08\" N" in out1
