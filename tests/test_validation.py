@@ -94,3 +94,41 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+
+def test_validation_boundaries():
+    import sys
+
+    # zero
+    assert is_valid_lat_lon(0, 0) is True
+    # one
+    assert is_valid_lat_lon(1, 1) is True
+
+    # smallest and largest sensible sizes
+    assert is_valid_lat_lon(sys.float_info.min, sys.float_info.min) is True
+    assert is_valid_lat_lon(sys.float_info.max, sys.float_info.max) is False
+
+    # empty strings
+    with pytest.raises(TypeError):
+        is_valid_lat_lon("", "")
+
+    # unicode text
+    with pytest.raises(TypeError):
+        is_valid_lat_lon("☃", "☃")
+
+    # parse_coordinate_pairs boundaries
+    assert parse_coordinate_pairs("") == ([], [])
+    assert parse_coordinate_pairs("0,0") == ([(0.0, 0.0)], [])
+    assert parse_coordinate_pairs("1,1") == ([(1.0, 1.0)], [])
+
+    # smallest and largest
+    large = f"{sys.float_info.max},{sys.float_info.max}"
+    assert parse_coordinate_pairs(large) == ([], [(large, "Out of range (-90 <= lat <= 90, -180 <= lon <= 180)")])
+
+    # unicode
+    assert parse_coordinate_pairs("☃,☃") == ([], [("☃,☃", "Not a number")])
+
+    # format_invalid_notes boundaries
+    assert format_invalid_notes([]) == ""
+    assert format_invalid_notes([("", "")]) == "\n_Skipped invalid inputs:_\n- `` ()"
+    assert format_invalid_notes([("☃", "☃")]) == "\n_Skipped invalid inputs:_\n- `☃` (☃)"
