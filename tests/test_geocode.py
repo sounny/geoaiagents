@@ -1,5 +1,5 @@
 import pytest
-from geocode import get_coordinates, reverse_geocode_coordinates, parse_locations
+from geocode import get_coordinates, reverse_geocode_coordinates, parse_locations, geocode_locations
 
 def test_get_coordinates_timeout_or_error(mocker):
     # Mock _geocode_limiter to raise an exception
@@ -49,3 +49,35 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_get_coordinates_edge_cases(mocker):
+    mocker.patch("geocode._geocode_limiter", side_effect=Exception("Mocked network error"))
+    assert get_coordinates(None) == (None, None, None)
+    assert get_coordinates("") == (None, None, None)
+    assert get_coordinates(123) == (None, None, None)
+
+def test_parse_locations_edge_cases():
+    assert parse_locations("") == []
+    with pytest.raises(TypeError):
+        parse_locations(None)
+    with pytest.raises(TypeError):
+        parse_locations(123)
+
+def test_reverse_geocode_coordinates_edge_cases(mocker):
+    mocker.patch("geocode._reverse_limiter", side_effect=Exception("Mocked network error"))
+    assert "| Latitude | Longitude | Address |" in reverse_geocode_coordinates("")
+    assert "| Latitude | Longitude | Address |" in reverse_geocode_coordinates(None)
+    with pytest.raises(TypeError):
+        reverse_geocode_coordinates(123)
+
+def test_geocode_locations_edge_cases(mocker):
+    mocker.patch("geocode._geocode_limiter", side_effect=Exception("Mocked network error"))
+    assert "| Input | Matched Address | Latitude | Longitude |" in geocode_locations("")
+    with pytest.raises(TypeError):
+        geocode_locations(None)
+    with pytest.raises(TypeError):
+        geocode_locations(123)
+
+    out_of_range_result = geocode_locations("91,0")
+    assert "91,0" in out_of_range_result
+    assert "Not found" in out_of_range_result
