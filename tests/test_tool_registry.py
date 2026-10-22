@@ -121,3 +121,27 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+
+def test_tool_registry_invoke_boundaries(mocker):
+    """Test tool registry with boundary values including zero, one, sizes, empty strings, and unicode."""
+    import sys
+    registry = ToolRegistry()
+    registry.register_tool(
+        name="test_tool",
+        description="A test tool",
+        parameters={"required": ["arg1"]},
+        handler=lambda args: str(args)
+    )
+
+    # Empty strings
+    assert registry.invoke("test_tool", "") == "{}"
+
+    # Boundary values for numbers (0, 1, max, min)
+    assert registry.invoke("test_tool", 0) == "{}"
+    assert registry.invoke("test_tool", 1) == "{}"
+    assert registry.invoke("test_tool", sys.maxsize) == "{}"
+    assert registry.invoke("test_tool", -sys.maxsize) == "{}"
+
+    # Unicode text
+    assert registry.invoke("test_tool", "🚀") == "{'arg1': '🚀'}"
