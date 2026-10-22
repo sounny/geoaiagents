@@ -41,3 +41,24 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+def test_cli_parsing_determinism(mocker, capsys):
+    import random
+    from geoai_cli import main
+
+    random.seed(42)
+    mocker.patch("sys.argv", ["geoai_cli.py", "geocode", "Tokyo"])
+
+    mock_registry = mocker.MagicMock()
+    mock_registry.invoke.return_value = "Mocked Location Data"
+    mocker.patch("geoai_cli.create_registry", return_value=mock_registry)
+
+    ret1 = main()
+    out1, err1 = capsys.readouterr()
+
+    ret2 = main()
+    out2, err2 = capsys.readouterr()
+
+    assert ret1 == ret2
+    assert out1 == out2
+    assert err1 == err2
