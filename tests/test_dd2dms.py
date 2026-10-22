@@ -131,3 +131,31 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_convert_dd_to_dms_boundary_values():
+    # Zero
+    result = convert_dd_to_dms("0, 0")
+    assert '|       0.000000 |        0.000000 | 0°00\'00.00" N | 0°00\'00.00" E |' in result
+
+    # One
+    result = convert_dd_to_dms("1, 1")
+    assert '|       1.000000 |        1.000000 | 1°00\'00.00" N | 1°00\'00.00" E |' in result
+
+    # Smallest sensible size
+    result = convert_dd_to_dms("-90, -180")
+    assert '|     -90.000000 |     -180.000000 | 90°00\'00.00" S | 180°00\'00.00" W |' in result
+
+    # Largest sensible size
+    result = convert_dd_to_dms("90, 180")
+    assert '|      90.000000 |      180.000000 | 90°00\'00.00" N | 180°00\'00.00" E |' in result
+
+    # Empty string
+    result = convert_dd_to_dms("")
+    assert "Latitude (DD)" in result
+    assert "Longitude (DD)" in result
+    assert "0.000000" not in result
+
+    # Unicode text
+    result = convert_dd_to_dms("你好, 世界")
+    assert "_Skipped invalid inputs:_" in result
+    assert "- `你好, 世界` (Not a number)" in result
