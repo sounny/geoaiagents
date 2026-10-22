@@ -94,3 +94,32 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_is_valid_lat_lon_edge_cases():
+    with pytest.raises(TypeError):
+        is_valid_lat_lon(None, 0)
+    with pytest.raises(TypeError):
+        is_valid_lat_lon("a", "b")
+
+def test_parse_coordinate_pairs_edge_cases():
+    assert parse_coordinate_pairs(None) == ([], [])
+    assert parse_coordinate_pairs("") == ([], [])
+    with pytest.raises(TypeError):
+        parse_coordinate_pairs(123)
+
+def test_format_invalid_notes_edge_cases():
+    assert format_invalid_notes(None) == ""
+    assert format_invalid_notes([]) == ""
+    with pytest.raises(TypeError):
+        format_invalid_notes([123])
+
+def test_out_of_range_edge_cases():
+    # is_valid_lat_lon out-of-range cases
+    assert is_valid_lat_lon(90.1, 180.1) is False
+    assert is_valid_lat_lon(-90.1, -180.1) is False
+
+    # parse_coordinate_pairs out-of-range cases
+    pairs, invalid = parse_coordinate_pairs("100, 200")
+    assert not pairs
+    assert len(invalid) == 1
+    assert "Out of range" in invalid[0][1]
