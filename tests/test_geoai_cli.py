@@ -1,6 +1,6 @@
 import sys
 import pytest
-from geoai_cli import _read_value_or_stdin, main
+from geoai_cli import _build_parser, _read_value_or_stdin, main
 
 import subprocess
 
@@ -41,3 +41,18 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+def test_argparse_boundary_values(mocker, capsys):
+    mocker.patch('os.path.exists')
+    mocker.patch('socket.socket')
+    mocker.patch('openai.OpenAI')
+
+    parser = _build_parser()
+
+    for val, expected in [("0", 0), ("1", 1), ("-2147483648", -2147483648), ("2147483647", 2147483647)]:
+        args = parser.parse_args(['chat', '--max-steps', val])
+        assert args.max_steps == expected
+
+    for val in ["", "こんにちは"]:
+        args = parser.parse_args(['geocode', val])
+        assert args.value == val
