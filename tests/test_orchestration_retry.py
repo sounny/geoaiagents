@@ -56,7 +56,9 @@ def test_call_llm_with_retry_happy_path_fast():
     """
     client = MagicMock()
     mock_response = MagicMock()
-    mock_response.choices = ["happy_choice"]
+    # Updated to SimpleNamespace based on access pattern in llm_utils.py
+    from types import SimpleNamespace
+    mock_response.choices = [SimpleNamespace(message=SimpleNamespace(content="happy"))]
     client.chat.completions.create.return_value = mock_response
 
     with patch('time.sleep') as mock_sleep:
