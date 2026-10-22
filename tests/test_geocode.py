@@ -49,3 +49,60 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_boundaries(mocker):
+    import geocode
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+    mocker.patch("geocode._reverse_limiter", return_value=None)
+
+    assert geocode.parse_locations("") == []
+    assert geocode.get_coordinates("") == (None, None, None)
+    assert geocode.reverse_geocode_coordinates("") == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|"
+    assert geocode.geocode_locations("") == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|"
+
+    assert geocode.parse_locations("0") == ["0"]
+    assert geocode.get_coordinates("0") == (None, None, None)
+    assert geocode.reverse_geocode_coordinates("0") == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|\n_Skipped invalid inputs:_\n- `0` (Missing latitude/longitude pair)"
+    assert geocode.geocode_locations("0") == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|\n| 0 | Not found |  |  |"
+
+    assert geocode.parse_locations("1") == ["1"]
+    assert geocode.get_coordinates("1") == (None, None, None)
+    assert geocode.reverse_geocode_coordinates("1") == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|\n_Skipped invalid inputs:_\n- `1` (Missing latitude/longitude pair)"
+    assert geocode.geocode_locations("1") == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|\n| 1 | Not found |  |  |"
+
+    large_str = "A" * 10000
+    assert geocode.parse_locations(large_str) == [large_str]
+    assert geocode.get_coordinates(large_str) == (None, None, None)
+    assert geocode.reverse_geocode_coordinates(large_str) == f"| Latitude | Longitude | Address |\n|---------:|----------:|---------|\n_Skipped invalid inputs:_\n- `{large_str}` (Missing latitude/longitude pair)"
+    assert geocode.geocode_locations(large_str) == f"| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|\n| {large_str} | Not found |  |  |"
+
+    unicode_str = "こんにちは"
+    assert geocode.parse_locations(unicode_str) == [unicode_str]
+    assert geocode.get_coordinates(unicode_str) == (None, None, None)
+    assert geocode.reverse_geocode_coordinates(unicode_str) == f"| Latitude | Longitude | Address |\n|---------:|----------:|---------|\n_Skipped invalid inputs:_\n- `{unicode_str}` (Missing latitude/longitude pair)"
+    assert geocode.geocode_locations(unicode_str) == f"| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|\n| {unicode_str} | Not found |  |  |"
+
+    assert geocode.parse_locations("0,0") == ["0,0"]
+    assert geocode.get_coordinates("0,0") == (None, None, None)
+    assert geocode.reverse_geocode_coordinates("0,0") == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|\n| 0.0 | 0.0 | Not found |"
+    assert geocode.geocode_locations("0,0") == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|\n| 0,0 | Not found |  |  |"
+
+    assert geocode.parse_locations("-90, -180") == ["-90, -180"]
+    assert geocode.get_coordinates("-90, -180") == (None, None, None)
+    assert geocode.reverse_geocode_coordinates("-90, -180") == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|\n| -90.0 | -180.0 | Not found |"
+    assert geocode.geocode_locations("-90, -180") == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|\n| -90, -180 | Not found |  |  |"
+
+    assert geocode.parse_locations("90, 180") == ["90, 180"]
+    assert geocode.get_coordinates("90, 180") == (None, None, None)
+    assert geocode.reverse_geocode_coordinates("90, 180") == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|\n| 90.0 | 180.0 | Not found |"
+    assert geocode.geocode_locations("90, 180") == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|\n| 90, 180 | Not found |  |  |"
+
+    assert geocode.parse_locations("-90.00000000000001, -180.00000000000001") == ["-90.00000000000001, -180.00000000000001"]
+    assert geocode.get_coordinates("-90.00000000000001, -180.00000000000001") == (None, None, None)
+    assert geocode.reverse_geocode_coordinates("-90.00000000000001, -180.00000000000001") == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|\n_Skipped invalid inputs:_\n- `-90.00000000000001, -180.00000000000001` (Out of range (-90 <= lat <= 90, -180 <= lon <= 180))"
+    assert geocode.geocode_locations("-90.00000000000001, -180.00000000000001") == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|\n| -90.00000000000001, -180.00000000000001 | Not found |  |  |"
+
+    assert geocode.parse_locations("90.00000000000001, 180.00000000000001") == ["90.00000000000001, 180.00000000000001"]
+    assert geocode.get_coordinates("90.00000000000001, 180.00000000000001") == (None, None, None)
+    assert geocode.reverse_geocode_coordinates("90.00000000000001, 180.00000000000001") == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|\n_Skipped invalid inputs:_\n- `90.00000000000001, 180.00000000000001` (Out of range (-90 <= lat <= 90, -180 <= lon <= 180))"
+    assert geocode.geocode_locations("90.00000000000001, 180.00000000000001") == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|\n| 90.00000000000001, 180.00000000000001 | Not found |  |  |"
