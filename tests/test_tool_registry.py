@@ -121,3 +121,17 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_parse_tool_args_edge_cases():
+    assert parse_tool_args(123) == {}
+    assert parse_tool_args(123.4) == {}
+    assert parse_tool_args([1, 2]) == {}
+    assert parse_tool_args('123') == {}
+    assert parse_tool_args('"just a string"') == {}
+
+def test_tool_registry_invoke_edge_cases():
+    registry = create_registry()
+    assert registry.invoke(None, {}) is None
+    assert registry.invoke("", {}) is None
+    assert registry.invoke("missing_tool", {}) is None
+    assert registry.invoke(123, {}) is None
