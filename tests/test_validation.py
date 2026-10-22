@@ -82,6 +82,44 @@ def test_parse_coordinate_pairs_space_separated_locked():
     assert len(invalid2) == 1
     assert "Out of range" in invalid2[0][1]
 
+def test_parse_coordinate_pairs_large_input():
+    import time
+    import re
+    from unittest.mock import patch
+
+    # Large string input
+    large_input = "\n".join([f"0.0,{i % 180}" for i in range(100000)])
+
+    start_time = time.time()
+    with patch("validation.re.split", wraps=re.split) as mock_split:
+        pairs, invalid = parse_coordinate_pairs(large_input)
+    end_time = time.time()
+
+    assert len(pairs) == 100000
+    assert len(invalid) == 0
+    assert (end_time - start_time) < 10.0  # reasonable time
+    mock_split.assert_called()
+
+def test_parse_coordinate_pairs_big_dict():
+    # Big dict input to assert what it raises
+    big_dict = {f"key_{i}": i for i in range(10000)}
+    with pytest.raises(TypeError):
+        parse_coordinate_pairs(big_dict)
+
+def test_format_invalid_notes_large_list():
+    import time
+
+    # Large list of invalid entries
+    large_invalid = [(f"91,{i % 181}", "Out of range") for i in range(100000)]
+
+    start_time = time.time()
+    result = format_invalid_notes(large_invalid)
+    end_time = time.time()
+
+    assert len(result) > 100000
+    assert "_Skipped invalid inputs:_" in result
+    assert (end_time - start_time) < 10.0  # reasonable time
+
 def test_swap_axis_order():
     try:
         from validation import swap_axis_order
