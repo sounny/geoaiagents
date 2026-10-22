@@ -18,3 +18,11 @@ def test_infer_location_extracted_whitespace():
 def test_infer_location_valid():
     assert infer_location("for London") == "London"
     assert infer_location("map for New York, NY") == "New York, NY"
+
+def test_infer_location_none_raises_typeerror():
+    with pytest.raises(TypeError):
+        infer_location(None)
+
+def test_infer_location_int_raises_typeerror():
+    with pytest.raises(TypeError):
+        infer_location(123)

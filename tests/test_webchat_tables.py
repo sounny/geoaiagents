@@ -30,3 +30,17 @@ def test_extract_map_coords_default_tool():
     table = "| Query | Matched | Lat | Lon |\n|---|---|---|---|\n| Paris | Paris, France | 48.8566 | 2.3522 |"
     result = extract_map_coords("geocode_locations", table)
     assert result == [(48.8566, 2.3522)]
+
+def test_parse_distance_table_none_raises_attributeerror():
+    with pytest.raises(AttributeError):
+        parse_distance_table(None)
+
+def test_parse_distance_table_int_raises_attributeerror():
+    with pytest.raises(AttributeError):
+        parse_distance_table(123)
+
+def test_extract_map_coords_none_table_raises_attributeerror():
+    with pytest.raises(AttributeError):
+        extract_map_coords("calculate_distance", None)
+    with pytest.raises(AttributeError):
+        extract_map_coords("geocode_locations", None)

@@ -39,3 +39,14 @@ def test_create_map_html_non_empty_points(mocker):
     mock_folium_marker.assert_any_call([51.5074, -0.1278])
     assert mock_marker_instance.add_to.call_count == 2
     mock_marker_instance.add_to.assert_called_with(mock_map_instance)
+
+def test_create_map_html_none():
+    assert webchat.create_map_html(None) == ""
+
+def test_create_map_html_wrong_type():
+    with pytest.raises(TypeError):
+        webchat.create_map_html([123])
+
+def test_create_map_html_out_of_range():
+    with pytest.raises(ValueError):
+        webchat.create_map_html([(1.0,)])

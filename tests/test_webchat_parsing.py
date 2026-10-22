@@ -55,3 +55,18 @@ Just a string without pipes
 | Point A | 34.0522 | -118.2437 |"""
     coords = parse_table_coordinates(table, 1, 2)
     assert coords == [(34.0522, -118.2437)]
+
+def test_parse_table_coordinates_none_raises_attributeerror():
+    with pytest.raises(AttributeError):
+        parse_table_coordinates(None, 1, 2)
+
+def test_parse_table_coordinates_int_raises_attributeerror():
+    with pytest.raises(AttributeError):
+        parse_table_coordinates(123, 1, 2)
+
+def test_parse_table_coordinates_string_index_raises_typeerror():
+    table = "| Location | Latitude | Longitude |\n|---|---|---|\n| Point A | 34.0522 | -118.2437 |"
+    with pytest.raises(TypeError):
+        parse_table_coordinates(table, "a", 2)
+    with pytest.raises(TypeError):
+        parse_table_coordinates(table, 1, "b")

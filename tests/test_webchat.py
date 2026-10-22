@@ -21,3 +21,38 @@ def test_create_map_html_markers_and_skips_invalid_locking_markers():
     assert len(points) == 2
     html = create_map_html(points)
     assert len(re.findall(r"L\.marker", html)) == 2
+
+import webchat
+
+def test_run_tool_none_raises_attributeerror():
+    with pytest.raises(AttributeError):
+        webchat.run_tool(None)
+
+def test_respond_none_message_raises_typeerror(mocker):
+    # Mock LLM call to return something valid so it doesn't fail on connection
+    mock_msg = mocker.MagicMock()
+    mock_msg.function_call = None
+    mock_msg.content = "mock response"
+    mock_choice = mocker.MagicMock()
+    mock_choice.message = mock_msg
+    mock_response = mocker.MagicMock()
+    mock_response.choices = [mock_choice]
+
+    mocker.patch('webchat.call_llm_with_retry', return_value=mock_response)
+
+    with pytest.raises(TypeError):
+        webchat.respond(None, [])
+
+def test_chat_none_history_raises_typeerror(mocker):
+    mock_msg = mocker.MagicMock()
+    mock_msg.function_call = None
+    mock_msg.content = "mock response"
+    mock_choice = mocker.MagicMock()
+    mock_choice.message = mock_msg
+    mock_response = mocker.MagicMock()
+    mock_response.choices = [mock_choice]
+
+    mocker.patch('webchat.call_llm_with_retry', return_value=mock_response)
+
+    with pytest.raises(TypeError):
+        webchat.chat("test", None, None)

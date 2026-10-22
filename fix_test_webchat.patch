@@ -1,0 +1,24 @@
+--- tests/test_webchat.py
++++ tests/test_webchat.py
+@@ -21,11 +21,11 @@
+     html = create_map_html(points)
+     assert len(re.findall(r"L\.marker", html)) == 2
+
++import webchat
++
+ def test_run_tool_none_raises_attributeerror():
+-    import webchat
+     with pytest.raises(AttributeError):
+         webchat.run_tool(None)
+
+-def test_respond_none_history_raises_typeerror(mocker):
+-    import webchat
++def test_respond_none_message_raises_typeerror(mocker):
+     # Mock LLM call to return something valid so it doesn't fail on connection
+     mock_msg = mocker.MagicMock()
+@@ -39,5 +39,4 @@
+
+ def test_chat_none_history_raises_typeerror(mocker):
+-    import webchat
+     mock_msg = mocker.MagicMock()
+     mock_msg.function_call = None
