@@ -1,4 +1,6 @@
+import logging
 import pytest
+from unittest import mock
 from validation import is_valid_lat_lon, parse_coordinate_pairs, format_invalid_notes
 
 def test_is_valid_lat_lon():
@@ -94,3 +96,27 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_validation_logging_normal(caplog):
+    caplog.set_level(logging.DEBUG)
+    parse_coordinate_pairs("10,20")
+    for record in caplog.records:
+        assert record.levelno not in (logging.ERROR, logging.CRITICAL)
+        msg_lower = record.message.lower()
+        assert "secret" not in msg_lower
+        assert "password" not in msg_lower
+        assert "api_key" not in msg_lower
+        assert "key" not in msg_lower
+
+def test_validation_logging_failing(caplog):
+    caplog.set_level(logging.DEBUG)
+    with mock.patch("validation.re.split", side_effect=RuntimeError("external call failed")):
+        with pytest.raises(RuntimeError):
+            parse_coordinate_pairs("10,20")
+
+    for record in caplog.records:
+        msg_lower = record.message.lower()
+        assert "secret" not in msg_lower
+        assert "password" not in msg_lower
+        assert "api_key" not in msg_lower
+        assert "key" not in msg_lower
