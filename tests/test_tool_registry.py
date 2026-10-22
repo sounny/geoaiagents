@@ -9,8 +9,10 @@ def test_parse_tool_args_valid_json():
 
 def test_parse_tool_args_invalid_json():
     import pytest
-    with pytest.raises(ValueError, match="Invalid JSON"):
+    with pytest.raises(ValueError, match="Invalid JSON") as excinfo:
         parse_tool_args('{"key": "value"')
+    assert str(excinfo.value)
+    # The message should be non-empty. The code does not include the offending JSON string in the error message.
 
 def test_tool_registry_invoke_happy_path():
     result = create_registry().invoke('convert_dd_to_dms', '48.8566,2.3522')
@@ -79,17 +81,25 @@ def test_tool_registry_name_validation():
     registry = ToolRegistry()
 
     # Test non-string name
-    with pytest.raises(ValueError, match="Tool name must be a string"):
+    with pytest.raises(ValueError) as excinfo1:
         registry.register_tool(name=123, description="desc", parameters={}, handler=lambda x: "test")
+    assert str(excinfo1.value)
+    assert "Tool name must be a string" in str(excinfo1.value)
+    assert "<class 'int'>" in str(excinfo1.value)
 
     # Test empty string name
-    with pytest.raises(ValueError, match="Tool name must be a non-empty string"):
+    with pytest.raises(ValueError) as excinfo2:
         registry.register_tool(name="", description="desc", parameters={}, handler=lambda x: "test")
+    assert str(excinfo2.value)
+    assert "Tool name must be a non-empty string" in str(excinfo2.value)
 
     # Test duplicate name
     registry.register_tool(name="valid_name", description="desc", parameters={}, handler=lambda x: "test")
-    with pytest.raises(ValueError, match="Tool 'valid_name' is already registered"):
+    with pytest.raises(ValueError) as excinfo3:
         registry.register_tool(name="valid_name", description="desc2", parameters={}, handler=lambda x: "test")
+    assert str(excinfo3.value)
+    assert "already registered" in str(excinfo3.value)
+    assert "valid_name" in str(excinfo3.value)
 
 def test_plugin_hook_handlers_order(mocker):
     """Test that registering two plugins and listing hook handlers twice returns the same order."""
