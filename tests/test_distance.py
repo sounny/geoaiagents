@@ -1,3 +1,4 @@
+import random
 import pytest
 from distance import _parse_distance_pairs, _haversine_km, calculate_distance
 
@@ -120,3 +121,11 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+def test_calculate_distance_idempotency():
+    input_text = "40.7128,-74.0060,51.5074,-0.1278"
+    random.seed(42)
+    out1 = calculate_distance(input_text)
+    random.seed(42)
+    out2 = calculate_distance(input_text)
+    assert out1 == out2
