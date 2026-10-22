@@ -49,3 +49,36 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_public_functions_deterministic(mocker):
+    import random
+    import geocode
+    from unittest.mock import MagicMock
+    random.seed(42)
+
+    mock_loc = MagicMock(address="Deterministic Address", latitude=12.34, longitude=56.78)
+    mocker.patch("geocode._geocode_limiter", return_value=mock_loc)
+    mocker.patch("geocode._reverse_limiter", return_value=mock_loc)
+
+    # get_coordinates
+    if hasattr(geocode.get_coordinates, "cache_clear"):
+        geocode.get_coordinates.cache_clear()
+    out1_gc = geocode.get_coordinates("Some City")
+    if hasattr(geocode.get_coordinates, "cache_clear"):
+        geocode.get_coordinates.cache_clear()
+    out2_gc = geocode.get_coordinates("Some City")
+    assert out1_gc == out2_gc
+
+    # reverse_geocode_coordinates
+    out1_rg = geocode.reverse_geocode_coordinates("12.34, 56.78")
+    out2_rg = geocode.reverse_geocode_coordinates("12.34, 56.78")
+    assert out1_rg == out2_rg
+
+    # geocode_locations
+    if hasattr(geocode.get_coordinates, "cache_clear"):
+        geocode.get_coordinates.cache_clear()
+    out1_gl = geocode.geocode_locations("City A\nCity B")
+    if hasattr(geocode.get_coordinates, "cache_clear"):
+        geocode.get_coordinates.cache_clear()
+    out2_gl = geocode.geocode_locations("City A\nCity B")
+    assert out1_gl == out2_gl
