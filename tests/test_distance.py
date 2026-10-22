@@ -1,3 +1,4 @@
+import sys
 import pytest
 from distance import _parse_distance_pairs, _haversine_km, calculate_distance
 
@@ -81,6 +82,21 @@ def test_calculate_distance_malformed():
 def test_calculate_distance_empty():
     result = calculate_distance("")
     assert result == "No valid coordinate pairs provided."
+
+def test_calculate_distance_boundaries():
+    assert calculate_distance(0) == "No valid coordinate pairs provided."
+    assert calculate_distance("🌍") == "No valid coordinate pairs provided.\n_Skipped invalid inputs:_\n- `🌍` (Expected lat1, lon1, lat2, lon2)"
+
+    with pytest.raises(TypeError, match="expected string or bytes-like object"):
+        calculate_distance(1)
+    with pytest.raises(TypeError, match="expected string or bytes-like object"):
+        calculate_distance(sys.maxsize)
+    with pytest.raises(TypeError, match="expected string or bytes-like object"):
+        calculate_distance(-sys.maxsize)
+    with pytest.raises(TypeError, match="expected string or bytes-like object"):
+        calculate_distance(sys.float_info.min)
+    with pytest.raises(TypeError, match="expected string or bytes-like object"):
+        calculate_distance(sys.float_info.max)
 
 def test_haversine_km_not_the_equator_case():
     distance = _haversine_km(-33.9249, 18.4241, -29.8587, 31.0218)
