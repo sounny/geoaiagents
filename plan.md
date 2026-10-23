@@ -1,7 +1,17 @@
-1. **Create `tests/test_llm_utils.py`**:
-   - Write `test_call_llm_with_retry_immediate_success` that mocks `client.chat.completions.create` to return a successful `SimpleNamespace(choices=[{'ok': True}])`, asserting it is returned identically and called exactly once (no real network).
-   - Write `test_call_llm_with_retry_timeout_then_success` that sets `client.chat.completions.create.side_effect = [TimeoutError('t'), SimpleNamespace(choices=[{'ok': True}])]` to test timeout on the first attempt and success on the second. It will assert the response is the choices response and `create` was called twice, keeping the name distinct from first-attempt success and max_retries failure titles.
-2. **Install testing dependencies**: Run `pip install openai pytest pytest-mock pytest-repeat folium gradio geopy` and `bash install_requirements.sh`.
-3. **Run tests**: Run `python -m pytest tests/test_llm_utils.py` to ensure the tests pass successfully.
-4. **Complete pre-commit steps**: Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
-5. **Submit changes**: Submit the code changes.
+1. **Add `test_geocode_get_coordinates_parameters` in `tests/test_geocode.py`:**
+   - Mock all HTTP calls (`get_json`, `get_text`) to `geocode._geolocator.adapter` and `time.sleep` (because RateLimiter will wait).
+   - Call `geocode.get_coordinates.cache_clear()` prior to each test to clear the cache.
+   - Test omitting optional parameters (`timeout`, `bounding_box`, `language`), passing them explicitly as defaults, and passing the main argument by keyword (`location_query`).
+2. **Add `test_geocode_reverse_geocode_coordinates_parameters` in `tests/test_geocode.py`:**
+   - Mock all HTTP calls and `time.sleep`.
+   - Test `geocode.reverse_geocode_coordinates` omitting optional parameters (`timeout`, `language`), passing them as defaults, and passing the main argument by keyword (`coordinates_str`).
+3. **Add `test_geocode_parse_locations_parameters` in `tests/test_geocode.py`:**
+   - Test `geocode.parse_locations` by passing the main argument by keyword (`locations_str`). This function has no optional parameters, but we'll cover keyword vs positional for the single arg.
+4. **Add `test_geocode_geocode_locations_parameters` in `tests/test_geocode.py`:**
+   - Mock HTTP calls and `time.sleep`.
+   - Test `geocode.geocode_locations` by passing the main argument by keyword (`locations_str`). Cover `get_coordinates` cache clear logic here too.
+5. **Add `test_geocode_main_parameters` in `tests/test_geocode.py`:**
+   - Mock HTTP calls, `builtins.input`, `sys.argv`, and `time.sleep`.
+   - The user asked to call *each public function or constructor*. We will verify if we can call `geocode.main()` with parameters... actually `main` doesn't take parameters. But we can test calling it. We will test running `main` but ensure all paths mock out network dependencies (especially `call_llm_with_retry`).
+6. **Pre-commit checks**
+   - Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
