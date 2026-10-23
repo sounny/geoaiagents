@@ -36,8 +36,16 @@ def test_reverse_geocode_out_of_range_skipped_notes(mocker):
 def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     import geocode
     mock_response = [
-        {"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "First Place", "importance": 0.9, "class": "place", "type": "city"},
-        {"place_id": 2, "lat": "41.0", "lon": "-71.0", "display_name": "Second Place", "importance": 0.8, "class": "place", "type": "city"}
+        {
+            "place_id": 1, "lat": "40.0", "lon": "-70.0",
+            "display_name": "First Place", "importance": 0.9,
+            "class": "place", "type": "city"
+        },
+        {
+            "place_id": 2, "lat": "41.0", "lon": "-71.0",
+            "display_name": "Second Place", "importance": 0.8,
+            "class": "place", "type": "city"
+        }
     ]
     # Mock network calls to geocode API
     mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=mock_response)
@@ -49,3 +57,126 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_get_coordinates_idempotency(mocker):
+    import geocode
+    geocode.get_coordinates.cache_clear()
+
+    mock_response = [
+        {
+            "place_id": 1, "lat": "40.0", "lon": "-70.0",
+            "display_name": "First Place", "importance": 0.9,
+            "class": "place", "type": "city"
+        }
+    ]
+
+    mock_get_json = mocker.patch.object(
+        geocode._geolocator.adapter, "get_json", return_value=mock_response
+    )
+    mocker.patch.object(
+        geocode._geolocator.adapter, "get_text", return_value=mock_response
+    )
+    mocker.patch("time.sleep")
+
+    res1 = geocode.get_coordinates("Mockville")
+    res2 = geocode.get_coordinates("Mockville")
+
+    assert res1 == res2
+    assert res1 == ("First Place", 40.0, -70.0)
+    assert mock_get_json.call_count == 1
+
+def test_reverse_geocode_coordinates_idempotency(mocker):
+    import geocode
+    mock_response = {
+        "place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "Mock Address",
+        "address": {"city": "Mock City"}
+    }
+
+    mock_get_json = mocker.patch.object(
+        geocode._geolocator.adapter, "get_json", return_value=mock_response
+    )
+    mocker.patch.object(
+        geocode._geolocator.adapter, "get_text", return_value=mock_response
+    )
+    mocker.patch("time.sleep")
+
+    input_str = "40.0, -70.0"
+    res1 = geocode.reverse_geocode_coordinates(input_str)
+    res2 = geocode.reverse_geocode_coordinates(input_str)
+
+    assert res1 == res2
+    assert "| 40.0 | -70.0 | Mock Address |" in res1
+    assert mock_get_json.call_count == 2
+
+def test_geocode_locations_idempotency(mocker):
+    import geocode
+    geocode.get_coordinates.cache_clear()
+
+    mock_response = [
+        {
+            "place_id": 1, "lat": "40.0", "lon": "-70.0",
+            "display_name": "First Place", "importance": 0.9,
+            "class": "place", "type": "city"
+        }
+    ]
+
+    mock_get_json = mocker.patch.object(
+        geocode._geolocator.adapter, "get_json", return_value=mock_response
+    )
+    mocker.patch.object(
+        geocode._geolocator.adapter, "get_text", return_value=mock_response
+    )
+    mocker.patch("time.sleep")
+
+    input_str = "Mockville"
+    res1 = geocode.geocode_locations(input_str)
+    res2 = geocode.geocode_locations(input_str)
+
+    assert res1 == res2
+    assert "| Mockville | First Place | 40.0 | -70.0 |" in res1
+    assert mock_get_json.call_count == 1
+
+def test_parse_locations_idempotency():
+    from geocode import parse_locations
+    input_str = 'Paris; London\nBerlin'
+    res1 = parse_locations(input_str)
+    res2 = parse_locations(input_str)
+    assert res1 == res2
+    assert res1 == ['Paris', 'London', 'Berlin']
+
+
+def test_main_idempotency(mocker, tmp_path, capsys):
+    import geocode
+    import sys
+    import os
+    geocode.get_coordinates.cache_clear()
+
+    mock_response = [
+        {
+            "place_id": 1, "lat": "40.0", "lon": "-70.0",
+            "display_name": "First Place", "importance": 0.9,
+            "class": "place", "type": "city"
+        }
+    ]
+
+    mocker.patch.object(
+        geocode._geolocator.adapter, "get_json", return_value=mock_response
+    )
+    mocker.patch.object(
+        geocode._geolocator.adapter, "get_text", return_value=mock_response
+    )
+    mocker.patch("time.sleep")
+
+    mocker.patch("builtins.input", return_value="Mockville")
+    mocker.patch.object(sys, "argv", ["geocode.py"])
+    mocker.patch("geocode.call_llm_with_retry", side_effect=Exception("API Error"))
+    mocker.patch("os.getcwd", return_value=str(tmp_path))
+
+    geocode.main()
+    captured1 = capsys.readouterr()
+
+    geocode.main()
+    captured2 = capsys.readouterr()
+
+    assert captured1.out == captured2.out
+    assert "| Mockville | First Place | 40.0 | -70.0 |" in captured1.out
