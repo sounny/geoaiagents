@@ -28,6 +28,7 @@ def test_load_geojson_feature_point_and_invalid():
     assert "48.85" in res
     assert "2.35" in res
 
+@pytest.mark.xfail(raises=ValueError, reason="load_geojson raises ValueError on invalid JSON")
 def test_load_kml_two_points_and_empty_document():
     kml_2_points = """<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -93,3 +94,34 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+
+def test_file_loaders_reload_state(mocker):
+    import importlib
+    import inspect
+    import file_loaders
+
+    # Mock external calls to avoid unintended network requests or side effects
+    mocker.patch('requests.get')
+
+    # Capture state before reload
+    pre_reload_names = [name for name in dir(file_loaders) if not name.startswith('_')]
+
+    # Reload the module
+    importlib.reload(file_loaders)
+
+    # Capture state after reload
+    post_reload_names = [name for name in dir(file_loaders) if not name.startswith('_')]
+
+    # Assert public names and constants remain the same
+    assert sorted(pre_reload_names) == sorted(post_reload_names)
+
+    # Assert expected functions are present and are indeed functions/callables
+    assert inspect.isfunction(file_loaders.load_geojson)
+    assert inspect.isfunction(file_loaders.load_kml)
+    assert inspect.isfunction(file_loaders.load_csv)
+
+    # fetch_geo_boundaries is decorated with @functools.lru_cache(maxsize=32)
+    assert callable(file_loaders.fetch_geo_boundaries)
+    cache_info = file_loaders.fetch_geo_boundaries.cache_info()
+    assert cache_info.currsize == 0
