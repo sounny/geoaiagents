@@ -26,3 +26,24 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+
+def test_humboldt_unicode_input(mocker, capsys):
+    mocker.patch('humboldt.check_and_install_dependencies')
+    mocker.patch('openai.OpenAI')
+
+    mock_input = mocker.patch('builtins.input', side_effect=['café', '日本語', '🌎', 'exit'])
+
+    mock_response = MagicMock()
+    mock_message = MagicMock()
+    mock_message.content = "Mocked LLM reply"
+    mock_message.function_call = None
+    mock_response.choices = [MagicMock(message=mock_message)]
+    mock_call_llm = mocker.patch('humboldt.call_llm_with_retry', return_value=mock_response)
+
+    mocker.patch('sys.argv', ['humboldt.py'])
+
+    main()
+
+    # Assert LLM was called 3 times (once for each unicode input)
+    assert mock_call_llm.call_count == 3
