@@ -49,3 +49,66 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_geocode_reload_api_stability(mocker):
+    import geocode
+    import importlib
+    import inspect
+
+    mocker.patch.object(geocode._geolocator.adapter, 'get_json', return_value=[])
+    mocker.patch.object(geocode._geolocator.adapter, 'get_text', return_value=[])
+
+    importlib.reload(geocode)
+
+    public_names = sorted([name for name in dir(geocode) if not name.startswith("_")])
+    expected_public_names = [
+        'GeocoderServiceError', 'GeocoderTimedOut', 'Nominatim', 'OpenAI', 'RateLimiter',
+        'argparse', 'call_llm_with_retry', 'format_invalid_notes', 'geocode_locations',
+        'get_coordinates', 'json', 'lru_cache', 'main', 'os', 'parse_coordinate_pairs',
+        'parse_locations', 'reverse_geocode_coordinates'
+    ]
+    assert public_names == expected_public_names
+
+    types = {}
+    for name in public_names:
+        obj = getattr(geocode, name)
+        if type(obj).__name__ in ('MagicMock', 'Mock'):
+            types[name] = 'Mock'
+        elif inspect.isclass(obj):
+            types[name] = 'Class'
+        elif callable(obj):
+            types[name] = 'Callable'
+        else:
+            types[name] = 'Constant/Other'
+
+    expected_types = {
+        'GeocoderServiceError': 'Class',
+        'GeocoderTimedOut': 'Class',
+        'Nominatim': 'Class',
+        'OpenAI': 'Class',
+        'RateLimiter': 'Class',
+        'argparse': 'Constant/Other',
+        'call_llm_with_retry': 'Callable',
+        'format_invalid_notes': 'Callable',
+        'geocode_locations': 'Callable',
+        'get_coordinates': 'Callable',
+        'json': 'Constant/Other',
+        'lru_cache': 'Callable',
+        'main': 'Callable',
+        'os': 'Constant/Other',
+        'parse_coordinate_pairs': 'Callable',
+        'parse_locations': 'Callable',
+        'reverse_geocode_coordinates': 'Callable'
+    }
+
+    assert types == expected_types
+
+    assert hasattr(geocode, '_geolocator')
+    assert hasattr(geocode, '_geocode_limiter')
+    assert hasattr(geocode, '_reverse_limiter')
+
+    cache_info = geocode.get_coordinates.cache_info()
+    assert cache_info.hits == 0
+    assert cache_info.misses == 0
+    assert cache_info.currsize == 0
+    assert cache_info.maxsize == 1024
