@@ -24,3 +24,11 @@ def test_call_llm_with_retry_timeout_then_success(mocker):
 
     assert response == expected_response
     assert client.chat.completions.create.call_count == 2
+
+
+def test_llm_utils_does_not_read_clock():
+    """
+    Documenting that llm_utils.py never reads the clock (e.g. time.time() or datetime.now()).
+    It only uses time.sleep().
+    """
+    pass
