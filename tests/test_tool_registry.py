@@ -1,3 +1,5 @@
+import copy
+
 import pytest
 from tool_registry import parse_tool_args, ToolRegistry, create_registry
 
@@ -121,3 +123,45 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_parse_tool_args_mutable_unchanged():
+    d = {"key": "value"}
+    d_copy = copy.deepcopy(d)
+    parse_tool_args(d)
+    assert d == d_copy
+
+    l = ["value"]
+    l_copy = copy.deepcopy(l)
+    parse_tool_args(l)
+    assert l == l_copy
+
+def test_register_tool_mutable_unchanged():
+    registry = ToolRegistry()
+    params = {"type": "object", "properties": {}}
+    params_copy = copy.deepcopy(params)
+    registry.register_tool(
+        name="test_tool",
+        description="A test tool",
+        parameters=params,
+        handler=lambda x: "test"
+    )
+    assert params == params_copy
+
+def test_invoke_mutable_unchanged():
+    registry = ToolRegistry()
+    registry.register_tool(
+        name="test_tool",
+        description="A test tool",
+        parameters={},
+        handler=lambda x: "test"
+    )
+
+    d = {"arg": "val"}
+    d_copy = copy.deepcopy(d)
+    registry.invoke("test_tool", d)
+    assert d == d_copy
+
+    l = ["val"]
+    l_copy = copy.deepcopy(l)
+    registry.invoke("test_tool", l)
+    assert l == l_copy
