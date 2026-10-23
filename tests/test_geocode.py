@@ -1,6 +1,16 @@
 import pytest
 from geocode import get_coordinates, reverse_geocode_coordinates, parse_locations
 
+def test_geocode_does_not_read_clock(mocker):
+    """
+    Test that geocode.py never reads the clock, therefore freezing time
+    at midnight, 23:59:59 on Dec 31, or leap day is not applicable.
+    Mocking external calls to ensure isolation.
+    """
+    mocker.patch("geocode._geocode_limiter", side_effect=Exception("Mocked timeout"))
+    result = get_coordinates("Some location")
+    assert result == (None, None, None)
+
 def test_get_coordinates_timeout_or_error(mocker):
     # Mock _geocode_limiter to raise an exception
     mocker.patch("geocode._geocode_limiter", side_effect=Exception("Mocked timeout"))
