@@ -49,3 +49,42 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_geocode_undocumented_count(mocker):
+    import inspect
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, 'get_json', return_value=[])
+    mocker.patch.object(geocode._geolocator.adapter, 'get_text', return_value=[])
+
+    count = 0
+    missing = []
+
+    for name, obj in inspect.getmembers(geocode):
+        if name.startswith('_'):
+            continue
+
+        mod = inspect.getmodule(obj)
+        if hasattr(obj, '__wrapped__'):
+            actual_obj = obj.__wrapped__
+            mod = inspect.getmodule(actual_obj)
+        else:
+            actual_obj = obj
+
+        if mod is not geocode:
+            continue
+
+        if inspect.isfunction(actual_obj) or inspect.isclass(actual_obj):
+            if not inspect.getdoc(actual_obj):
+                count += 1
+                missing.append(name)
+
+            if inspect.isclass(actual_obj):
+                for m_name, m_obj in inspect.getmembers(actual_obj):
+                    if m_name.startswith('_'):
+                        continue
+                    if inspect.isfunction(m_obj) or inspect.ismethod(m_obj):
+                        if not inspect.getdoc(m_obj):
+                            count += 1
+                            missing.append(f"{name}.{m_name}")
+
+    assert count <= 0, f"Undocumented items found: {missing}"
