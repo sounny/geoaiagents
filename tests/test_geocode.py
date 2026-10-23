@@ -49,3 +49,39 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_geocode_unicode_and_emoji(mocker):
+    from unittest.mock import MagicMock
+    import geocode
+    # Clear cache since lru_cache might remember previous calls
+    geocode.get_coordinates.cache_clear()
+
+    # Check parse_locations
+    locations_str = "Montréal; 北京\n🌆"
+    parsed = geocode.parse_locations(locations_str)
+    assert parsed == ["Montréal", "北京", "🌆"]
+
+    # Mock network calls to geocode API
+    # Since we test geocode_locations which calls get_coordinates which uses _geocode_limiter
+    def mock_geocode_call(query, **kwargs):
+        if query == "Montréal":
+            mock_loc = MagicMock()
+            mock_loc.address = "Montreal, QC"
+            mock_loc.latitude = 45.5019
+            mock_loc.longitude = -73.5674
+            return mock_loc
+        elif query == "北京":
+            mock_loc = MagicMock()
+            mock_loc.address = "Beijing, China"
+            mock_loc.latitude = 39.9042
+            mock_loc.longitude = 116.4074
+            return mock_loc
+        else:
+            return None
+
+    mocker.patch("geocode._geocode_limiter", side_effect=mock_geocode_call)
+
+    result = geocode.geocode_locations(locations_str)
+    assert "| Montréal | Montreal, QC | 45.5019 | -73.5674 |" in result
+    assert "| 北京 | Beijing, China | 39.9042 | 116.4074 |" in result
+    assert "| 🌆 | Not found |  |  |" in result
