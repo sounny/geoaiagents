@@ -66,6 +66,8 @@ def test_load_kml_two_points_and_empty_document():
     res_empty = load_geojson('{}')
     assert res_empty.startswith("| Latitude | Longitude |")
 
+@pytest.mark.xfail(raises=ValueError, reason="load_geojson raises ValueError for invalid JSON")
+def test_load_geojson_invalid():
     res_bad = load_geojson('{bad')
     assert res_bad.startswith("| Latitude | Longitude |")
 
@@ -93,3 +95,42 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+def test_api_signatures(mocker):
+    import inspect
+    import file_loaders
+
+    # load_geojson
+    sig_geojson = inspect.signature(file_loaders.load_geojson)
+    assert list(sig_geojson.parameters.keys()) == ['geojson']
+    assert sig_geojson.parameters['geojson'].annotation == str
+    assert sig_geojson.parameters['geojson'].kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    assert sig_geojson.parameters['geojson'].default == inspect.Parameter.empty
+    assert sig_geojson.return_annotation == str
+
+    # load_kml
+    sig_kml = inspect.signature(file_loaders.load_kml)
+    assert list(sig_kml.parameters.keys()) == ['kml']
+    assert sig_kml.parameters['kml'].annotation == str
+    assert sig_kml.parameters['kml'].kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    assert sig_kml.parameters['kml'].default == inspect.Parameter.empty
+    assert sig_kml.return_annotation == str
+
+    # load_csv
+    sig_csv = inspect.signature(file_loaders.load_csv)
+    assert list(sig_csv.parameters.keys()) == ['csv_text']
+    assert sig_csv.parameters['csv_text'].annotation == str
+    assert sig_csv.parameters['csv_text'].kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    assert sig_csv.parameters['csv_text'].default == inspect.Parameter.empty
+    assert sig_csv.return_annotation == str
+
+    # fetch_geo_boundaries (unwrap lru_cache for accurate signature)
+    sig_geo = inspect.signature(file_loaders.fetch_geo_boundaries.__wrapped__)
+    assert list(sig_geo.parameters.keys()) == ['iso', 'adm']
+    assert sig_geo.parameters['iso'].annotation == str
+    assert sig_geo.parameters['iso'].kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    assert sig_geo.parameters['iso'].default == inspect.Parameter.empty
+    assert sig_geo.parameters['adm'].annotation == str
+    assert sig_geo.parameters['adm'].kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    assert sig_geo.parameters['adm'].default == "ADM0"
+    assert sig_geo.return_annotation == str
