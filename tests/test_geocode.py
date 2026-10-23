@@ -49,3 +49,50 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_geocode_empty_and_whitespace(mocker):
+    import geocode
+    mocker.patch("geocode._geocode_limiter", side_effect=AssertionError("No network calls allowed"))
+    mocker.patch("geocode._reverse_limiter", side_effect=AssertionError("No network calls allowed"))
+
+    # get_coordinates
+    assert geocode.get_coordinates('') == (None, None, None)
+    assert geocode.get_coordinates('   ') == (None, None, None)
+
+    # get_coordinates returns empty when passed only whitespace/tabs/newlines because the external geocoder throws or returns empty
+    assert geocode.get_coordinates('\t  \n') == (None, None, None)
+
+    # For padded test, we need geocode.get_coordinates to actually receive the call,
+    # but since our mock raises AssertionError, it will be caught and return (None, None, None)
+    # To test stripping or propagation, we assert on the mock directly
+    mocker.patch("geocode._geocode_limiter", return_value=mocker.Mock(address="Padded Place", latitude=10.0, longitude=20.0))
+    assert geocode.get_coordinates('\t  Tokyo  \n') == ("Padded Place", 10.0, 20.0)
+
+    # parse_locations
+    assert geocode.parse_locations('') == []
+    assert geocode.parse_locations('   ') == []
+    assert geocode.parse_locations('\t  \n') == []
+    assert geocode.parse_locations('\t  Tokyo  \n') == ['Tokyo']
+
+    # reverse_geocode_coordinates
+    mocker.patch("geocode._reverse_limiter", side_effect=AssertionError("No network calls allowed"))
+    empty_res = "| Latitude | Longitude | Address |\n|---------:|----------:|---------|"
+    assert geocode.reverse_geocode_coordinates('') == empty_res
+    assert geocode.reverse_geocode_coordinates('   ') == empty_res
+    assert geocode.reverse_geocode_coordinates('\t  \n') == empty_res
+
+    mocker.patch("geocode._reverse_limiter", return_value=mocker.Mock(address="Padded Address"))
+    assert "Padded Address" in geocode.reverse_geocode_coordinates('\t  40.0, -70.0  \n')
+
+    # geocode_locations
+    mocker.patch("geocode._geocode_limiter", side_effect=AssertionError("No network calls allowed"))
+    empty_geo_res = "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|"
+    assert geocode.geocode_locations('') == empty_geo_res
+    assert geocode.geocode_locations('   ') == empty_geo_res
+    assert geocode.geocode_locations('\t  \n') == empty_geo_res
+
+    mocker.patch("geocode._geocode_limiter", return_value=mocker.Mock(address="Padded Geo", latitude=30.0, longitude=40.0))
+    padded_res = geocode.geocode_locations('\t  Tokyo  \n')
+    assert "Padded Geo" in padded_res
+    assert "30.0" in padded_res
+    assert "40.0" in padded_res
