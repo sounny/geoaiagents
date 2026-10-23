@@ -91,6 +91,92 @@ def test_tool_registry_name_validation():
     with pytest.raises(ValueError, match="Tool 'valid_name' is already registered"):
         registry.register_tool(name="valid_name", description="desc2", parameters={}, handler=lambda x: "test")
 
+def test_tool_definition_parameters():
+    from tool_registry import ToolDefinition
+
+    def dummy_handler(args): return "h"
+
+    # 1. Positional
+    td1 = ToolDefinition("n", "d", {}, dummy_handler)
+    assert td1.name == "n"
+
+    # 2. Keyword
+    td2 = ToolDefinition(name="n", description="d", parameters={}, handler=dummy_handler)
+    assert td1 == td2
+
+def test_tool_registry_constructor():
+    from tool_registry import ToolRegistry
+
+    # ToolRegistry constructor has no arguments.
+    tr = ToolRegistry()
+    assert isinstance(tr, ToolRegistry)
+
+def test_register_tool_parameters():
+    from tool_registry import ToolRegistry
+
+    def dummy_handler(args): return "h"
+    tr = ToolRegistry()
+
+    # register_tool has keyword-only arguments (*, name, description, parameters, handler)
+    # Using positional arguments raises TypeError
+    with pytest.raises(TypeError):
+        tr.register_tool("n", "d", {}, dummy_handler)
+
+    # Valid call (keyword arguments)
+    tr.register_tool(name="n", description="d", parameters={}, handler=dummy_handler)
+    assert tr.has_tool("n")
+
+def test_openai_functions_parameters():
+    from tool_registry import ToolRegistry
+    tr = ToolRegistry()
+
+    # openai_functions has no arguments
+    funcs = tr.openai_functions()
+    assert funcs == []
+
+def test_invoke_parameters():
+    from tool_registry import ToolRegistry
+
+    def dummy_handler(args): return "h"
+    tr = ToolRegistry()
+    tr.register_tool(name="n", description="d", parameters={}, handler=dummy_handler)
+
+    # 1. Positional
+    res1 = tr.invoke("n", {})
+    assert res1 == "h"
+
+    # 2. Keyword
+    res2 = tr.invoke(tool_name="n", raw_args={})
+    assert res2 == "h"
+
+def test_has_tool_parameters():
+    from tool_registry import ToolRegistry
+    tr = ToolRegistry()
+
+    # 1. Positional
+    assert tr.has_tool("n") is False
+
+    # 2. Keyword
+    assert tr.has_tool(tool_name="n") is False
+
+def test_parse_tool_args_parameters():
+    from tool_registry import parse_tool_args
+
+    # 1. Positional
+    assert parse_tool_args({"a": 1}) == {"a": 1}
+
+    # 2. Keyword
+    assert parse_tool_args(raw_args={"a": 1}) == {"a": 1}
+
+def test_create_registry_parameters(mocker):
+    from tool_registry import create_registry, ToolRegistry
+
+    # create_registry has no arguments
+    mocker.patch("tool_registry._register_builtin_tools")
+    mocker.patch("tool_registry._load_plugins")
+    cr = create_registry()
+    assert isinstance(cr, ToolRegistry)
+
 def test_plugin_hook_handlers_order(mocker):
     """Test that registering two plugins and listing hook handlers twice returns the same order."""
     registry = ToolRegistry()
