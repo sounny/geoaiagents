@@ -121,3 +121,56 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_tool_registry_public_api():
+    import inspect
+    import sys
+    from unittest.mock import MagicMock
+
+    # Mock external calls before importing to ensure true isolation
+    sys.modules['dd2dms'] = MagicMock()
+    sys.modules['distance'] = MagicMock()
+    sys.modules['file_loaders'] = MagicMock()
+    sys.modules['geocode'] = MagicMock()
+
+    import tool_registry
+
+    public_names = [name for name in dir(tool_registry) if not name.startswith('_')]
+
+    actual_api = []
+    for name in sorted(public_names):
+        obj = getattr(tool_registry, name)
+        if inspect.isclass(obj) or type(obj).__name__ in ('_SpecialForm', '_AnyMeta'):
+            type_str = "class"
+        elif callable(obj):
+            type_str = "function"
+        else:
+            type_str = "constant"
+        actual_api.append((name, type_str))
+
+    expected_api = [
+        ("Any", "class"),
+        ("Callable", "class"),
+        ("DEFAULT_TOOL_COORD_PARSERS", "constant"),
+        ("ToolDefinition", "class"),
+        ("ToolHandler", "function"),
+        ("ToolRegistry", "class"),
+        ("annotations", "constant"),
+        ("calculate_distance", "function"),
+        ("convert_dd_to_dms", "function"),
+        ("create_registry", "function"),
+        ("dataclass", "function"),
+        ("fetch_geo_boundaries", "function"),
+        ("geocode_locations", "function"),
+        ("importlib", "constant"),
+        ("json", "constant"),
+        ("load_csv", "function"),
+        ("load_geojson", "function"),
+        ("load_kml", "function"),
+        ("logging", "constant"),
+        ("os", "constant"),
+        ("parse_tool_args", "function"),
+        ("reverse_geocode_coordinates", "function"),
+    ]
+
+    assert actual_api == expected_api
