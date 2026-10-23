@@ -49,3 +49,30 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_geocode_type_annotations_count(mocker):
+    import inspect
+    import geocode
+    # Mock external network calls
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=[])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value=[])
+
+    count = 0
+    for name in dir(geocode):
+        if name.startswith('_'): continue
+        obj = getattr(geocode, name)
+        if not callable(obj): continue
+
+        if hasattr(obj, '__wrapped__'):
+            obj = obj.__wrapped__
+        if not inspect.isfunction(obj): continue
+        if getattr(obj, '__module__', None) != 'geocode': continue
+
+        sig = inspect.signature(obj)
+        for param_name, param in sig.parameters.items():
+            if param.annotation == inspect.Parameter.empty:
+                count += 1
+        if sig.return_annotation == inspect.Signature.empty:
+            count += 1
+
+    assert count <= 10
