@@ -121,3 +121,72 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_tool_registry_signatures():
+    import inspect
+    import tool_registry
+
+    expected_signatures = {
+        'ToolDefinition': [
+            ('name', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty),
+            ('description', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty),
+            ('parameters', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty),
+            ('handler', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty)
+        ],
+        'ToolRegistry': [],
+        'ToolRegistry.has_tool': [
+            ('self', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty),
+            ('tool_name', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty)
+        ],
+        'ToolRegistry.invoke': [
+            ('self', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty),
+            ('tool_name', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty),
+            ('raw_args', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty)
+        ],
+        'ToolRegistry.openai_functions': [
+            ('self', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty)
+        ],
+        'ToolRegistry.register_tool': [
+            ('self', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty),
+            ('name', inspect.Parameter.KEYWORD_ONLY, inspect.Parameter.empty),
+            ('description', inspect.Parameter.KEYWORD_ONLY, inspect.Parameter.empty),
+            ('parameters', inspect.Parameter.KEYWORD_ONLY, inspect.Parameter.empty),
+            ('handler', inspect.Parameter.KEYWORD_ONLY, inspect.Parameter.empty)
+        ],
+        'create_registry': [],
+        'parse_tool_args': [
+            ('raw_args', inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty)
+        ]
+    }
+
+    checked_signatures = set()
+    public_names = [name for name in dir(tool_registry) if not name.startswith("_")]
+    for name in public_names:
+        obj = getattr(tool_registry, name)
+
+        # When writing API locking tests that classify a module's public names
+        # using the inspect module, remember that objects patched via mocker.patch
+        # become MagicMock instances with __module__ == 'unittest.mock'.
+        # For tool_registry functions, we want to only check objects originating from tool_registry.
+        if type(obj).__name__ == 'MagicMock':
+            continue
+        if getattr(obj, '__module__', '') != 'tool_registry':
+            continue
+
+        if inspect.isclass(obj) or inspect.isfunction(obj):
+            sig = inspect.signature(obj)
+            params = [(p.name, p.kind, p.default) for p in sig.parameters.values()]
+            assert params == expected_signatures[name], f"Signature mismatch for {name}"
+            checked_signatures.add(name)
+
+            if inspect.isclass(obj):
+                for method_name in dir(obj):
+                    if not method_name.startswith("_"):
+                        method = getattr(obj, method_name)
+                        if inspect.isfunction(method) or inspect.ismethod(method):
+                            sig_method = inspect.signature(method)
+                            m_params = [(p.name, p.kind, p.default) for p in sig_method.parameters.values()]
+                            assert m_params == expected_signatures[f"{name}.{method_name}"], f"Signature mismatch for {name}.{method_name}"
+                            checked_signatures.add(f"{name}.{method_name}")
+
+    assert checked_signatures == set(expected_signatures.keys()), "Not all expected signatures were verified"
