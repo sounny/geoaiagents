@@ -49,3 +49,20 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+import copy
+
+@pytest.mark.xfail(reason="Bug: get_coordinates crashes with TypeError due to lru_cache when given unhashable bounding_box")
+def test_get_coordinates_mutates(mocker):
+    from geocode import get_coordinates
+    get_coordinates.cache_clear()
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+
+    query = "Paris"
+    bbox = [1.0, 2.0, 3.0, 4.0]
+    bbox_copy = copy.deepcopy(bbox)
+
+    try:
+        get_coordinates(query, bounding_box=bbox)
+    finally:
+        assert bbox == bbox_copy
