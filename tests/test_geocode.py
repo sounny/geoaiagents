@@ -49,3 +49,17 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_public_callables_accept_documented_types(mocker):
+    # The geocode module takes no path arguments. This test verifies that
+    # its public callables accept their documented argument types.
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=[])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value=[])
+    mocker.patch("time.sleep")
+
+    geocode.get_coordinates.cache_clear()
+    assert geocode.get_coordinates("Query", timeout=1.5, bounding_box=(1.0, 2.0, 3.0, 4.0), language="fr") == (None, None, None)
+    assert geocode.parse_locations("A\nB") == ["A", "B"]
+    assert isinstance(geocode.reverse_geocode_coordinates("40.0, -70.0", timeout=1.5, language="fr"), str)
+    assert isinstance(geocode.geocode_locations("Location"), str)
