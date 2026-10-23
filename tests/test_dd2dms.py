@@ -131,3 +131,20 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_convert_dd_to_dms_large_inputs():
+    # Large string
+    large_str = "40.7128,-74.0060\n" * 10000
+    res = convert_dd_to_dms(large_str)
+    assert len(res) > 0
+    assert "40°42'46.08\" N" in res
+
+    # Large list
+    large_list = [40.7, -74.0] * 10000
+    with pytest.raises(TypeError):
+        convert_dd_to_dms(large_list)
+
+    # Large dictionary
+    large_dict = {f"lat{i}": 40.7 for i in range(10000)}
+    with pytest.raises(TypeError):
+        convert_dd_to_dms(large_dict)
