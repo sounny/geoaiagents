@@ -24,3 +24,23 @@ def test_call_llm_with_retry_timeout_then_success(mocker):
 
     assert response == expected_response
     assert client.chat.completions.create.call_count == 2
+
+def test_llm_utils_signatures():
+    import inspect
+    import llm_utils
+
+    sig = inspect.signature(llm_utils.call_llm_with_retry)
+
+    assert 'client' in sig.parameters
+    assert sig.parameters['client'].kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    assert sig.parameters['client'].default == inspect.Parameter.empty
+
+    assert 'max_retries' in sig.parameters
+    assert sig.parameters['max_retries'].kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+    assert sig.parameters['max_retries'].default == 3
+
+    assert 'kwargs' in sig.parameters
+    assert sig.parameters['kwargs'].kind == inspect.Parameter.VAR_KEYWORD
+    assert sig.parameters['kwargs'].default == inspect.Parameter.empty
+
+    assert list(sig.parameters.keys()) == ['client', 'max_retries', 'kwargs']
