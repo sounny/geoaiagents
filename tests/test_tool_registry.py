@@ -3,9 +3,11 @@ from tool_registry import parse_tool_args, ToolRegistry, create_registry
 
 def test_parse_tool_args_dict():
     assert parse_tool_args({"key": "value"}) == {"key": "value"}
+    assert parse_tool_args({"key_é汉😎": "value_é汉😎"}) == {"key_é汉😎": "value_é汉😎"}
 
 def test_parse_tool_args_valid_json():
     assert parse_tool_args('{"key": "value"}') == {"key": "value"}
+    assert parse_tool_args('{"key_é汉😎": "value_é汉😎"}') == {"key_é汉😎": "value_é汉😎"}
 
 def test_parse_tool_args_invalid_json():
     import pytest
@@ -51,6 +53,17 @@ def test_tool_registry_invoke_missing_tool():
     registry = ToolRegistry()
     result = registry.invoke("missing_tool", {})
     assert result is None
+    result_unicode = registry.invoke("missing_tool_é汉😎", {})
+    assert result_unicode is None
+
+def test_tool_registry_invoke_unicode(mocker):
+    mocker.patch("tool_registry.geocode_locations", return_value="Mocked response")
+    registry = create_registry()
+    result = registry.invoke("geocode_locations", '{"locations": "Paris, é汉😎"}')
+    import tool_registry
+    tool_registry.geocode_locations.assert_called_once_with("Paris, é汉😎")
+    assert result == "Mocked response"
+
 def test_tool_registry_builtin_openai_functions_convert_dd_to_dms_membership():
     """Test registry and openai_functions structure (locking convert_dd_to_dms membership)."""
     reg = create_registry()
