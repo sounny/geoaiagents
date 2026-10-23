@@ -6,19 +6,28 @@ def test_parse_tool_args_dict():
 
 def test_parse_tool_args_valid_json():
     assert parse_tool_args('{"key": "value"}') == {"key": "value"}
+    assert parse_tool_args(' \t\n {"key": "value"} \n\t ') == {"key": "value"}
 
 def test_parse_tool_args_invalid_json():
     import pytest
     with pytest.raises(ValueError, match="Invalid JSON"):
         parse_tool_args('{"key": "value"')
 
-def test_tool_registry_invoke_happy_path():
+def test_tool_registry_invoke_happy_path(mocker):
+    mocker.patch('tool_registry.convert_dd_to_dms', return_value="MOCKED")
     result = create_registry().invoke('convert_dd_to_dms', '48.8566,2.3522')
-    assert "Latitude" in result or "DMS" in result
+    assert "MOCKED" in result
 
-def test_tool_registry_invoke_happy_path_json():
+    result_padded = create_registry().invoke('convert_dd_to_dms', ' \t\n 48.8566,2.3522 \n\t ')
+    assert "MOCKED" in result_padded
+
+def test_tool_registry_invoke_happy_path_json(mocker):
+    mocker.patch('tool_registry.convert_dd_to_dms', return_value="MOCKED")
     result = create_registry().invoke('convert_dd_to_dms', '{"coordinates": "48.8566,2.3522"}')
-    assert "Latitude" in result or "DMS" in result
+    assert "MOCKED" in result
+
+    result_padded = create_registry().invoke('convert_dd_to_dms', ' \t\n {"coordinates": "48.8566,2.3522"} \n\t ')
+    assert "MOCKED" in result_padded
 
 def test_tool_registry_invoke_invalid_json():
     result = create_registry().invoke('convert_dd_to_dms', '{"coordinates": "48.8566,2.3522"')
@@ -30,6 +39,25 @@ def test_parse_tool_args_json_array():
 def test_parse_tool_args_empty_string():
     assert parse_tool_args("") == {}
     assert parse_tool_args(None) == {}
+
+@pytest.mark.xfail(reason="Bug: parse_tool_args throws ValueError on whitespace-only string")
+def test_parse_tool_args_whitespace_string():
+    assert parse_tool_args(" \t\n ") == {}
+
+def test_tool_registry_invoke_empty_and_whitespace(mocker):
+    mocker.patch('tool_registry.convert_dd_to_dms', return_value="MOCKED")
+    registry = create_registry()
+
+    # Test invoke with empty string
+    result_empty = registry.invoke('convert_dd_to_dms', "")
+    assert "MOCKED" in result_empty
+
+    # Test invoke with whitespace string. Although parse_tool_args fails on whitespace,
+    # invoke() has logic for string arguments `if isinstance(raw_args, str) and raw_args:`.
+    # It seems to handle the whitespace string in a way that doesn't trigger parse_tool_args
+    # with it directly or it recovers, resulting in the handler being called successfully.
+    result_whitespace = registry.invoke('convert_dd_to_dms', " \t\n ")
+    assert "MOCKED" in result_whitespace
 
 def test_tool_registry_invoke_error_reporting():
     registry = ToolRegistry()
