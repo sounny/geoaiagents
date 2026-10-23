@@ -32,7 +32,7 @@ def test_cli_help(mocker, capsys):
     mocker.patch('sys.argv', ['geoai_cli.py', '--help'])
 
     try:
-        main()
+        sys.exit(main())
     except SystemExit as e:
         assert e.code == 0, f"Expected exit code 0 for --help, got {e.code}"
     else:
@@ -41,3 +41,57 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+@pytest.mark.parametrize("text", ["München", "東京", "🌍🚀"])
+@pytest.mark.parametrize("command, expected_tool, expected_args_key", [
+    ("geocode", "geocode_locations", "locations"),
+    ("reverse", "reverse_geocode_coordinates", "coordinates"),
+    ("dms", "convert_dd_to_dms", "coordinates"),
+    ("distance", "calculate_distance", "coordinates"),
+])
+def test_cli_argument_parsing_unicode(mocker, text, command, expected_tool, expected_args_key):
+    mocker.patch('sys.argv', ['geoai_cli.py', command, text])
+    mock_registry = mocker.MagicMock()
+    mock_registry.invoke.return_value = "Mocked Result"
+    mocker.patch('geoai_cli.create_registry', return_value=mock_registry)
+
+    try:
+        sys.exit(main())
+    except SystemExit as e:
+        assert e.code == 0, f"Expected 0, got {e.code}"
+    else:
+        pytest.fail("geoai_cli.main() did not exit with SystemExit as expected")
+
+    mock_registry.invoke.assert_called_once_with(expected_tool, {expected_args_key: text})
+
+@pytest.mark.parametrize("text", ["München", "東京", "🌍🚀"])
+def test_cli_boundaries_unicode(mocker, text):
+    mocker.patch('sys.argv', ['geoai_cli.py', 'boundaries', text, '--adm', text])
+    mock_registry = mocker.MagicMock()
+    mock_registry.invoke.return_value = "Mocked Result"
+    mocker.patch('geoai_cli.create_registry', return_value=mock_registry)
+
+    try:
+        sys.exit(main())
+    except SystemExit as e:
+        assert e.code == 0, f"Expected 0, got {e.code}"
+    else:
+        pytest.fail("geoai_cli.main() did not exit with SystemExit as expected")
+
+    mock_registry.invoke.assert_called_once_with('fetch_geo_boundaries', {'iso': text, 'adm': text})
+
+@pytest.mark.parametrize("text", ["München", "東京", "🌍🚀"])
+def test_cli_run_tool_unicode(mocker, text):
+    mocker.patch('sys.argv', ['geoai_cli.py', 'run-tool', 'dummy_tool', '--payload', text])
+    mock_registry = mocker.MagicMock()
+    mock_registry.invoke.return_value = "Mocked Result"
+    mocker.patch('geoai_cli.create_registry', return_value=mock_registry)
+
+    try:
+        sys.exit(main())
+    except SystemExit as e:
+        assert e.code == 0, f"Expected 0, got {e.code}"
+    else:
+        pytest.fail("geoai_cli.main() did not exit with SystemExit as expected")
+
+    mock_registry.invoke.assert_called_once_with('dummy_tool', {'input': text})
