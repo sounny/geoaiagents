@@ -49,3 +49,42 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_geocode_api_signature(mocker):
+    import inspect
+    import geocode
+
+    # Mock external network calls directly on the geolocator adapter
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=[])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value=[])
+
+    expected_signatures = {
+        "geocode_locations": {
+            "locations_str": (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty)
+        },
+        "get_coordinates": {
+            "location_query": (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty),
+            "timeout": (inspect.Parameter.KEYWORD_ONLY, 1),
+            "bounding_box": (inspect.Parameter.KEYWORD_ONLY, None),
+            "language": (inspect.Parameter.KEYWORD_ONLY, "en"),
+        },
+        "main": {},
+        "parse_locations": {
+            "locations_str": (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty)
+        },
+        "reverse_geocode_coordinates": {
+            "coordinates_str": (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.empty),
+            "timeout": (inspect.Parameter.KEYWORD_ONLY, 1),
+            "language": (inspect.Parameter.KEYWORD_ONLY, "en"),
+        }
+    }
+
+    for name, expected_params in expected_signatures.items():
+        obj = getattr(geocode, name)
+        sig = inspect.signature(obj)
+        assert len(sig.parameters) == len(expected_params), f"Mismatch in {name} parameter count"
+        for param_name, (expected_kind, expected_default) in expected_params.items():
+            param = sig.parameters[param_name]
+            assert param.name == param_name
+            assert param.kind == expected_kind
+            assert param.default == expected_default
