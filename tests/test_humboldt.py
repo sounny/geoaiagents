@@ -26,3 +26,31 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+def test_humboldt_reload_state(mocker):
+    mocker.patch('humboldt.check_and_install_dependencies')
+    import importlib
+    import inspect
+    import humboldt
+    importlib.reload(humboldt)
+    public_names = sorted([name for name in dir(humboldt) if not name.startswith('_')])
+    expected_names = [
+        'argparse', 'build_parser', 'call_llm_with_retry', 'chat_loop',
+        'check_and_install_dependencies', 'execute_tool_loop', 'handle_direct_command',
+        'importlib', 'is_package_installed', 'logging', 'main', 'os', 'subprocess', 'sys'
+    ]
+    assert public_names == expected_names
+    assert inspect.ismodule(humboldt.argparse)
+    assert inspect.isfunction(humboldt.build_parser)
+    assert inspect.isfunction(humboldt.call_llm_with_retry)
+    assert inspect.isfunction(humboldt.chat_loop)
+    assert inspect.isfunction(humboldt.check_and_install_dependencies)
+    assert inspect.isfunction(humboldt.execute_tool_loop)
+    assert inspect.isfunction(humboldt.handle_direct_command)
+    assert inspect.ismodule(humboldt.importlib)
+    assert inspect.isfunction(humboldt.is_package_installed)
+    assert inspect.ismodule(humboldt.logging)
+    assert inspect.isfunction(humboldt.main)
+    assert inspect.ismodule(humboldt.os)
+    assert inspect.ismodule(humboldt.subprocess)
+    assert inspect.ismodule(humboldt.sys)
