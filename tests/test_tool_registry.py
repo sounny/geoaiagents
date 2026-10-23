@@ -121,3 +121,65 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+import logging
+
+def test_tool_registry_invoke_logging(caplog):
+    registry = ToolRegistry()
+
+    def buggy_handler(args):
+        raise ValueError("Simulated error")
+
+    registry.register_tool(
+        name="buggy_tool",
+        description="A buggy tool",
+        parameters={},
+        handler=buggy_handler
+    )
+
+    with caplog.at_level(logging.ERROR):
+        result = registry.invoke("buggy_tool", {})
+
+    assert "Error running buggy_tool: Simulated error" in result
+
+    assert len(caplog.records) == 1
+    record = caplog.records[0]
+    assert record.name == "root"
+    assert record.levelname == "ERROR"
+    assert "Tool 'buggy_tool' failed" in record.message
+
+def test_create_registry_plugins_logging(caplog, monkeypatch, mocker):
+    monkeypatch.setenv("GEOAI_PLUGIN_MODULES", "good_plugin,bad_plugin,error_plugin")
+
+    def mock_import(name):
+        from unittest.mock import MagicMock
+        if name == "good_plugin":
+            mod = MagicMock()
+            mod.register_tools = lambda registry: None
+            return mod
+        elif name == "bad_plugin":
+            mod = MagicMock()
+            del mod.register_tools
+            return mod
+        else:
+            raise ImportError("Simulated import error")
+
+    mocker.patch("importlib.import_module", side_effect=mock_import)
+
+    with caplog.at_level(logging.INFO):
+        create_registry()
+
+    records = caplog.records
+    assert len(records) == 3
+
+    assert records[0].name == "root"
+    assert records[0].levelname == "INFO"
+    assert "Loaded plugin module: good_plugin" in records[0].message
+
+    assert records[1].name == "root"
+    assert records[1].levelname == "WARNING"
+    assert "Plugin module 'bad_plugin' has no callable register_tools(registry)" in records[1].message
+
+    assert records[2].name == "root"
+    assert records[2].levelname == "ERROR"
+    assert "Failed to load plugin module 'error_plugin'" in records[2].message
