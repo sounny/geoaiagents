@@ -114,3 +114,21 @@ def test_humboldt_parser_behavior():
     assert args.debug is True
     assert args.max_steps == 5
     assert "--unknown-flag" in unknown
+
+@pytest.mark.parametrize("max_steps_val, expected_val, expected_exit", [
+    ("0", 0, None),
+    ("-1", -1, None),
+    ("999999999999999999999999999999", 999999999999999999999999999999, None),
+    ("nan", None, SystemExit),
+    ("inf", None, SystemExit),
+])
+def test_humboldt_parser_max_steps_edge_cases(max_steps_val, expected_val, expected_exit):
+    import humboldt
+    parser = humboldt.build_parser()
+
+    if expected_exit:
+        with pytest.raises(expected_exit):
+            parser.parse_known_args(["--max-steps", max_steps_val])
+    else:
+        args, _ = parser.parse_known_args(["--max-steps", max_steps_val])
+        assert args.max_steps == expected_val
