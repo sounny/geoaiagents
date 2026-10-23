@@ -121,3 +121,25 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+@pytest.mark.parametrize("val", [0, -1, float("nan"), float("inf"), 10**50])
+def test_parse_tool_args_numeric_inputs(val):
+    assert parse_tool_args(val) == {}
+
+@pytest.mark.parametrize("val", [0, -1, float("nan"), float("inf"), 10**50])
+def test_tool_registry_invoke_numeric_inputs(val):
+    registry = ToolRegistry()
+    assert registry.invoke(val, {}) is None
+
+    registry.register_tool(
+        name="dummy",
+        description="Dummy tool",
+        parameters={},
+        handler=lambda args: str(args)
+    )
+    assert registry.invoke("dummy", val) == "{}"
+
+@pytest.mark.parametrize("val", [0, -1, float("nan"), float("inf"), 10**50])
+def test_tool_registry_has_tool_numeric_inputs(val):
+    registry = ToolRegistry()
+    assert registry.has_tool(val) is False
