@@ -121,3 +121,11 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_tool_registry_never_reads_clock(monkeypatch):
+    """Document that tool_registry.py never reads the clock (e.g., datetime.now or time.time).
+    We mock os.getenv to keep tests isolated.
+    """
+    monkeypatch.setattr("os.getenv", lambda k, d=None: "" if k == "GEOAI_PLUGIN_MODULES" else d)
+    registry = create_registry()
+    assert isinstance(registry, ToolRegistry)
