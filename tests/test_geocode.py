@@ -49,3 +49,21 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_get_coordinates_numeric_edge_cases(mocker):
+    import geocode
+    import time
+    geocode.get_coordinates.cache_clear()
+
+    # Strictly mock HTTP calls via the adapter to prevent actual network access
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=[])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value="[]")
+
+    # Mock time module function to skip delays
+    mocker.patch("time.sleep")
+
+    assert geocode.get_coordinates(0) == (None, None, None)
+    assert geocode.get_coordinates(-1) == (None, None, None)
+    assert geocode.get_coordinates(float("nan")) == (None, None, None)
+    assert geocode.get_coordinates(float("inf")) == (None, None, None)
+    assert geocode.get_coordinates(10**20) == (None, None, None)
