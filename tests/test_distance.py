@@ -120,3 +120,20 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+def test_calculate_distance_large_inputs():
+    # Long string
+    long_string = ";".join(["0,0,0,0"] * 10000)
+    result = calculate_distance(long_string)
+    assert isinstance(result, str)
+    assert len(result) == 600127
+
+    # Long list
+    long_list = ["0,0,0,0"] * 10000
+    with pytest.raises(TypeError, match="expected string or bytes-like object, got 'list'"):
+        calculate_distance(long_list) # type: ignore
+
+    # Big dict
+    big_dict = {str(i): i for i in range(10000)}
+    with pytest.raises(TypeError, match="expected string or bytes-like object, got 'dict'"):
+        calculate_distance(big_dict) # type: ignore
