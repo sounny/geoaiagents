@@ -26,3 +26,17 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+
+def test_humboldt_does_not_read_clock(mocker, capsys):
+    mocker.patch('humboldt.check_and_install_dependencies')
+    mocker.patch('openai.OpenAI')
+    mock_input = mocker.patch('builtins.input', side_effect=['exit'])
+    mock_call_llm = mocker.patch('humboldt.call_llm_with_retry')
+    mocker.patch('sys.argv', ['humboldt.py'])
+
+    main()
+
+    import humboldt
+    assert not hasattr(humboldt, 'time'), "humboldt module should not read the clock"
+    assert not hasattr(humboldt, 'datetime'), "humboldt module should not read the clock"
