@@ -121,3 +121,40 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+
+def test_public_callables_accept_documented_types(mocker):
+    """Test public callables of tool_registry accept their documented argument types.
+
+    Since tool_registry.py takes no path arguments, we test the documented argument types.
+    """
+    # Mock external calls to avoid loading real tools
+    mocker.patch("tool_registry._register_builtin_tools")
+    mocker.patch("tool_registry._load_plugins")
+
+    # 1. create_registry() takes no args
+    registry = create_registry()
+    assert isinstance(registry, ToolRegistry)
+
+    # 2. parse_tool_args(raw_args) documented to take JSON string or dict
+    assert parse_tool_args({"a": 1}) == {"a": 1}
+    assert parse_tool_args('{"a": 1}') == {"a": 1}
+
+    # 3. ToolRegistry.__init__() takes no args
+    tr = ToolRegistry()
+    assert isinstance(tr, ToolRegistry)
+
+    # 4. ToolRegistry.register_tool(name: str, description: str, parameters: dict, handler: Callable)
+    tr.register_tool(name="test_tool", description="desc", parameters={"type": "object"}, handler=lambda x: "ok")
+
+    # 5. ToolRegistry.has_tool(tool_name: str)
+    assert tr.has_tool("test_tool") is True
+
+    # 6. ToolRegistry.invoke(tool_name: str, raw_args: Any)
+    assert tr.invoke("test_tool", "{}") == "ok"
+
+    # 7. ToolRegistry.openai_functions() takes no args
+    funcs = tr.openai_functions()
+    assert isinstance(funcs, list)
+    assert len(funcs) == 1
+    assert funcs[0]["name"] == "test_tool"
