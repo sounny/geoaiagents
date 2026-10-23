@@ -49,3 +49,31 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_geocode_public_names_and_types(mocker):
+    import inspect
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=[])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value="")
+    public_names = []
+    for name in dir(geocode):
+        if not name.startswith('_'):
+            attr = getattr(geocode, name)
+            if inspect.isclass(attr):
+                atype = 'class'
+            elif inspect.isfunction(attr):
+                atype = 'function'
+            else:
+                atype = 'constant'
+            public_names.append((name, atype))
+    public_names.sort()
+    expected_names = [
+        ('GeocoderServiceError', 'class'), ('GeocoderTimedOut', 'class'), ('Nominatim', 'class'),
+        ('OpenAI', 'class'), ('RateLimiter', 'class'), ('argparse', 'constant'),
+        ('call_llm_with_retry', 'function'), ('format_invalid_notes', 'function'),
+        ('geocode_locations', 'function'), ('get_coordinates', 'constant'), ('json', 'constant'),
+        ('lru_cache', 'function'), ('main', 'function'), ('os', 'constant'),
+        ('parse_coordinate_pairs', 'function'), ('parse_locations', 'function'),
+        ('reverse_geocode_coordinates', 'function')
+    ]
+    assert public_names == expected_names
