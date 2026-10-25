@@ -121,3 +121,59 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+@pytest.mark.xfail(reason="Mutating openai_functions result mutates internal tool parameters")
+def test_tool_registry_openai_functions_mutation_protection(monkeypatch, tmp_path):
+    plugin_dir = tmp_path / "plugins"
+    plugin_dir.mkdir()
+    plugin_file = plugin_dir / "mock_plugin.py"
+    plugin_file.write_text("def register_tools(registry): pass\n")
+
+    monkeypatch.syspath_prepend(str(plugin_dir))
+    monkeypatch.setenv("GEOAI_PLUGIN_MODULES", "mock_plugin")
+
+    registry = create_registry()
+    funcs1 = registry.openai_functions()
+    assert len(funcs1) > 0
+    original_len = len(funcs1)
+
+    funcs1.append({"name": "hacked"})
+    funcs1[0]["parameters"]["hacked"] = True
+
+    funcs2 = registry.openai_functions()
+
+    assert len(funcs2) == original_len, "List structure should be protected"
+    assert "hacked" not in funcs2[0]["parameters"], "Tool parameters should be protected"
+
+def test_parse_tool_args_mutation_protection():
+    res1 = parse_tool_args('{"a": 1}')
+    res1["a"] = 2
+    res2 = parse_tool_args('{"a": 1}')
+    assert res2 == {"a": 1}
+
+    res3 = parse_tool_args("")
+    res3["a"] = 2
+    res4 = parse_tool_args("")
+    assert res4 == {}
+
+def test_create_registry_mutation_protection(monkeypatch, tmp_path):
+    plugin_dir = tmp_path / "plugins2"
+    plugin_dir.mkdir()
+    plugin_file = plugin_dir / "mock_plugin2.py"
+    plugin_file.write_text("def register_tools(registry): pass\n")
+
+    monkeypatch.syspath_prepend(str(plugin_dir))
+    monkeypatch.setenv("GEOAI_PLUGIN_MODULES", "mock_plugin2")
+
+    reg1 = create_registry()
+    funcs1 = reg1.openai_functions()
+    assert len(funcs1) > 0
+
+    funcs1[0]["parameters"]["hacked"] = True
+    funcs1.append({"name": "hacked"})
+
+    reg2 = create_registry()
+    funcs2 = reg2.openai_functions()
+
+    assert len(funcs2) != len(funcs1)
+    assert "hacked" not in funcs2[0]["parameters"]
