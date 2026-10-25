@@ -121,3 +121,67 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+@pytest.mark.xfail(reason="Silently ignores invalid types instead of raising ValueError")
+def test_parse_tool_args_wrong_type(tmp_path):
+    res_pos = parse_tool_args(123)
+    res_kw = parse_tool_args(raw_args=123)
+    assert res_pos == {}
+    assert res_kw == {}
+    pytest.fail("Silently ignored integer instead of raising error")
+
+def test_create_registry_wrong_type(tmp_path):
+    with pytest.raises(TypeError):
+        create_registry(123)
+    with pytest.raises(TypeError):
+        create_registry(wrong_arg=123)
+
+@pytest.mark.xfail(reason="Bug: silently coerces invalid types to dict instead of raising error")
+def test_parse_tool_args_wrong_type(tmp_path):
+    res_pos = parse_tool_args(123)
+    res_kw = parse_tool_args(raw_args=123)
+    assert res_pos == {}
+    assert res_kw == {}
+    raise AssertionError("Expected an error but got {}")
+
+def test_create_registry_wrong_type(tmp_path):
+    with pytest.raises(TypeError):
+        create_registry(123)
+    with pytest.raises(TypeError):
+        create_registry(wrong_arg=123)
+
+def test_tool_registry_init_wrong_type(tmp_path):
+    with pytest.raises(TypeError):
+        ToolRegistry(123)
+    with pytest.raises(TypeError):
+        ToolRegistry(wrong_arg=123)
+
+def test_tool_registry_register_tool_wrong_type(tmp_path):
+    reg = ToolRegistry()
+    with pytest.raises(ValueError):
+        reg.register_tool(name=123, description="desc", parameters={}, handler=lambda x: "ok")
+    with pytest.raises(TypeError):
+        reg.register_tool(123, "desc", {}, lambda x: "ok")
+
+@pytest.mark.xfail(reason="Bug: silently ignores invalid types and returns None instead of raising error")
+def test_tool_registry_invoke_wrong_type(tmp_path):
+    reg = ToolRegistry()
+    res_pos = reg.invoke(123, {})
+    assert res_pos is None
+    res_kw = reg.invoke(tool_name=123, raw_args={})
+    assert res_kw is None
+    raise AssertionError("Expected an error but got None")
+
+@pytest.mark.xfail(reason="Bug: silently ignores invalid types and returns False instead of raising error")
+def test_tool_registry_has_tool_wrong_type(tmp_path):
+    reg = ToolRegistry()
+    res_pos = reg.has_tool(123)
+    assert res_pos is False
+    res_kw = reg.has_tool(tool_name=123)
+    assert res_kw is False
+    raise AssertionError("Expected an error but got False")
+
+def test_tool_registry_openai_functions_wrong_type(tmp_path):
+    reg = ToolRegistry()
+    with pytest.raises(TypeError):
+        reg.openai_functions(123)
