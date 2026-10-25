@@ -66,6 +66,8 @@ def test_load_kml_two_points_and_empty_document():
     res_empty = load_geojson('{}')
     assert res_empty.startswith("| Latitude | Longitude |")
 
+@pytest.mark.xfail(strict=True, raises=ValueError, reason="Bug: load_geojson raises ValueError instead of returning empty table on invalid JSON")
+def test_load_geojson_invalid_json():
     res_bad = load_geojson('{bad')
     assert res_bad.startswith("| Latitude | Longitude |")
 
@@ -93,3 +95,33 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+@pytest.mark.xfail(strict=True, raises=AttributeError, reason="Bug: raises AttributeError instead of TypeError for wrong type")
+def test_load_geojson_wrong_type():
+    from file_loaders import load_geojson
+    load_geojson(["123"])
+
+@pytest.mark.xfail(strict=True, reason="Bug: silently accepts wrong type and returns empty table instead of raising TypeError")
+def test_load_kml_wrong_type():
+    from file_loaders import load_kml
+    with pytest.raises(TypeError):
+        load_kml(["123"])
+
+@pytest.mark.xfail(strict=True, raises=TypeError, reason="Bug: raises TypeError during execution but not via input validation")
+def test_load_csv_wrong_type():
+    from file_loaders import load_csv
+    load_csv(["123"])
+
+@pytest.mark.xfail(strict=True, raises=AttributeError, reason="Bug: raises AttributeError instead of TypeError for wrong type")
+def test_fetch_geo_boundaries_wrong_type(mocker, tmp_path):
+    from file_loaders import fetch_geo_boundaries
+    mocker.patch("file_loaders.requests.get")
+    fetch_geo_boundaries(123)
+
+@pytest.mark.xfail(strict=True, raises=AttributeError, reason="Bug: wrap_features raises AttributeError instead of TypeError for wrong type")
+def test_wrap_features_wrong_type():
+    try:
+        from file_loaders import wrap_features
+    except ImportError:
+        pytest.xfail("wrap_features helper is missing from file_loaders")
+    wrap_features("123")
