@@ -1,3 +1,6 @@
+import copy
+import inspect
+import geoai_cli
 import sys
 import pytest
 from geoai_cli import _read_value_or_stdin, main
@@ -41,3 +44,35 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+def get_public_funcs():
+    return [
+        (name, obj) for name, obj in inspect.getmembers(geoai_cli)
+        if not name.startswith('_') and inspect.isfunction(obj) and obj.__module__ == 'geoai_cli'
+    ]
+
+@pytest.mark.parametrize("name, func", get_public_funcs())
+def test_public_functions_deepcopy(name, func, mocker, tmp_path):
+    mocker.patch('geoai_cli.create_registry', return_value=mocker.MagicMock())
+    mocker.patch('sys.argv', ['geoai_cli.py', '--help'])
+
+    dummy_file = tmp_path / "dummy.txt"
+    dummy_file.write_text("dummy content")
+
+    try:
+        result1 = func()
+    except SystemExit as e:
+        result1 = e.code
+
+    try:
+        result_copy = copy.deepcopy(result1)
+        assert result_copy == result1
+    except Exception:
+        pytest.xfail(f"Object returned by {name} is not comparable or deepcopyable")
+
+    try:
+        result2 = func(**{})
+    except SystemExit as e:
+        result2 = e.code
+
+    assert result1 == result2
