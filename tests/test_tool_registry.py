@@ -1,3 +1,4 @@
+import warnings
 import pytest
 from tool_registry import parse_tool_args, ToolRegistry, create_registry
 
@@ -121,3 +122,22 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+
+@pytest.mark.parametrize(
+    "func_name, kwargs",
+    [
+        ("create_registry", {}),
+        ("parse_tool_args", {"raw_args": {"key": "value"}}),
+        ("ToolDefinition", {"name": "test_tool", "description": "test", "parameters": {}, "handler": lambda x: x}),
+        ("ToolRegistry", {}),
+    ]
+)
+def test_public_functions_no_warnings(mocker, tmp_path, func_name, kwargs):
+    mocker.patch("tool_registry._register_builtin_tools")
+    mocker.patch("tool_registry._load_plugins")
+    import tool_registry
+    target = getattr(tool_registry, func_name)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        target(**kwargs)
