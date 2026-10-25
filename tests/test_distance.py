@@ -120,3 +120,89 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+def test_calculate_distance_positional_vs_keyword():
+    val = "40.7128,-74.0060,51.5074,-0.1278"
+    from distance import calculate_distance
+    res_pos = calculate_distance(val)
+    res_kw = calculate_distance(coordinates=val)
+    assert res_pos == res_kw
+
+def test_main_positional_vs_keyword(mocker):
+    from distance import main
+    mocker.patch("builtins.input", return_value="40.7128,-74.0060,51.5074,-0.1278")
+    mock_print = mocker.patch("builtins.print")
+    main()
+    res_pos = mock_print.call_args_list
+    mock_print.reset_mock()
+    main(**{})
+    res_kw = mock_print.call_args_list
+    assert res_pos == res_kw
+
+def test_calculate_distance_positional_vs_keyword():
+    val = "40.7128,-74.0060,51.5074,-0.1278"
+    from distance import calculate_distance
+    res_pos = calculate_distance(val)
+    res_kw = calculate_distance(coordinates=val)
+    assert res_pos == res_kw
+
+def test_main_positional_vs_keyword(mocker):
+    from distance import main
+    mocker.patch("builtins.input", return_value="40.7128,-74.0060,51.5074,-0.1278")
+    mock_print = mocker.patch("builtins.print")
+    main()
+    res_pos = mock_print.call_args_list
+    mock_print.reset_mock()
+    main(**{})
+    res_kw = mock_print.call_args_list
+    assert res_pos == res_kw
+
+def test_calculate_distance_positional_vs_keyword():
+    val = "40.7128,-74.0060,51.5074,-0.1278"
+    from distance import calculate_distance
+    res_pos = calculate_distance(val)
+    res_kw = calculate_distance(coordinates=val)
+    assert res_pos == res_kw
+
+def test_main_positional_vs_keyword(mocker):
+    from distance import main
+    mocker.patch("builtins.input", return_value="40.7128,-74.0060,51.5074,-0.1278")
+    mock_print = mocker.patch("builtins.print")
+    main()
+    res_pos = mock_print.call_args_list
+    mock_print.reset_mock()
+    main()
+    res_kw = mock_print.call_args_list
+    assert res_pos == res_kw
+
+def test_format_invalid_notes_positional_vs_keyword():
+    from validation import format_invalid_notes
+    val = [("test", "test")]
+    res_pos = format_invalid_notes(val)
+    res_kw = format_invalid_notes(invalid_entries=val)
+    assert res_pos == res_kw
+
+def test_is_valid_lat_lon_positional_vs_keyword():
+    from validation import is_valid_lat_lon
+    res_pos = is_valid_lat_lon(0, 0)
+    res_kw = is_valid_lat_lon(lat=0, lon=0)
+    assert res_pos == res_kw
+
+
+def test_calculate_distance_positional_vs_keyword():
+    val = "40.7128,-74.0060,51.5074,-0.1278"
+    from distance import calculate_distance
+    res_pos = calculate_distance(val)
+    res_kw = calculate_distance(coordinates=val)
+    assert res_pos == res_kw
+
+def test_main_positional_vs_keyword(mocker):
+    from distance import main
+    mocker.patch("builtins.input", return_value="40.7128,-74.0060,51.5074,-0.1278")
+    mock_print = mocker.patch("builtins.print")
+    main()
+    res_pos = mock_print.call_args_list
+    mock_print.reset_mock()
+    main(**{})
+    res_kw = mock_print.call_args_list
+    assert res_pos == res_kw
