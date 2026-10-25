@@ -121,3 +121,19 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_parse_tool_args_deepcopy_equality():
+    import copy
+    from tool_registry import parse_tool_args
+    result = parse_tool_args('{"key": "value"}')
+    assert result == copy.deepcopy(result)
+
+@pytest.mark.xfail(reason="ToolRegistry instances do not implement __eq__ and are not comparable")
+def test_create_registry_deepcopy_equality(mocker):
+    import copy
+    from tool_registry import create_registry
+
+    mocker.patch('os.getenv', return_value='')
+
+    result = create_registry()
+    assert result == copy.deepcopy(result)
