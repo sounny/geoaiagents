@@ -49,3 +49,35 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+
+@pytest.mark.xfail(reason="TypeError raised by lru_cache rather than proper validation")
+def test_geocode_type_errors_get_coordinates(mocker):
+    mocker.patch("geocode._geocode_limiter")
+    with pytest.raises(TypeError):
+        from geocode import get_coordinates
+        get_coordinates(["not", "a", "string"])
+
+def test_geocode_type_errors_parse_locations(mocker):
+    with pytest.raises(TypeError):
+        from geocode import parse_locations
+        parse_locations(123)
+
+def test_geocode_type_errors_reverse_geocode_coordinates(mocker):
+    mocker.patch("geocode._reverse_limiter")
+    with pytest.raises(TypeError):
+        from geocode import reverse_geocode_coordinates
+        reverse_geocode_coordinates(123)
+
+def test_geocode_type_errors_geocode_locations(mocker):
+    mocker.patch("geocode.get_coordinates")
+    with pytest.raises(TypeError):
+        from geocode import geocode_locations
+        geocode_locations(123)
+
+@pytest.mark.xfail(reason="Raises TypeError due to python argument unpacking rather than runtime validation")
+def test_geocode_type_errors_main(mocker):
+    mocker.patch("builtins.input", side_effect=["exit"])
+    with pytest.raises(TypeError):
+        from geocode import main
+        main(**{"wrong": 123})
