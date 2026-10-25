@@ -1,3 +1,4 @@
+import json
 import pytest
 from tool_registry import parse_tool_args, ToolRegistry, create_registry
 
@@ -121,3 +122,18 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_tool_registry_public_funcs_args_parity(mocker, tmp_path):
+    mocker.patch("importlib.import_module")
+
+    # parse_tool_args
+    tmp_path_str = str(tmp_path)
+    json_args = json.dumps({"path": tmp_path_str})
+    pos_res = parse_tool_args(json_args)
+    kw_res = parse_tool_args(raw_args=json_args)
+    assert pos_res == kw_res
+
+    # create_registry
+    pos_reg = create_registry()
+    kw_reg = create_registry(**{})
+    assert pos_reg.openai_functions() == kw_reg.openai_functions()
