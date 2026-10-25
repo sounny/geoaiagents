@@ -1,3 +1,8 @@
+import sys
+import json
+import copy
+import dd2dms
+
 import math
 import pytest
 from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms
@@ -131,3 +136,45 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+
+def test_dd2dms_public_functions_idempotency(mocker, tmp_path):
+    mocker.patch('builtins.input', return_value="45.0, 45.0")
+    mocker.patch('dd2dms.OpenAI')
+
+    mock_call_llm = mocker.patch('dd2dms.call_llm_with_retry')
+    mock_response = mocker.MagicMock()
+    mock_message = mocker.MagicMock()
+    mock_message.function_call.arguments = json.dumps({"coordinates": "45.0, 45.0"})
+    mock_response.choices = [mocker.MagicMock(message=mock_message)]
+    mock_call_llm.return_value = mock_response
+
+    mocker.patch.object(sys, 'argv', ['dd2dms.py'])
+    mocker.patch.dict('os.environ', {'OPENAI_BASE_URL': f"file://{tmp_path}/mock", 'OPENAI_API_KEY': 'mock'})
+
+    public_funcs = [name for name in dir(dd2dms) if not name.startswith('_') and callable(getattr(dd2dms, name)) and getattr(getattr(dd2dms, name), '__module__', '') == 'dd2dms']
+
+    for func_name in public_funcs:
+        func = getattr(dd2dms, func_name)
+        if func_name == 'dd_to_dms_value':
+            args, kwargs = (45.5,), {}
+        elif func_name == 'format_dms':
+            args, kwargs = (45.0, 30, 0.0, True), {}
+        elif func_name == 'convert_dd_to_dms':
+            args, kwargs = ("45.0, 45.0",), {}
+        elif func_name == 'main':
+            args, kwargs = (), {}
+        else:
+            args, kwargs = (), {}
+
+        res1 = func(*args, **kwargs)
+        res1_copy = copy.deepcopy(res1)
+
+        if isinstance(res1, list):
+            res1.append('mutated')
+        elif isinstance(res1, dict):
+            res1['mutated'] = True
+
+        res2 = func(*args, **kwargs)
+
+        assert res2 == res1_copy, f"{func_name} is not idempotent"
