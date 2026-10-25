@@ -120,3 +120,41 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+import copy
+import distance
+
+def test_calculate_distance_idempotency(tmp_path):
+    dummy_file = tmp_path / "dummy_input.txt"
+    dummy_file.write_text("40.7128,-74.0060,51.5074,-0.1278")
+    test_input = dummy_file.read_text()
+
+    res1 = distance.calculate_distance(test_input)
+    orig_res1 = copy.deepcopy(res1)
+
+    if isinstance(res1, list):
+        res1.append("mutation")
+    elif isinstance(res1, dict):
+        res1["mutation"] = "mutation"
+
+    res2 = distance.calculate_distance(test_input)
+    assert res2 == orig_res1
+
+def test_main_idempotency(mocker, tmp_path):
+    dummy_file = tmp_path / "dummy_input.txt"
+    dummy_file.write_text("40.7128,-74.0060,51.5074,-0.1278")
+    test_input = dummy_file.read_text()
+
+    mocker.patch('builtins.input', return_value=test_input)
+    mocker.patch('builtins.print')
+
+    res1 = distance.main()
+    orig_res1 = copy.deepcopy(res1)
+
+    if isinstance(res1, list):
+        res1.append("mutation")
+    elif isinstance(res1, dict):
+        res1["mutation"] = "mutation"
+
+    res2 = distance.main()
+    assert res2 == orig_res1
