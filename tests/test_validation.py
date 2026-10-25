@@ -94,3 +94,34 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_is_valid_lat_lon_purity(tmp_path):
+    res1 = is_valid_lat_lon(0, 0)
+    res2 = is_valid_lat_lon(0, 0)
+    assert res1 == res2
+
+def test_parse_coordinate_pairs_purity(tmp_path):
+    res1 = parse_coordinate_pairs("10,20\ninvalid")
+    res1_copy = (list(res1[0]), list(res1[1]))
+
+    res1[0].append((0.0, 0.0))
+    res1[1].append(("foo", "bar"))
+
+    res2 = parse_coordinate_pairs("10,20\ninvalid")
+    assert res2 == res1_copy
+
+def test_format_invalid_notes_purity(tmp_path):
+    entries = [("invalid", "reason")]
+    res1 = format_invalid_notes(entries)
+    res2 = format_invalid_notes(entries)
+    assert res1 == res2
+
+def test_swap_axis_order_purity(tmp_path):
+    try:
+        from validation import swap_axis_order
+    except ImportError:
+        pytest.xfail("swap_axis_order helper is missing")
+
+    res1 = swap_axis_order((10.0, 20.0))
+    res2 = swap_axis_order((10.0, 20.0))
+    assert res1 == res2
