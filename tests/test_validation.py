@@ -94,3 +94,36 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+@pytest.mark.xfail(raises=TypeError, reason="Bug: lacks type checking, raises internal TypeError")
+def test_is_valid_lat_lon_wrong_type():
+    is_valid_lat_lon("90", "180")
+
+@pytest.mark.xfail(raises=TypeError, reason="Bug: lacks type checking, raises internal TypeError")
+def test_is_valid_lat_lon_wrong_type_list():
+    is_valid_lat_lon([90], [180])
+
+@pytest.mark.xfail(raises=TypeError, reason="Bug: lacks type checking, raises internal TypeError")
+def test_parse_coordinate_pairs_wrong_type_int():
+    parse_coordinate_pairs(123)
+
+@pytest.mark.xfail(raises=TypeError, reason="Bug: lacks type checking, raises internal TypeError")
+def test_parse_coordinate_pairs_wrong_type_list():
+    parse_coordinate_pairs(["90,180"])
+
+@pytest.mark.xfail(raises=TypeError, reason="Bug: lacks type checking, raises internal TypeError")
+def test_format_invalid_notes_wrong_type_int():
+    format_invalid_notes(123)
+
+@pytest.mark.xfail(raises=ValueError, reason="Bug: lacks type checking, raises internal ValueError unpacking")
+def test_format_invalid_notes_wrong_type_list_of_strings():
+    format_invalid_notes(["90,180", "abc"])
+
+@pytest.mark.xfail(raises=TypeError, reason="Bug: lacks type checking, raises internal TypeError")
+def test_swap_axis_order_wrong_type():
+    try:
+        from validation import swap_axis_order
+    except ImportError:
+        pytest.xfail("swap_axis_order helper is missing")
+
+    swap_axis_order(123)
