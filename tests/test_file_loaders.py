@@ -66,8 +66,9 @@ def test_load_kml_two_points_and_empty_document():
     res_empty = load_geojson('{}')
     assert res_empty.startswith("| Latitude | Longitude |")
 
-    res_bad = load_geojson('{bad')
-    assert res_bad.startswith("| Latitude | Longitude |")
+    with pytest.raises(ValueError) as excinfo:
+        load_geojson('{bad')
+    assert "Invalid GeoJSON:" in str(excinfo.value)
 
 def test_load_geojson_feature_collection_one_point():
     fc = '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]},"properties":{}}]}'
@@ -93,3 +94,48 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+def test_file_loaders_kwargs_vs_positional(mocker, tmp_path):
+    import file_loaders
+
+    # 1. load_geojson
+    geojson_str = '{"type":"Point","coordinates":[1.0, 2.0]}'
+    res_pos = file_loaders.load_geojson(geojson_str)
+    res_kw = file_loaders.load_geojson(geojson=geojson_str)
+    assert res_pos == res_kw
+
+    # 2. load_kml
+    kml_str = '<kml></kml>'
+    res_pos = file_loaders.load_kml(kml_str)
+    res_kw = file_loaders.load_kml(kml=kml_str)
+    assert res_pos == res_kw
+
+    # 3. load_csv
+    csv_str = 'lat,lon\n2.0,1.0\n'
+    res_pos = file_loaders.load_csv(csv_str)
+    res_kw = file_loaders.load_csv(csv_text=csv_str)
+    assert res_pos == res_kw
+
+    # 4. fetch_geo_boundaries
+    mock_get = mocker.patch('requests.get')
+
+    # the first call to requests.get in fetch_geo_boundaries gets the url info
+    # and returns JSON with a 'simplifiedGeometryGeoJSON' url.
+    # the second call gets the actual GeoJSON.
+
+    mock_resp1 = mocker.MagicMock()
+    mock_resp1.json.return_value = {"simplifiedGeometryGeoJSON": "http://fake.url"}
+
+    mock_resp2 = mocker.MagicMock()
+    mock_resp2.text = '{"type":"Point","coordinates":[1.0, 2.0]}'
+
+    mock_get.side_effect = [mock_resp1, mock_resp2, mock_resp1, mock_resp2]
+
+    # clear cache before testing
+    file_loaders.fetch_geo_boundaries.cache_clear()
+    res_pos = file_loaders.fetch_geo_boundaries("USA", "ADM1")
+
+    file_loaders.fetch_geo_boundaries.cache_clear()
+    res_kw = file_loaders.fetch_geo_boundaries(iso="USA", adm="ADM1")
+
+    assert res_pos == res_kw
