@@ -94,3 +94,38 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_is_valid_lat_lon_positional_vs_keyword():
+    pos_result = is_valid_lat_lon(10.0, 20.0)
+    kw_result = is_valid_lat_lon(lat=10.0, lon=20.0)
+    assert pos_result == kw_result
+
+def test_parse_coordinate_pairs_positional_vs_keyword():
+    text = "10.0, 20.0"
+    pos_result = parse_coordinate_pairs(text)
+    kw_result = parse_coordinate_pairs(text=text)
+    assert pos_result == kw_result
+
+def test_format_invalid_notes_positional_vs_keyword():
+    invalid_entries = [("invalid", "reason")]
+    pos_result = format_invalid_notes(invalid_entries)
+    kw_result = format_invalid_notes(invalid_entries=invalid_entries)
+    assert pos_result == kw_result
+
+
+def test_swap_axis_order_positional_vs_keyword():
+    try:
+        from validation import swap_axis_order
+    except ImportError:
+        pytest.xfail("swap_axis_order helper is missing")
+        return
+
+    # Check for kwargs correctness against its arg
+    import inspect
+    sig = inspect.signature(swap_axis_order)
+    param_name = list(sig.parameters.keys())[0]
+
+    val = (10.0, 20.0)
+    pos_result = swap_axis_order(val)
+    kw_result = swap_axis_order(**{param_name: val})
+    assert pos_result == kw_result
