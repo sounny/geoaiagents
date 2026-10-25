@@ -1,3 +1,6 @@
+import warnings
+import inspect
+import validation
 import pytest
 from validation import is_valid_lat_lon, parse_coordinate_pairs, format_invalid_notes
 
@@ -94,3 +97,43 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def get_public_functions():
+    funcs = []
+    for name, obj in inspect.getmembers(validation, inspect.isfunction):
+        if getattr(obj, '__module__', '') == validation.__name__:
+            if not name.startswith('_'):
+                funcs.append(name)
+
+    if 'swap_axis_order' not in funcs:
+        funcs.append('swap_axis_order')
+
+    return funcs
+
+def get_typical_inputs(func_name, tmp_path):
+    if func_name == 'is_valid_lat_lon':
+        return (45.0, 90.0), {}
+    elif func_name == 'parse_coordinate_pairs':
+        test_file = tmp_path / "coords.txt"
+        test_file.write_text("45.0, 90.0\n0.0, 0.0")
+        return (test_file.read_text(),), {}
+    elif func_name == 'format_invalid_notes':
+        return ([("invalid_coord", "reason")],), {}
+    elif func_name == 'swap_axis_order':
+        return ((10.0, 20.0),), {}
+    else:
+        pytest.fail(f"Unhandled public function: {func_name}")
+
+@pytest.mark.parametrize("func_name", get_public_functions())
+def test_no_warnings_public_functions(func_name, tmp_path):
+    try:
+        func = getattr(validation, func_name)
+    except AttributeError:
+        pytest.xfail(f"{func_name} is missing or not implemented")
+        return
+
+    args, kwargs = get_typical_inputs(func_name, tmp_path)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        func(*args, **kwargs)
