@@ -49,3 +49,39 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_public_functions_positional_and_keyword_arguments(mocker, tmp_path):
+    import geocode
+    # We must mock HTTP requests in the Nominatim adapter
+    mock_get_json = mocker.patch.object(geocode._geolocator.adapter, "get_json")
+    mock_get_json.return_value = [
+        {"place_id": 1, "lat": "51.5", "lon": "-0.1", "display_name": "London", "importance": 0.9, "class": "place", "type": "city"}
+    ]
+
+    # reverse geocoding returns a single dictionary, not a list
+    mocker.patch.object(geocode._reverse_limiter, "func", return_value=mocker.MagicMock(address="London", latitude=51.5, longitude=-0.1))
+
+    mocker.patch("time.sleep") # For rate limiters
+
+    # Create a temporary file and mock opening files to use it
+    temp_file = tmp_path / "test_data.txt"
+    temp_file.write_text("")
+
+    # Mock builtins.open to avoid actually touching the real filesystem
+    # but still use the tmp_path as requested.
+    mocker.patch('builtins.open', mocker.mock_open(read_data=""))
+
+    # Clear the LRU cache so we are testing actual behavior and previous test state doesn't interfere
+    geocode.get_coordinates.cache_clear()
+
+    # get_coordinates
+    assert geocode.get_coordinates("London") == geocode.get_coordinates(location_query="London")
+
+    # parse_locations
+    assert geocode.parse_locations("London") == geocode.parse_locations(locations_str="London")
+
+    # reverse_geocode_coordinates
+    assert geocode.reverse_geocode_coordinates("51.5, -0.1") == geocode.reverse_geocode_coordinates(coordinates_str="51.5, -0.1")
+
+    # geocode_locations
+    assert geocode.geocode_locations("London") == geocode.geocode_locations(locations_str="London")
