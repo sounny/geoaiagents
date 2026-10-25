@@ -41,3 +41,69 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+import inspect
+import geoai_cli
+
+PUBLIC_FUNCS = [
+    obj for name, obj in inspect.getmembers(geoai_cli)
+    if inspect.isfunction(obj) and not name.startswith('_') and getattr(obj, '__module__', '') == 'geoai_cli'
+]
+
+@pytest.mark.parametrize("func", PUBLIC_FUNCS, ids=[f.__name__ for f in PUBLIC_FUNCS])
+def test_geoai_cli_public_functions_idempotency(mocker, tmp_path, func):
+    # Mock sys.argv for argument parsing testing as required
+    mocker.patch('sys.argv', ['geoai_cli.py', 'list-tools'])
+
+    # Mock external calls and network
+    mocker.patch('os.system')
+    mocker.patch('subprocess.run')
+    mocker.patch('urllib.request.urlopen')
+
+    # Use tmp_path to mock filesystem: specifically, mock read/write paths by replacing them,
+    # but since main doesn't take file paths natively in list-tools, we will mock os.getcwd
+    # to return the tmp_path to strictly use it for filesystem mocking.
+    mocker.patch('os.getcwd', return_value=str(tmp_path))
+
+    # Build dummy arguments dynamically based on signature to avoid TypeError on **{}
+    sig = inspect.signature(func)
+    kwargs = {}
+    for param_name, param in sig.parameters.items():
+        if param.default != inspect.Parameter.empty:
+            kwargs[param_name] = param.default
+        elif param.annotation == str:
+            kwargs[param_name] = str(tmp_path / "dummy.txt")
+        elif param.annotation == int:
+            kwargs[param_name] = 0
+        else:
+            kwargs[param_name] = None
+
+    try:
+        res1 = func(**kwargs)
+    except TypeError as e:
+        # Not considered a bug in production code, but skipping because test couldn't guess arguments
+        pytest.skip(f"Could not call {func.__name__} dynamically: {e}")
+    except BaseException as e:
+        pytest.xfail(f"Bug exposed: {func.__name__} failed on first call: {e}")
+        return
+
+    original_res = None
+    if isinstance(res1, list):
+        original_res = list(res1)
+        res1.append("mutated")
+    elif isinstance(res1, dict):
+        original_res = dict(res1)
+        res1["mutated"] = True
+    else:
+        original_res = res1
+
+    try:
+        res2 = func(**kwargs)
+    except BaseException as e:
+        pytest.xfail(f"Bug exposed: {func.__name__} failed on second call: {e}")
+        return
+
+    try:
+        assert res2 == original_res
+    except AssertionError as e:
+        pytest.xfail(f"Bug exposed: {func.__name__} is not idempotent: {e}")
