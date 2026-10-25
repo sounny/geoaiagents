@@ -1,6 +1,6 @@
 import math
 import pytest
-from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms
+from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms, main
 
 import math
 
@@ -131,3 +131,38 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_dd_to_dms_value_positional_vs_keyword():
+    res_pos = dd_to_dms_value(45.5)
+    res_kw = dd_to_dms_value(dd=45.5)
+    assert res_pos == res_kw
+
+def test_format_dms_positional_vs_keyword():
+    res_pos = format_dms(45.0, 30, 15.5, True, 45.5)
+    res_kw = format_dms(deg=45.0, minutes=30, seconds=15.5, is_lat=True, original_dd=45.5)
+    assert res_pos == res_kw
+
+def test_convert_dd_to_dms_positional_vs_keyword():
+    coord = "45.0, -90.0"
+    res_pos = convert_dd_to_dms(coord)
+    res_kw = convert_dd_to_dms(coordinates_str=coord)
+    assert res_pos == res_kw
+
+def test_main_positional_vs_keyword(mocker, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    mocker.patch("builtins.input", return_value="45.0, -90.0")
+    mocker.patch("sys.argv", ["dd2dms.py"])
+    mocker.patch("dd2dms.OpenAI")
+
+    mock_call = mocker.patch("dd2dms.call_llm_with_retry")
+    mock_message = mocker.MagicMock()
+    mock_message.function_call = mocker.MagicMock()
+    mock_message.function_call.arguments = '{"coordinates": "45.0, -90.0"}'
+    mock_call.return_value.choices = [mocker.MagicMock(message=mock_message)]
+
+    mocker.patch("builtins.print")
+
+    res_pos = main()
+    res_kw = main(**{})
+
+    assert res_pos == res_kw
