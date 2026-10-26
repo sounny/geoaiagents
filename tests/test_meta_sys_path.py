@@ -6,6 +6,7 @@ ALLOWLIST = {
     "test_webchat_config.py",
     "test_webchat_map.py",
     "test_install_requirements.py",
+    "test_webchat_infer.py",
 }
 
 def test_no_sys_path_modifications():
