@@ -94,3 +94,21 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_format_invalid_notes_iterable_non_empty():
+    invalid = [("91,0", "Out of range"), ("abc,123", "Not a number")]
+    assert format_invalid_notes(iter(invalid)) == format_invalid_notes(invalid)
+
+@pytest.mark.xfail(strict=True, raises=AssertionError, reason="Bug: empty iterators evaluate as truthy, returning the header instead of an empty string")
+def test_format_invalid_notes_iterable_empty():
+    assert format_invalid_notes(iter([])) == format_invalid_notes([])
+
+@pytest.mark.xfail(raises=TypeError, reason="Bug: swap_axis_order expects a sequence and fails on an iterator")
+def test_swap_axis_order_iterable():
+    try:
+        from validation import swap_axis_order
+    except ImportError:
+        pytest.xfail("swap_axis_order helper is missing")
+
+    coords = [10.0, 20.0]
+    assert swap_axis_order(iter(coords)) == swap_axis_order(coords)
