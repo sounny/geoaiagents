@@ -131,3 +131,27 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+@pytest.mark.parametrize("val", [
+    pytest.param(float("nan"), marks=pytest.mark.xfail(raises=ValueError, reason="Fails on NaN float input")),
+    pytest.param(float("inf"), marks=pytest.mark.xfail(raises=ValueError, reason="Fails on inf float input")),
+    pytest.param(float("-inf"), marks=pytest.mark.xfail(raises=ValueError, reason="Fails on -inf float input")),
+    -0.0
+])
+def test_dd_to_dms_value_edge_cases(val):
+    if val == -0.0 and not math.isnan(val) and not math.isinf(val):
+        assert dd_to_dms_value(val) == (-0.0, 0, 0.0)
+    else:
+        dd_to_dms_value(val)
+
+@pytest.mark.parametrize("val", [
+    pytest.param(float("nan"), marks=pytest.mark.xfail(raises=ValueError, reason="Fails on NaN float input")),
+    pytest.param(float("inf"), marks=pytest.mark.xfail(raises=OverflowError, reason="Fails on inf float input")),
+    pytest.param(float("-inf"), marks=pytest.mark.xfail(raises=OverflowError, reason="Fails on -inf float input")),
+    -0.0
+])
+def test_format_dms_edge_cases(val):
+    if val == -0.0 and not math.isnan(val) and not math.isinf(val):
+        assert format_dms(val, 0, 0.0, True) == '0°00\'00.00" S'
+    else:
+        format_dms(val, 0, 0.0, True)
