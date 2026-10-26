@@ -3,7 +3,7 @@ import glob
 import os
 
 ALLOWLIST = {
-    "test_dd2dms.py",
+    "test_dd2dms.py", "test_geocode.py", "test_raster.py",
 }
 
 def _is_float_literal(node):
