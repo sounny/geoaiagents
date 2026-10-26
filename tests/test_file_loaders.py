@@ -93,3 +93,69 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+def test_load_geojson_numpy_float64_match(monkeypatch):
+    np = pytest.importorskip("numpy")
+    from file_loaders import load_geojson
+
+    mock_data_plain = {"type": "Feature", "geometry": {"type": "Point", "coordinates": [2.3, 48.8]}, "properties": {}}
+    monkeypatch.setattr("json.loads", lambda x: mock_data_plain)
+    result_plain = load_geojson("dummy")
+
+    mock_data_np = {"type": "Feature", "geometry": {"type": "Point", "coordinates": [np.float64(2.3), np.float64(48.8)]}, "properties": {}}
+    monkeypatch.setattr("json.loads", lambda x: mock_data_np)
+    result_np = load_geojson("dummy")
+
+    assert result_plain == result_np
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="np.int64 fails isinstance(n, (int, float)) in isinstance check inside list handling")
+def test_load_geojson_numpy_int64_match(monkeypatch):
+    np = pytest.importorskip("numpy")
+    from file_loaders import load_geojson
+
+    mock_data_plain = [2, 48]
+    monkeypatch.setattr("json.loads", lambda x: mock_data_plain)
+    result_plain = load_geojson("dummy")
+
+    mock_data_np = [np.int64(2), np.int64(48)]
+    monkeypatch.setattr("json.loads", lambda x: mock_data_np)
+    result_np = load_geojson("dummy")
+
+    assert result_plain == result_np
+
+def test_load_geojson_numpy_float64_match(monkeypatch, tmp_path):
+    np = pytest.importorskip("numpy")
+    from file_loaders import load_geojson
+
+    file_path = tmp_path / "dummy.geojson"
+    file_path.write_text('{"dummy": "data"}')
+    content = file_path.read_text()
+
+    mock_data_plain = {"type": "Feature", "geometry": {"type": "Point", "coordinates": [2.3, 48.8]}, "properties": {}}
+    monkeypatch.setattr("json.loads", lambda x: mock_data_plain)
+    result_plain = load_geojson(content)
+
+    mock_data_np = {"type": "Feature", "geometry": {"type": "Point", "coordinates": [np.float64(2.3), np.float64(48.8)]}, "properties": {}}
+    monkeypatch.setattr("json.loads", lambda x: mock_data_np)
+    result_np = load_geojson(content)
+
+    assert result_plain == result_np
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="np.int64 fails isinstance(n, (int, float)) in isinstance check inside list handling")
+def test_load_geojson_numpy_int64_match(monkeypatch, tmp_path):
+    np = pytest.importorskip("numpy")
+    from file_loaders import load_geojson
+
+    file_path = tmp_path / "dummy.geojson"
+    file_path.write_text('{"dummy": "data"}')
+    content = file_path.read_text()
+
+    mock_data_plain = [2, 48]
+    monkeypatch.setattr("json.loads", lambda x: mock_data_plain)
+    result_plain = load_geojson(content)
+
+    mock_data_np = [np.int64(2), np.int64(48)]
+    monkeypatch.setattr("json.loads", lambda x: mock_data_np)
+    result_np = load_geojson(content)
+
+    assert result_plain == result_np
