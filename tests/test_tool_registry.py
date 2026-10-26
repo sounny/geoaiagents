@@ -136,7 +136,7 @@ def test_parse_tool_args_list_vs_iter(tmp_path):
     res_list = parse_tool_args(l)
     res_iter = parse_tool_args(i)
 
-    # Assert expected correct behavior: list and iterator should not be ignored
+    # Expected correct behavior: list and iterator should not be ignored
     assert res_list != {}
     assert res_iter != {}
     assert res_list == res_iter
