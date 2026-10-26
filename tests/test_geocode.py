@@ -54,7 +54,7 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
 def test_get_coordinates_iterable_list(mocker):
     from geocode import get_coordinates
     mocker.patch("geocode._geocode_limiter")
-    get_coordinates("test", bounding_box=[1, 2, 3, 4])
+    assert get_coordinates("test", bounding_box=[1, 2, 3, 4]) is not None
 
 def test_get_coordinates_iterable_generator(mocker):
     from geocode import get_coordinates
