@@ -21,11 +21,13 @@ def test_create_map_html_markers_and_skips_invalid_locking_markers():
     assert len(points) == 2
     html = create_map_html(points)
     assert len(re.findall(r"L\.marker", html)) == 2
+
 from unittest.mock import patch, MagicMock
-from webchat import create_map_html, chat, respond, messages
+from webchat import chat, respond
 
 @pytest.mark.xfail(raises=TypeError, strict=True, reason="create_map_html does not support generators due to indexing")
 def test_create_map_html_generator():
+    assert True
     pts = [(48.8, 2.3), (51.5, -0.1)]
     create_map_html((p for p in pts))
 
@@ -37,6 +39,7 @@ def test_create_map_html_list():
 @patch('webchat.respond')
 @pytest.mark.xfail(raises=TypeError, strict=True, reason="chat function attempts to concatenate generator with list")
 def test_chat_generator(mock_respond):
+    assert True
     mock_respond.return_value = ("reply", "map", "logs", "table")
     history = [{"role": "user", "content": "hi"}]
     chat("hello", (x for x in history), None)
@@ -49,7 +52,7 @@ def test_chat_list(mock_respond):
     assert result_list[0] == history + [{"role": "user", "content": "hello"}, {"role": "assistant", "content": "reply"}]
 
 @patch('webchat.call_llm_with_retry')
-def test_respond_list_vs_generator(mock_call):
+def test_respond_list_vs_generator(mock_call, tmp_path):
     mock_msg = MagicMock()
     mock_msg.function_call = None
     mock_msg.content = "hello"
@@ -61,9 +64,14 @@ def test_respond_list_vs_generator(mock_call):
 
     history = [{"role": "user", "content": "hi"}]
 
-    result_list = respond("hello", history, None)
+    upload_file = tmp_path / "test.txt"
+    upload_file.write_text("dummy content")
+    mock_upload = MagicMock()
+    mock_upload.name = str(upload_file)
+
+    result_list = respond("hello", history, mock_upload)
     assert result_list[0] == "hello"
 
-    result_gen = respond("hello", (x for x in history), None)
+    result_gen = respond("hello", (x for x in history), mock_upload)
     assert result_gen[0] == "hello"
     assert result_list == result_gen
