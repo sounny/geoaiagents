@@ -94,3 +94,48 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_parse_coordinate_pairs_non_ascii(tmp_path):
+    from validation import parse_coordinate_pairs
+
+    # Non-ASCII test cases: Accented Latin, CJK, Emoji, RTL text
+    text = "Tōkyō, 20\n東京, 139\n🌍, 20\nمرحبا, 20\n١٠, ٢٠"
+    pairs, invalid = parse_coordinate_pairs(text)
+
+    # Assert current behavior
+    # Arabic numerals are correctly parsed as floats by Python
+    assert pairs == [(10.0, 20.0)]
+    assert len(invalid) == 4
+
+    assert invalid[0] == ("Tōkyō, 20", "Not a number")
+    assert invalid[1] == ("東京, 139", "Not a number")
+    assert invalid[2] == ("🌍, 20", "Not a number")
+    assert invalid[3] == ("مرحبا, 20", "Not a number")
+
+    # Pass path
+    path_str = str(tmp_path)
+    pairs, invalid = parse_coordinate_pairs(path_str)
+    assert pairs == []
+    assert len(invalid) == 1
+    assert invalid[0] == (path_str, "Missing latitude/longitude pair")
+
+def test_format_invalid_notes_non_ascii(tmp_path):
+    from validation import format_invalid_notes
+
+    # Non-ASCII test cases
+    invalid = [
+        ("Tōkyō, 20", "Not a number"),
+        ("東京, 139", "Not a number"),
+        ("🌍, 20", "Not a number"),
+        ("مرحبا, 20", "Not a number"),
+        (str(tmp_path), "Missing latitude/longitude pair")
+    ]
+
+    result = format_invalid_notes(invalid)
+
+    assert "_Skipped invalid inputs:_" in result
+    assert "- `Tōkyō, 20` (Not a number)" in result
+    assert "- `東京, 139` (Not a number)" in result
+    assert "- `🌍, 20` (Not a number)" in result
+    assert "- `مرحبا, 20` (Not a number)" in result
+    assert f"- `{str(tmp_path)}` (Missing latitude/longitude pair)" in result
