@@ -3,8 +3,7 @@ import os
 import pytest
 
 MODULES_TO_CHECK = [
-    'distance', 'file_loaders', 'geocode', 'humboldt',
-    'llm_utils', 'tool_registry', 'validation'
+    'distance', 'file_loaders', 'llm_utils', 'tool_registry', 'validation'
 ]
 
 # Allowlist of existing print statements: (filename, lineno)

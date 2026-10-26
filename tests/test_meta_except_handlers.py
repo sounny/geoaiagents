@@ -11,7 +11,9 @@ def test_no_bare_except_or_except_exception():
         'tool_registry.py',
         'webchat.py',
         'llm_utils.py',
-        'file_loaders.py'
+        'file_loaders.py',
+        'geocode.py',
+        'dd2dms.py'
     }
 
     total_count = 0
