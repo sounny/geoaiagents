@@ -1,7 +1,7 @@
 import pytest
 import sys
 from unittest.mock import patch, MagicMock
-from humboldt import main
+from humboldt import main, call_llm_with_retry
 
 @pytest.mark.xfail(reason="Humboldt calls LLM for empty or whitespace-only input instead of a no-op")
 def test_humboldt_empty_input(mocker, capsys):
@@ -26,3 +26,37 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+def test_call_llm_with_retry_true(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message = "test"
+    client.chat.completions.create.return_value = mock_response
+
+    result = call_llm_with_retry(client, max_retries=True)
+    assert result == mock_response
+    assert client.chat.completions.create.call_count == 1
+
+@pytest.mark.xfail(raises=ValueError, strict=True, reason="max_retries=False evaluated as 0 in range(False), raising ValueError before retrying")
+def test_call_llm_with_retry_false(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message = "test"
+    client.chat.completions.create.return_value = mock_response
+
+    call_llm_with_retry(client, max_retries=False)
+
+@pytest.mark.xfail(raises=TypeError, strict=True, reason="max_retries=-0.0 fails because range() does not accept floats")
+def test_call_llm_with_retry_negative_zero(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message = "test"
+    client.chat.completions.create.return_value = mock_response
+
+    call_llm_with_retry(client, max_retries=-0.0)
