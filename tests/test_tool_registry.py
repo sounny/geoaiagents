@@ -121,3 +121,70 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_parse_tool_args_number_boolean_equivalence():
+    assert parse_tool_args(1) == parse_tool_args(True)
+    assert parse_tool_args(0) == parse_tool_args(False)
+    assert parse_tool_args(0.0) == parse_tool_args(-0.0)
+
+def test_tool_registry_has_tool_number_boolean():
+    registry = create_registry()
+    assert registry.has_tool(1) == registry.has_tool(True)
+    assert registry.has_tool(0) == registry.has_tool(False)
+    assert registry.has_tool(0.0) == registry.has_tool(-0.0)
+
+def test_tool_registry_invoke_number_boolean():
+    registry = create_registry()
+    assert registry.invoke(1, {}) == registry.invoke(True, {})
+    assert registry.invoke(0, {}) == registry.invoke(False, {})
+    assert registry.invoke(0.0, {}) == registry.invoke(-0.0, {})
+
+def test_tool_registry_invoke_args_number_boolean():
+    registry = create_registry()
+    assert registry.invoke("convert_dd_to_dms", 1) == registry.invoke("convert_dd_to_dms", True)
+    assert registry.invoke("convert_dd_to_dms", 0) == registry.invoke("convert_dd_to_dms", False)
+    assert registry.invoke("convert_dd_to_dms", 0.0) == registry.invoke("convert_dd_to_dms", -0.0)
+
+@pytest.mark.xfail(raises=AssertionError, reason="Bug: boolean and int produce different error messages")
+def test_tool_registry_register_tool_boolean_vs_int():
+    registry = create_registry()
+    try:
+        registry.register_tool(name=1, description="", parameters={}, handler=lambda x: "")
+        err_int = None
+    except Exception as e:
+        err_int = str(e)
+    try:
+        registry.register_tool(name=True, description="", parameters={}, handler=lambda x: "")
+        err_bool = None
+    except Exception as e:
+        err_bool = str(e)
+    assert err_int == err_bool
+
+@pytest.mark.xfail(raises=AssertionError, reason="Bug: boolean and int produce different error messages")
+def test_tool_registry_register_tool_0_vs_false():
+    registry = create_registry()
+    try:
+        registry.register_tool(name=0, description="", parameters={}, handler=lambda x: "")
+        err_int = None
+    except Exception as e:
+        err_int = str(e)
+    try:
+        registry.register_tool(name=False, description="", parameters={}, handler=lambda x: "")
+        err_bool = None
+    except Exception as e:
+        err_bool = str(e)
+    assert err_int == err_bool
+
+def test_tool_registry_register_tool_0_0_vs_neg_0_0():
+    registry = create_registry()
+    try:
+        registry.register_tool(name=0.0, description="", parameters={}, handler=lambda x: "")
+        err_1 = None
+    except Exception as e:
+        err_1 = str(e)
+    try:
+        registry.register_tool(name=-0.0, description="", parameters={}, handler=lambda x: "")
+        err_2 = None
+    except Exception as e:
+        err_2 = str(e)
+    assert err_1 == err_2
