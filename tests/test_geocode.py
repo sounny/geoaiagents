@@ -49,3 +49,41 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+@pytest.mark.parametrize(
+    "func_name",
+    [
+        "call_llm_with_retry",
+        "format_invalid_notes",
+        pytest.param(
+            "get_coordinates",
+            marks=pytest.mark.xfail(raises=TypeError, reason="lru_cache wrapper does not support unhashable types like list")
+        ),
+    ]
+)
+def test_sequence_arguments_match_list_vs_tuple(mocker, tmp_path, func_name):
+    mocker.patch("geocode._geocode_limiter")
+
+    from unittest.mock import MagicMock
+    mock_client = MagicMock()
+    mock_client.chat.completions.create.return_value = MagicMock(choices=[MagicMock(message="mock")])
+
+    func_args = {
+        'call_llm_with_retry': {'args': (mock_client,), 'kwargs_list': {'messages': [{"role": "user"}]}, 'kwargs_tuple': {'messages': ({"role": "user"},)}},
+        'format_invalid_notes': {'args_list': ([("40", "nan")],), 'args_tuple': ((("40", "nan"),),), 'kwargs': {}},
+        'get_coordinates': {'args': ("Paris",), 'kwargs_list': {'bounding_box': [1,2,3,4]}, 'kwargs_tuple': {'bounding_box': (1,2,3,4)}},
+    }
+
+    import geocode
+    obj = getattr(geocode, func_name)
+    info = func_args[func_name]
+
+    args_l = info.get('args_list', info.get('args', ()))
+    kwargs_l = info.get('kwargs_list', info.get('kwargs', {}))
+
+    args_t = info.get('args_tuple', info.get('args', ()))
+    kwargs_t = info.get('kwargs_tuple', info.get('kwargs', {}))
+
+    res_l = obj(*args_l, **kwargs_l)
+    res_t = obj(*args_t, **kwargs_t)
+    assert res_l == res_t
