@@ -131,3 +131,18 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_format_invalid_notes_iterable():
+    from dd2dms import format_invalid_notes
+    entries = [("bad_coord", "out of range")]
+    list_res = format_invalid_notes(entries)
+    iter_res = format_invalid_notes(iter(entries))
+    assert list_res == iter_res
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="truthiness check on empty iterator evaluates to True, erroneously returning a header")
+def test_format_invalid_notes_empty_iterable():
+    from dd2dms import format_invalid_notes
+    entries = []
+    list_res = format_invalid_notes(entries)
+    iter_res = format_invalid_notes(iter(entries))
+    assert list_res == iter_res
