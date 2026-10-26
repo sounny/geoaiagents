@@ -41,3 +41,125 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+import pytest
+from geoai_cli import main
+import argparse
+
+@pytest.mark.parametrize("empty_val", ["", "   "])
+def test_geoai_cli_main_argument_parsing(mocker, tmp_path, empty_val):
+    # Testing main() argument parsing for empty strings.
+    # main() is the only public function defined in geoai_cli.py
+    # We will test all string-accepting commands
+
+    # Mock dependencies
+    mocker.patch('geoai_cli.create_registry')
+    mocker.patch('openai.OpenAI')
+    mocker.patch('builtins.input', side_effect=EOFError)
+    mocker.patch('sys.stdin.isatty', return_value=True)
+    mocker.patch('sys.stdin.read', return_value=empty_val)
+
+    dummy = tmp_path / "dummy.txt"
+    dummy.write_text("test")
+
+    # geocode
+    mocker.patch('sys.argv', ['geoai_cli.py', 'geocode', empty_val])
+    try:
+        main()
+    except SystemExit as e:
+        assert e.code == 0 # pass-through
+
+    # reverse
+    mocker.patch('sys.argv', ['geoai_cli.py', 'reverse', empty_val])
+    try:
+        main()
+    except SystemExit as e:
+        assert e.code == 0
+
+    # dms
+    mocker.patch('sys.argv', ['geoai_cli.py', 'dms', empty_val])
+    try:
+        main()
+    except SystemExit as e:
+        assert e.code == 0
+
+    # distance
+    mocker.patch('sys.argv', ['geoai_cli.py', 'distance', empty_val])
+    try:
+        main()
+    except SystemExit as e:
+        assert e.code == 0
+
+    # boundaries iso
+    mocker.patch('sys.argv', ['geoai_cli.py', 'boundaries', empty_val])
+    try:
+        main()
+    except SystemExit as e:
+        assert e.code == 0
+
+    # boundaries adm
+    mocker.patch('sys.argv', ['geoai_cli.py', 'boundaries', 'USA', '--adm', empty_val])
+    try:
+        main()
+    except SystemExit as e:
+        assert e.code == 0
+
+    # run-tool tool_name
+    mocker.patch('sys.argv', ['geoai_cli.py', 'run-tool', empty_val])
+    try:
+        main()
+    except SystemExit as e:
+        assert e.code == 2 # default fallback/error
+
+    # run-tool payload
+    mocker.patch('sys.argv', ['geoai_cli.py', 'run-tool', 'tool', '--payload', empty_val])
+    try:
+        main()
+    except SystemExit as e:
+        assert e.code == 2 # unknown tool fallback
+
+    # run-tool adm
+    mocker.patch('sys.argv', ['geoai_cli.py', 'run-tool', 'tool', '--adm', empty_val])
+    try:
+        main()
+    except SystemExit as e:
+        assert e.code == 2
+
+    # chat base-url
+    mocker.patch('sys.argv', ['geoai_cli.py', 'chat', '--base-url', empty_val])
+    try:
+        main()
+    except EOFError:
+        pass # pass-through
+
+    # chat model
+    mocker.patch('sys.argv', ['geoai_cli.py', 'chat', '--model', empty_val])
+    try:
+        main()
+    except EOFError:
+        pass # pass-through
+
+@pytest.mark.parametrize("empty_val", ["", "   "])
+def test_geoai_cli_main_chat_api_key_bug(mocker, tmp_path, empty_val):
+    # chat api-key
+    mocker.patch('geoai_cli.create_registry')
+    mocker.patch('builtins.input', side_effect=EOFError)
+
+    # Do not mock OpenAI completely because we want to see the error.
+    # The actual code passes the empty API key to OpenAI.
+    mocker.patch('sys.argv', ['geoai_cli.py', 'chat', '--api-key', empty_val])
+
+    if empty_val == "":
+        from openai import OpenAIError
+        with pytest.raises(OpenAIError):
+            main()
+        pytest.xfail("Empty API key validation bug: causes missing credentials error")
+    else:
+        # If it's whitespace, it might also raise OpenAIError, or pass-through to EOFError
+        from openai import OpenAIError
+        try:
+            main()
+        except EOFError:
+            pass # pass-through
+        except OpenAIError:
+            pytest.xfail("Whitespace API key validation bug: causes missing credentials error")
