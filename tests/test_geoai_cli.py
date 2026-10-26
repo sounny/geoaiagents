@@ -41,3 +41,40 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+from collections import OrderedDict
+
+class MyStr(str): pass
+class MyInt(int): pass
+class MyDict(dict): pass
+class MyList(list): pass
+class MyOrderedDict(OrderedDict): pass
+
+def test_argparse_subclasses(mocker):
+    # Test str subclass
+    mocker.patch('sys.argv', MyList([MyStr("geoai_cli.py"), MyStr("list-tools")]))
+    main()
+
+def test_argparse_subclasses_int(mocker):
+    mocker.patch('sys.argv', MyList([MyStr("geoai_cli.py"), MyStr("run-tool"), MyStr("calculate_distance"), MyStr("--payload"), MyInt(1)]))
+    with pytest.raises(TypeError) as excinfo:
+        main()
+    pytest.xfail(f"argparse does not support int subclasses in sys.argv: {excinfo.value}")
+
+def test_argparse_subclasses_dict(mocker):
+    mocker.patch('sys.argv', MyList([MyStr("geoai_cli.py"), MyStr("run-tool"), MyStr("calculate_distance"), MyStr("--payload"), MyDict({"a": 1})]))
+    with pytest.raises(KeyError) as excinfo:
+        main()
+    pytest.xfail(f"argparse does not support dict subclasses in sys.argv: {excinfo.value}")
+
+def test_argparse_subclasses_list(mocker):
+    mock_reg = mocker.patch('geoai_cli.create_registry').return_value
+    mocker.patch('sys.argv', MyList([MyStr("geoai_cli.py"), MyStr("run-tool"), MyStr("calculate_distance"), MyStr("--payload"), MyList(["a", "b"])]))
+    main()
+    mock_reg.invoke.assert_called_once_with('calculate_distance', {'coordinates': ['a', 'b']})
+
+def test_argparse_subclasses_ordereddict(mocker):
+    mocker.patch('sys.argv', MyList([MyStr("geoai_cli.py"), MyStr("run-tool"), MyStr("calculate_distance"), MyStr("--payload"), MyOrderedDict({"a": 1})]))
+    with pytest.raises(KeyError) as excinfo:
+        main()
+    pytest.xfail(f"argparse does not support OrderedDict subclasses in sys.argv: {excinfo.value}")
