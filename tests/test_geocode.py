@@ -49,3 +49,39 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+
+
+@pytest.mark.parametrize("timeout", [True, False, -0.0])
+@pytest.mark.xfail(raises=AssertionError, reason="Silently swallows error on boolean or zero timeout instead of raising validation error or succeeding")
+def test_get_coordinates_boolean_and_zero_timeout(monkeypatch, mocker, tmp_path, timeout):
+    class MockResponse:
+        def __init__(self): self.status = 200
+        def read(self): return b'[{"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "First Place", "importance": 0.9, "class": "place", "type": "city"}]'
+        def getheader(self, *args, **kwargs): return "application/json"
+    mocker.patch("urllib.request.urlopen", return_value=MockResponse())
+    mocker.patch("time.sleep")
+    monkeypatch.setenv("PWD", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+
+    result = get_coordinates("Mockville", timeout=timeout)
+    # The function silently swallows exceptions from geopy/urllib and returns (None, None, None).
+    # We assert that it does NOT return (None, None, None) to trigger an AssertionError for XFAIL.
+    assert result != (None, None, None)
+
+@pytest.mark.parametrize("timeout", [True, False, -0.0])
+@pytest.mark.xfail(raises=AssertionError, reason="Silently swallows error on boolean or zero timeout instead of raising validation error or succeeding")
+def test_reverse_geocode_boolean_and_zero_timeout(monkeypatch, mocker, tmp_path, timeout):
+    class MockResponse:
+        def __init__(self): self.status = 200
+        def read(self): return b'[{"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "First Place", "importance": 0.9, "class": "place", "type": "city"}]'
+        def getheader(self, *args, **kwargs): return "application/json"
+    mocker.patch("urllib.request.urlopen", return_value=MockResponse())
+    mocker.patch("time.sleep")
+    monkeypatch.setenv("PWD", str(tmp_path))
+    monkeypatch.chdir(tmp_path)
+
+    result = reverse_geocode_coordinates("40.0, -70.0", timeout=timeout)
+    # The function silently swallows exceptions from geopy/urllib and returns "Not found".
+    # We assert that it does NOT contain "Not found" to trigger an AssertionError for XFAIL.
+    assert "Not found" not in result
