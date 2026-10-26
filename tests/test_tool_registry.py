@@ -121,3 +121,73 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+
+def test_register_tool_empty_description():
+    reg = ToolRegistry()
+    reg.register_tool(name="test_empty_desc", description="", parameters={}, handler=lambda x: "x")
+    assert reg.has_tool("test_empty_desc")
+
+def test_register_tool_whitespace_description():
+    reg = ToolRegistry()
+    reg.register_tool(name="test_ws_desc", description="   ", parameters={}, handler=lambda x: "x")
+    assert reg.has_tool("test_ws_desc")
+
+@pytest.mark.xfail(raises=pytest.fail.Exception, reason="bug: accepts whitespace-only tool name instead of raising ValueError")
+def test_register_tool_whitespace_name():
+    reg = ToolRegistry()
+    try:
+        reg.register_tool(name="   ", description="desc", parameters={}, handler=lambda x: "x")
+    except ValueError:
+        return
+    pytest.fail("Expected ValueError for whitespace-only name")
+
+@pytest.mark.xfail(raises=ValueError, reason="bug: whitespace string raises JSON decode error instead of returning {}")
+def test_parse_tool_args_whitespace_string():
+    parse_tool_args("   ")
+
+def test_has_tool_empty_string():
+    reg = ToolRegistry()
+    assert reg.has_tool("") is False
+
+def test_has_tool_whitespace_string():
+    reg = ToolRegistry()
+    assert reg.has_tool("   ") is False
+
+def test_invoke_empty_tool_name():
+    reg = ToolRegistry()
+    assert reg.invoke("", {}) is None
+
+def test_invoke_whitespace_tool_name():
+    reg = ToolRegistry()
+    assert reg.invoke("   ", {}) is None
+
+def test_invoke_empty_raw_args_no_reqs():
+    reg = ToolRegistry()
+    reg.register_tool(name="test", description="desc", parameters={}, handler=lambda x: "success")
+    assert reg.invoke("test", "") == "success"
+
+def test_invoke_empty_raw_args_one_req():
+    reg = ToolRegistry()
+    reg.register_tool(name="test", description="desc", parameters={"required": ["arg"]}, handler=lambda x: str(x.get("arg")))
+    assert reg.invoke("test", "") == "None"
+
+@pytest.mark.xfail(raises=pytest.fail.Exception, reason="bug: invoke with whitespace raw_args returns JSON error string instead of parsing as empty")
+def test_invoke_whitespace_raw_args_no_reqs():
+    reg = ToolRegistry()
+    reg.register_tool(name="test", description="desc", parameters={}, handler=lambda x: "success")
+    result = reg.invoke("test", "   ")
+    if result and "Error running test" in result:
+        pytest.fail(f"Expected success, got {result}")
+    assert result == "success"
+
+def test_invoke_whitespace_raw_args_one_req():
+    reg = ToolRegistry()
+    reg.register_tool(name="test", description="desc", parameters={"required": ["arg"]}, handler=lambda x: x.get("arg"))
+    result = reg.invoke("test", "   ")
+    assert result == "   "
+
+def test_register_tool_empty_name():
+    reg = ToolRegistry()
+    with pytest.raises(ValueError, match="Tool name must be a non-empty string"):
+        reg.register_tool(name="", description="desc", parameters={}, handler=lambda x: "x")
