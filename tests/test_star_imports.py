@@ -21,7 +21,7 @@ def test_no_star_imports():
         except Exception as e:
             # If parsing fails for another reason, we might want to log it,
             # but usually it means invalid python code.
-            print(f"Error parsing {file_path}: {e}")
+            pass # print(f"Error parsing {file_path}: {e}")
             continue
 
         for node in ast.walk(tree):

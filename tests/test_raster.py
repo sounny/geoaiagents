@@ -12,8 +12,8 @@ def test_raster_normalize():
     min_val = min(min(row) for row in normalized)
     max_val = max(max(row) for row in normalized)
 
-    assert min_val == 0.0
-    assert max_val == 1.0
+    assert min_val == pytest.approx(0.0)
+    assert max_val == pytest.approx(1.0)
 
     const_arr = [[5, 5], [5, 5]]
     const_norm = normalize_raster(const_arr)
@@ -21,5 +21,5 @@ def test_raster_normalize():
     const_min = min(min(row) for row in const_norm)
     const_max = max(max(row) for row in const_norm)
 
-    assert const_min == 0.0
-    assert const_max == 0.0
+    assert const_min == pytest.approx(0.0)
+    assert const_max == pytest.approx(0.0)

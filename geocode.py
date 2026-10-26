@@ -205,7 +205,7 @@ def main():
             frequency_penalty=1,
         )
         message = response.choices[0].message
-    except Exception as e:
+    except BaseException as e:
         print(f"Error communicating with provider: {e}")
         print("Falling back to local geocoding...")
         table = geocode_locations(user_input)
