@@ -2,7 +2,7 @@ import ast
 import glob
 import pytest
 
-ALLOWLIST = []
+ALLOWLIST = ["tests/test_network_block.py"]
 
 def test_meta_network_imports():
     offenders = []

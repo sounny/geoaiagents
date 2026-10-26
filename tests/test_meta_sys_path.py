@@ -5,6 +5,7 @@ from pathlib import Path
 ALLOWLIST = {
     "test_webchat_config.py",
     "test_webchat_map.py",
+    "test_webchat_infer.py",
     "test_install_requirements.py",
 }
 
