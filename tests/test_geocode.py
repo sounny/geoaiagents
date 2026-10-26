@@ -100,6 +100,7 @@ def test_geocode_subclasses(func, kwargs_base_func, mocker, tmp_path):
         else:
             if res_base != res_sub:
                 pytest.xfail("Result mismatch")
+            assert res_base == res_sub, "Results match"
 
 @pytest.mark.parametrize("func, kwargs_base, kwargs_sub", [
     (get_coordinates, {"location_query": {"A": 1}, "timeout": 1, "language": "en"}, {"location_query": MyDict({"A": 1}), "timeout": MyInt(1), "language": MyStr("en")}),
@@ -133,6 +134,7 @@ def test_geocode_unsupported_types(func, kwargs_base, kwargs_sub, mocker, tmp_pa
         except Exception as e_sub:
             if type(e_base) != type(e_sub) or str(e_base) != str(e_sub):
                 pytest.xfail(f"Exception mismatch: {repr(e_base)} != {repr(e_sub)}")
+            assert type(e_base) == type(e_sub)
             return
         pytest.xfail(f"Subclass succeeded but base raised {repr(e_base)}")
     else:
@@ -143,3 +145,4 @@ def test_geocode_unsupported_types(func, kwargs_base, kwargs_sub, mocker, tmp_pa
         else:
             if res != func(**kwargs_base):
                 pytest.xfail("Result mismatch")
+            assert res == func(**kwargs_base)
