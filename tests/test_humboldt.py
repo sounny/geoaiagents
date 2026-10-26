@@ -87,6 +87,7 @@ def test_execute_tool_loop_iter_vs_list_iterable(monkeypatch):
     functions_iter = iter([{"name": "test_func"}])
 
     execute_tool_loop(client, args, messages_iter, functions_iter, lambda x, y: "result")
+    assert False, "Should have failed due to append on iter"
 
 def test_chat_loop_iter_vs_list(monkeypatch):
     from humboldt import chat_loop
@@ -111,6 +112,7 @@ def test_chat_loop_iter_vs_list(monkeypatch):
     functions = [{"name": "test"}]
 
     chat_loop(client, args, messages, registry, functions, lambda x, y: None)
+    assert len(messages) == 2
 
 @pytest.mark.xfail(raises=AttributeError, reason="chat_loop uses append and len which fails for iterables")
 def test_chat_loop_iter_vs_list_iterable(monkeypatch):
@@ -136,3 +138,4 @@ def test_chat_loop_iter_vs_list_iterable(monkeypatch):
     functions = iter([{"name": "test"}])
 
     chat_loop(client, args, messages, registry, functions, lambda x, y: None)
+    assert False, "Should have failed due to append on iter"
