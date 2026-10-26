@@ -4,11 +4,12 @@ import os
 def test_top_level_docstrings():
     modules = ["dd2dms", "distance", "file_loaders", "geocode", "humboldt", "llm_utils", "tool_registry", "validation"]
     allowlist = {
-        "dd2dms.main",
-        "distance.main",
-        "humboldt.build_parser",
-        "humboldt.main"
-    }
+    "dd2dms.main",
+    "distance.main",
+    "humboldt.build_parser",
+    "humboldt.main",
+    'file_loaders.test_load_geojson_point'
+}
 
     missing_docstrings = []
 

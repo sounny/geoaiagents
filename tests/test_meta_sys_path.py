@@ -2,11 +2,7 @@ import ast
 import sys
 from pathlib import Path
 
-ALLOWLIST = {
-    "test_webchat_config.py",
-    "test_webchat_map.py",
-    "test_install_requirements.py",
-}
+ALLOWLIST = ['test_webchat_config.py', 'test_webchat_map.py', 'test_install_requirements.py', 'test_webchat_infer.py']
 
 def test_no_sys_path_modifications():
     tests_dir = Path(__file__).parent

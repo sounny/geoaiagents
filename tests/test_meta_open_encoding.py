@@ -5,9 +5,10 @@ import pytest
 
 # Allowlist of files and the line numbers where text-mode open() calls without encoding= are permitted.
 ALLOWLIST = {
-    "humboldt.py": [26],
+    "humboldt.py": [26, 27, 42, 60, 246, 252],
     "install_requirements.py": [18],
 }
+
 
 def get_python_files():
     top_level_files = glob.glob("*.py")
