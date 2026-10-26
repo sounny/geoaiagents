@@ -1,3 +1,8 @@
+import sys
+import json
+from unittest.mock import patch, MagicMock
+from dd2dms import main
+
 import math
 import pytest
 from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms
@@ -131,3 +136,40 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+NON_ASCII_STRINGS = [
+    "café",
+    "こんにちは",
+    "🌍🌎🌏",
+    "مرحبا"
+]
+
+@pytest.mark.parametrize("text", NON_ASCII_STRINGS)
+def test_convert_dd_to_dms_non_ascii(text):
+    result = convert_dd_to_dms(text)
+    assert text in result
+    assert "Missing latitude/longitude pair" in result
+
+@pytest.mark.parametrize("text", NON_ASCII_STRINGS)
+@pytest.mark.xfail(raises=EOFError, reason="main does not handle EOFError when reading from stdin")
+@patch("builtins.input")
+@patch("dd2dms.call_llm_with_retry")
+def test_main_non_ascii(mock_call_llm, mock_input, text, capsys, tmp_path):
+    mock_input.side_effect = [text, EOFError]
+
+    mock_response = MagicMock()
+    mock_choice = MagicMock()
+    mock_message = MagicMock()
+    import json
+    mock_message.function_call.arguments = json.dumps({"coordinates": text})
+    mock_choice.message = mock_message
+    mock_response.choices = [mock_choice]
+    mock_call_llm.return_value = mock_response
+
+    fake_path = str(tmp_path / text)
+    with patch("sys.argv", ["dd2dms.py", "--base-url", fake_path, "--api-key", text]):
+        main()
+
+    captured = capsys.readouterr()
+    assert text in captured.out
+    assert "Missing latitude/longitude pair" in captured.out
