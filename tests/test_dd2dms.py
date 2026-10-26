@@ -131,3 +131,43 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_convert_dd_to_dms_empty_strings(tmp_path, mocker):
+    _ = tmp_path
+
+    empty_result = convert_dd_to_dms("")
+    ws_result = convert_dd_to_dms("   \n\t")
+
+    expected = "| Latitude (DD) | Longitude (DD) | Latitude (DMS) | Longitude (DMS) |\n|--------------:|---------------:|---------------|---------------|"
+    assert empty_result == expected
+    assert ws_result == expected
+
+    pytest.xfail("Bug: empty strings return an empty table instead of raising an error")
+
+def test_main_empty_strings(tmp_path, mocker):
+    _ = tmp_path
+    from dd2dms import main
+    import types
+
+    mocker.patch('builtins.input', return_value="")
+    mock_llm = mocker.patch('dd2dms.call_llm_with_retry')
+
+    # Configure mock LLM response
+    mock_choice = types.SimpleNamespace(
+        message=types.SimpleNamespace(
+            function_call=types.SimpleNamespace(
+                arguments='{"coordinates": ""}'
+            ),
+            content=""
+        )
+    )
+    mock_llm.return_value = types.SimpleNamespace(choices=[mock_choice])
+
+    # Mock sys.argv to prevent argparse from reading pytest's args
+    mocker.patch('sys.argv', ['dd2dms.py'])
+
+    main()
+
+    assert mock_llm.called
+
+    pytest.xfail("Bug: main() should probably validate empty input before calling LLM")
