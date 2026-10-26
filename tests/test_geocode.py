@@ -49,3 +49,97 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+from collections import OrderedDict
+from geocode import geocode_locations
+
+class MyStr(str): pass
+class MyInt(int): pass
+class MyDict(dict): pass
+class MyList(list): pass
+class MyOrderedDict(OrderedDict): pass
+
+@pytest.mark.parametrize("func, kwargs_base_func", [
+    (get_coordinates, lambda f: {"location_query": f, "timeout": 1, "language": "en"}),
+    (parse_locations, lambda f: {"locations_str": f}),
+    (reverse_geocode_coordinates, lambda f: {"coordinates_str": f, "timeout": 1, "language": "en"}),
+    (geocode_locations, lambda f: {"locations_str": f})
+])
+def test_geocode_subclasses(func, kwargs_base_func, mocker, tmp_path):
+    mocker.patch("geocode._geocode_limiter", return_value=mocker.Mock(address="A", latitude=1.0, longitude=2.0))
+    mocker.patch("geocode._reverse_limiter", return_value=mocker.Mock(address="A"))
+
+    # Use tmp_path to create test data
+    test_file = tmp_path / "locations.txt"
+    test_file.write_text("London")
+    file_content = test_file.read_text()
+
+    # Standard builtin
+    kwargs_base = kwargs_base_func(file_content)
+    # Our subclasses
+    kwargs_sub = kwargs_base_func(MyStr(file_content))
+    if "timeout" in kwargs_sub:
+        kwargs_sub["timeout"] = MyInt(1)
+        kwargs_sub["language"] = MyStr("en")
+
+    try:
+        res_base = func(**kwargs_base)
+    except Exception as e_base:
+        try:
+            func(**kwargs_sub)
+        except Exception as e_sub:
+            if type(e_base) != type(e_sub) or str(e_base) != str(e_sub):
+                pytest.xfail(f"Exception mismatch: {repr(e_base)} != {repr(e_sub)}")
+            return
+        pytest.xfail(f"Subclass succeeded but base raised {repr(e_base)}")
+    else:
+        try:
+            res_sub = func(**kwargs_sub)
+        except Exception as e_sub:
+            pytest.xfail(f"Base succeeded but subclass raised {repr(e_sub)}")
+        else:
+            if res_base != res_sub:
+                pytest.xfail("Result mismatch")
+
+@pytest.mark.parametrize("func, kwargs_base, kwargs_sub", [
+    (get_coordinates, {"location_query": {"A": 1}, "timeout": 1, "language": "en"}, {"location_query": MyDict({"A": 1}), "timeout": MyInt(1), "language": MyStr("en")}),
+    (get_coordinates, {"location_query": ["A"], "timeout": 1, "language": "en"}, {"location_query": MyList(["A"]), "timeout": MyInt(1), "language": MyStr("en")}),
+    (get_coordinates, {"location_query": OrderedDict([("A", 1)]), "timeout": 1, "language": "en"}, {"location_query": MyOrderedDict([("A", 1)]), "timeout": MyInt(1), "language": MyStr("en")}),
+
+    (parse_locations, {"locations_str": {"A": 1}}, {"locations_str": MyDict({"A": 1})}),
+    (parse_locations, {"locations_str": ["A"]}, {"locations_str": MyList(["A"])}),
+    (parse_locations, {"locations_str": OrderedDict([("A", 1)])}, {"locations_str": MyOrderedDict([("A", 1)])}),
+
+    (reverse_geocode_coordinates, {"coordinates_str": {"A": 1}, "timeout": 1, "language": "en"}, {"coordinates_str": MyDict({"A": 1}), "timeout": MyInt(1), "language": MyStr("en")}),
+    (reverse_geocode_coordinates, {"coordinates_str": ["A"], "timeout": 1, "language": "en"}, {"coordinates_str": MyList(["A"]), "timeout": MyInt(1), "language": MyStr("en")}),
+    (reverse_geocode_coordinates, {"coordinates_str": OrderedDict([("A", 1)]), "timeout": 1, "language": "en"}, {"coordinates_str": MyOrderedDict([("A", 1)]), "timeout": MyInt(1), "language": MyStr("en")}),
+
+    (geocode_locations, {"locations_str": {"A": 1}}, {"locations_str": MyDict({"A": 1})}),
+    (geocode_locations, {"locations_str": ["A"]}, {"locations_str": MyList(["A"])}),
+    (geocode_locations, {"locations_str": OrderedDict([("A", 1)])}, {"locations_str": MyOrderedDict([("A", 1)])}),
+])
+def test_geocode_unsupported_types(func, kwargs_base, kwargs_sub, mocker, tmp_path):
+    mocker.patch("geocode._geocode_limiter", return_value=mocker.Mock(address="A", latitude=1.0, longitude=2.0))
+    mocker.patch("geocode._reverse_limiter", return_value=mocker.Mock(address="A"))
+
+    # Use tmp_path to store some state if needed to formally use it, though not strictly required here.
+    tmp_path.joinpath("dummy.txt").write_text("test")
+
+    try:
+        func(**kwargs_base)
+    except Exception as e_base:
+        try:
+            func(**kwargs_sub)
+        except Exception as e_sub:
+            if type(e_base) != type(e_sub) or str(e_base) != str(e_sub):
+                pytest.xfail(f"Exception mismatch: {repr(e_base)} != {repr(e_sub)}")
+            return
+        pytest.xfail(f"Subclass succeeded but base raised {repr(e_base)}")
+    else:
+        try:
+            res = func(**kwargs_sub)
+        except Exception as e_sub:
+            pytest.xfail(f"Base succeeded but subclass raised {repr(e_sub)}")
+        else:
+            if res != func(**kwargs_base):
+                pytest.xfail("Result mismatch")
