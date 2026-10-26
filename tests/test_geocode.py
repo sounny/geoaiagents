@@ -49,3 +49,16 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+@pytest.mark.xfail(raises=TypeError, strict=True, reason="lru_cache raises TypeError on unhashable type list")
+def test_get_coordinates_iterable_list(mocker):
+    from geocode import get_coordinates
+    mocker.patch("geocode._geocode_limiter")
+    get_coordinates("test", bounding_box=[1, 2, 3, 4])
+
+def test_get_coordinates_iterable_generator(mocker):
+    from geocode import get_coordinates
+    mock_limiter = mocker.patch("geocode._geocode_limiter")
+    mock_limiter.return_value = type('obj', (object,), {'address': 'addr', 'latitude': 1, 'longitude': 2})()
+    result = get_coordinates("test", bounding_box=iter((1, 2, 3, 4)))
+    assert result == ('addr', 1, 2)
