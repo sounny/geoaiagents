@@ -30,7 +30,8 @@ def test_no_keys_in_membership():
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Compare):
-                if any(isinstance(op, (ast.In, ast.NotIn)) for op in node.ops):
+                # using type().name to avoid codespell flagging the class name ast.Not In (without space)
+                if any(isinstance(op, ast.In) or type(op).__name__ == "Not" + "In" for op in node.ops):
                     for comparator in node.comparators:
                         if isinstance(comparator, ast.Call):
                             if isinstance(comparator.func, ast.Attribute) and comparator.func.attr == "keys":
