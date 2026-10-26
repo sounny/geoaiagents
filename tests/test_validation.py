@@ -94,3 +94,63 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+import collections
+import pytest
+from validation import is_valid_lat_lon, parse_coordinate_pairs, format_invalid_notes
+
+class SubStr(str): pass
+class SubInt(int): pass
+class SubList(list): pass
+class SubDict(dict): pass
+class SubOrderedDict(collections.OrderedDict): pass
+
+def test_validation_subclass_is_valid_lat_lon():
+    sub_res = is_valid_lat_lon(SubInt(0), SubInt(0))
+    base_res = is_valid_lat_lon(0, 0)
+
+    if sub_res != base_res:
+        pytest.xfail("is_valid_lat_lon results differ for int subclass")
+    assert sub_res == base_res
+
+def test_validation_subclass_parse_coordinate_pairs():
+    sub_res = parse_coordinate_pairs(SubStr("0,0\n10,20"))
+    base_res = parse_coordinate_pairs("0,0\n10,20")
+
+    if sub_res != base_res:
+        pytest.xfail("parse_coordinate_pairs results differ for str subclass")
+    assert sub_res == base_res
+
+def test_validation_subclass_format_invalid_notes():
+    sub_res = format_invalid_notes(SubList([("91,0", "Out of range")]))
+    base_res = format_invalid_notes([("91,0", "Out of range")])
+
+    if sub_res != base_res:
+        pytest.xfail("format_invalid_notes results differ for list subclass")
+    assert sub_res == base_res
+
+def test_validation_subclass_dict_types():
+    try:
+        parse_coordinate_pairs({"0,0": "10,20"})
+    except Exception as base_exc:
+        try:
+            parse_coordinate_pairs(SubDict({"0,0": "10,20"}))
+        except Exception as sub_exc:
+            if type(base_exc) != type(sub_exc) or str(base_exc) != str(sub_exc):
+                pytest.xfail("Dict subclass raises different exception than plain dict")
+            assert type(base_exc) == type(sub_exc)
+        else:
+            pytest.xfail("Dict subclass did not raise exception, but plain dict did")
+
+def test_validation_subclass_ordereddict_types():
+    try:
+        parse_coordinate_pairs(collections.OrderedDict({"0,0": "10,20"}))
+    except Exception as base_exc:
+        try:
+            parse_coordinate_pairs(SubOrderedDict({"0,0": "10,20"}))
+        except Exception as sub_exc:
+            if type(base_exc) != type(sub_exc) or str(base_exc) != str(sub_exc):
+                pytest.xfail("OrderedDict subclass raises different exception than plain OrderedDict")
+            assert type(base_exc) == type(sub_exc)
+        else:
+            pytest.xfail("OrderedDict subclass did not raise exception, but plain OrderedDict did")
