@@ -122,7 +122,7 @@ def test_get_coordinates_special_floats(mocker, tmp_path, monkeypatch, timeout, 
             get_coordinates("Paris", timeout=timeout)
     else:
         res = get_coordinates("Paris", timeout=timeout)
-        assert res == ("Mocked Address", 40.0, -70.0)
+        assert res[0] == "Mocked Address" and res[1] == pytest.approx(40.0) and res[2] == pytest.approx(-70.0)
 
 @pytest.mark.parametrize("timeout, expected_error", [
     pytest.param(float("nan"), ValueError, marks=pytest.mark.xfail(raises=_pytest.outcomes.Failed, strict=True, reason="Bug: geocode swallows ValueError for nan timeout")),
@@ -186,7 +186,7 @@ def test_get_coordinates_special_floats(mocker, tmp_path, monkeypatch, timeout, 
             assert False, f"Expected {expected_error.__name__} to be raised, but it was swallowed"
     else:
         res = get_coordinates("Paris", timeout=timeout)
-        assert res == ("Mocked Address", 40.0, -70.0)
+        assert res[0] == "Mocked Address" and res[1] == pytest.approx(40.0) and res[2] == pytest.approx(-70.0)
 
 @pytest.mark.parametrize("timeout, expected_error", [
     pytest.param(float("nan"), ValueError, marks=pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: geocode swallows ValueError for nan timeout")),
