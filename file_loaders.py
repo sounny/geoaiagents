@@ -13,6 +13,74 @@ def _table(coords):
     return "\n".join(lines)
 
 
+
+def extract_point(obj, coords):
+    c = obj.get("coordinates", [])
+    if len(c) >= 2:
+        lon, lat = c[:2]
+        coords.append((lat, lon))
+
+def extract_feature(obj, extract_fn):
+    geom = obj.get("geometry")
+    if geom is not None and not isinstance(geom, dict):
+        raise ValueError("Feature geometry must be an object or null")
+    extract_fn(geom)
+
+def _extract_dict(obj, coords, extract_fn):
+    t = obj.get("type")
+    if t == "Point":
+        extract_point(obj, coords)
+    elif t == "FeatureCollection":
+        for f in obj.get("features", []):
+            extract_fn(f.get("geometry"))
+    elif t == "Feature":
+        extract_feature(obj, extract_fn)
+    else:
+        for v in obj.values():
+            extract_fn(v)
+
+def _extract_list(obj, coords, extract_fn):
+    if len(obj) >= 2 and all(isinstance(n, (int, float)) for n in obj[:2]):
+        lon, lat = obj[:2]
+        coords.append((lat, lon))
+    else:
+        for v in obj:
+            extract_fn(v)
+
+
+def extract_point(obj, coords):
+    c = obj.get("coordinates", [])
+    if len(c) >= 2:
+        lon, lat = c[:2]
+        coords.append((lat, lon))
+
+def extract_feature(obj, extract_fn):
+    geom = obj.get("geometry")
+    if geom is not None and not isinstance(geom, dict):
+        raise ValueError("Feature geometry must be an object or null")
+    extract_fn(geom)
+
+def _extract_dict(obj, coords, extract_fn):
+    t = obj.get("type")
+    if t == "Point":
+        extract_point(obj, coords)
+    elif t == "FeatureCollection":
+        for f in obj.get("features", []):
+            extract_fn(f.get("geometry"))
+    elif t == "Feature":
+        extract_feature(obj, extract_fn)
+    else:
+        for v in obj.values():
+            extract_fn(v)
+
+def _extract_list(obj, coords, extract_fn):
+    if len(obj) >= 2 and all(isinstance(n, (int, float)) for n in obj[:2]):
+        lon, lat = obj[:2]
+        coords.append((lat, lon))
+    else:
+        for v in obj:
+            extract_fn(v)
+
 def load_geojson(geojson: str) -> str:
     """Parse GeoJSON text and return a markdown table of point coordinates."""
     if not geojson or not geojson.strip():
@@ -26,33 +94,12 @@ def load_geojson(geojson: str) -> str:
 
     def extract(obj):
         if isinstance(obj, dict):
-            if obj.get("type") == "Point":
-                c = obj.get("coordinates", [])
-                if len(c) >= 2:
-                    lon, lat = c[:2]
-                    coords.append((lat, lon))
-            elif obj.get("type") == "FeatureCollection":
-                for f in obj.get("features", []):
-                    extract(f.get("geometry"))
-            elif obj.get("type") == "Feature":
-                geom = obj.get("geometry")
-                if geom is not None and not isinstance(geom, dict):
-                    raise ValueError("Feature geometry must be an object or null")
-                extract(geom)
-            else:
-                for v in obj.values():
-                    extract(v)
+            _extract_dict(obj, coords, extract)
         elif isinstance(obj, list):
-            if len(obj) >= 2 and all(isinstance(n, (int, float)) for n in obj[:2]):
-                lon, lat = obj[:2]
-                coords.append((lat, lon))
-            else:
-                for v in obj:
-                    extract(v)
+            _extract_list(obj, coords, extract)
 
     extract(data)
     return _table(coords)
-
 
 def load_kml(kml: str) -> str:
     """Parse KML text and return a markdown table of coordinates."""

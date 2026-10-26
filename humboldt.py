@@ -223,11 +223,6 @@ def main():
 
     client = OpenAI(base_url=args.base_url, api_key=args.api_key)
 
-    logging.basicConfig(
-        level=logging.DEBUG if args.debug else logging.INFO,
-        format="%(levelname)s: %(message)s",
-    )
-
     system_prompt = (
         "You are a GeoAI Agent who is an expert GIS and Remote Sensing Analyst, "
         "cartographer, and Geospatial Developer. Your name is Humboldt, in honor "
@@ -260,4 +255,8 @@ def main():
     chat_loop(client, args, messages, tool_registry, functions, run_tool_call)
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
     main()

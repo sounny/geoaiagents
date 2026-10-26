@@ -132,7 +132,7 @@ def main():
             max_tokens=1000,
             frequency_penalty=1,
         )
-    except Exception as e:
+    except (ValueError, TypeError, ConnectionError, OSError) as e:
         print(f"Error calling LLM: {e}")
         return
     message = response.choices[0].message

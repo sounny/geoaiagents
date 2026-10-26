@@ -58,7 +58,7 @@ def get_coordinates(location_query, *, timeout=1, bounding_box=None, language="e
             return location.address, location.latitude, location.longitude
         else:
             return None, None, None
-    except (GeocoderTimedOut, GeocoderServiceError, Exception):
+    except (GeocoderTimedOut, GeocoderServiceError, ValueError, TypeError, ConnectionError, OSError):
         # Return empty tuple on any geocoding failure
         return None, None, None
 
@@ -95,7 +95,7 @@ def reverse_geocode_coordinates(coordinates_str: str, *, timeout=1, language="en
             location = _reverse_limiter((lat, lon), language=language, timeout=timeout)
             address = location.address if location else "Not found"
             cache[(lat, lon)] = address
-        except (GeocoderTimedOut, GeocoderServiceError, Exception):
+        except (GeocoderTimedOut, GeocoderServiceError, ValueError, TypeError, ConnectionError, OSError):
             address = "Not found"
             cache[(lat, lon)] = address
         rows.append((lat, lon, address))
@@ -205,9 +205,9 @@ def main():
             frequency_penalty=1,
         )
         message = response.choices[0].message
-    except Exception as e:
-        print(f"Error communicating with provider: {e}")
-        print("Falling back to local geocoding...")
+    except (ValueError, TypeError, ConnectionError, OSError) as e:
+
+
         table = geocode_locations(user_input)
         print(table)
         print("\nDatum: WGS84 (coordinates shown in Decimal Degrees).")
