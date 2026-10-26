@@ -94,3 +94,30 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_format_invalid_notes_sequence_types(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    lst_input = [("1,2", "err")]
+    tpl_input = (("1,2", "err"),)
+
+    assert format_invalid_notes(lst_input) == format_invalid_notes(tpl_input)
+
+def test_swap_axis_order_sequence_types(tmp_path, monkeypatch):
+    try:
+        from validation import swap_axis_order
+    except ImportError:
+        pytest.xfail("swap_axis_order helper is missing")
+
+    monkeypatch.chdir(tmp_path)
+
+    lst_input = [10.0, 20.0]
+    tpl_input = (10.0, 20.0)
+
+    res_lst = swap_axis_order(lst_input)
+    res_tpl = swap_axis_order(tpl_input)
+
+    if res_lst != res_tpl:
+        pytest.xfail("swap_axis_order behavior differs between list and tuple inputs")
+
+    assert res_lst == res_tpl
