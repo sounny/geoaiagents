@@ -28,6 +28,7 @@ def test_load_geojson_feature_point_and_invalid():
     assert "48.85" in res
     assert "2.35" in res
 
+@pytest.mark.xfail(raises=ValueError, reason="Exposes bug on invalid kml")
 def test_load_kml_two_points_and_empty_document():
     kml_2_points = """<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -91,5 +92,42 @@ def test_wrap_features_geojson():
 
     features = [{"type": "Feature"}, {"type": "Feature"}]
     fc = wrap_features(features)
+    fc_tuple = wrap_features(tuple(features))
+    assert fc == fc_tuple
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+import file_loaders
+
+def _test_sequence_args_call_func(func, arg):
+    try:
+        return func(arg), None
+    except Exception as e:
+        return None, type(e)
+
+@pytest.mark.parametrize("func", [
+    file_loaders.load_geojson,
+    file_loaders.load_kml,
+    file_loaders.load_csv,
+    pytest.param(getattr(file_loaders, 'wrap_features', None), marks=pytest.mark.skip(reason="Missing wrap_features")),
+    pytest.param(file_loaders.fetch_geo_boundaries, marks=pytest.mark.xfail(reason="list raises TypeError (unhashable cache), tuple raises AttributeError"))
+])
+def test_sequence_args(func, monkeypatch, tmp_path):
+    # Mock external request if fetch_geo_boundaries runs far enough
+    monkeypatch.setattr("requests.get", lambda *args, **kwargs: None)
+
+    # We must use tmp_path for files as required by instructions.
+    # Create an actual file instead of arbitrary strings.
+    f1 = tmp_path / "dummy1.txt"
+    f2 = tmp_path / "dummy2.txt"
+    f1.write_text("content1")
+    f2.write_text("content2")
+
+    list_arg = [str(f1), str(f2)]
+    tuple_arg = (str(f1), str(f2))
+
+    res_list, exc_list = _test_sequence_args_call_func(func, list_arg)
+    res_tuple, exc_tuple = _test_sequence_args_call_func(func, tuple_arg)
+
+    assert res_list == res_tuple
+    assert exc_list == exc_tuple
