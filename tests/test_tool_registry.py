@@ -61,7 +61,7 @@ def test_tool_registry_invoke_unicode(mocker):
     registry = create_registry()
     result = registry.invoke("geocode_locations", '{"locations": "Paris, é汉😎"}')
     import tool_registry
-    tool_registry.geocode_locations.assert_called_once_with("Paris, é汉😎")
+    tool_registry.geocode_locations.assert_called_once_with(locations="Paris, é汉😎")
     assert result == "Mocked response"
 
 def test_tool_registry_builtin_openai_functions_convert_dd_to_dms_membership():

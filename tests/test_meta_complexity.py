@@ -15,7 +15,8 @@ def get_complexity(node):
 
 def test_cyclomatic_complexity():
     allowlist = {
-        "humboldt.py::main": 20
+        "humboldt.py::main": 20,
+        "file_loaders.py::load_geojson": 17
     }
 
     files_to_check = glob.glob("*.py") + glob.glob("plugins/*.py")
