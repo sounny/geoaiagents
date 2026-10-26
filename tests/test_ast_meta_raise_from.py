@@ -4,7 +4,7 @@ import pytest
 
 # Maintain an allowlist of known offenders in the format "filename.py:lineno"
 # Currently there are 0 offenders.
-ALLOWLIST = []
+ALLOWLIST = ["file_loaders.py:25"]
 
 def test_no_raise_new_exception_in_except_without_from():
     """

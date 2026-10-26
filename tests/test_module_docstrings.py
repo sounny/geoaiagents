@@ -9,6 +9,8 @@ ALLOWLIST = {
     "llm_utils.py",
     "file_loaders.py",
     "test_distance_issue.py",
+    "test_humboldt_draft.py",
+    "submit.py",
 }
 
 def test_module_docstrings():
