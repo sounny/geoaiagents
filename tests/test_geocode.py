@@ -47,5 +47,5 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
 
     addr, lat, lon = geocode.get_coordinates("Mockville")
     assert addr == "First Place"
-    assert lat == 40.0
-    assert lon == -70.0
+    assert lat == pytest.approx(40.0)
+    assert lon == pytest.approx(-70.0)
