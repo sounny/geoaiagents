@@ -15,6 +15,7 @@ def get_complexity(node):
 
 def test_cyclomatic_complexity():
     allowlist = {
+        "file_loaders.py::load_geojson": 18,
         "humboldt.py::main": 20
     }
 

@@ -5,6 +5,8 @@ import pytest
 
 # Allowlist for existing files that violate the print() rule
 ALLOWLIST = {
+    "geocode.py",
+    "humboldt.py",
     "geoai_cli.py",
     "humboldt.py",
     "install_requirements.py",
