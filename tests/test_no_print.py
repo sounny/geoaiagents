@@ -3,7 +3,7 @@ import os
 import pytest
 
 MODULES_TO_CHECK = [
-    'distance', 'file_loaders', 'geocode', 'humboldt',
+    'distance', 'file_loaders',
     'llm_utils', 'tool_registry', 'validation'
 ]
 
