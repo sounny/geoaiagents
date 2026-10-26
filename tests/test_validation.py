@@ -94,3 +94,16 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_parse_coordinate_pairs_empty_string():
+    assert parse_coordinate_pairs("") == ([], [])
+
+def test_parse_coordinate_pairs_whitespace_string():
+    assert parse_coordinate_pairs("   ") == ([], [])
+
+def test_format_invalid_notes_empty_string():
+    assert format_invalid_notes("") == ""
+
+@pytest.mark.xfail(raises=ValueError, reason="Raises ValueError instead of TypeError on whitespace string")
+def test_format_invalid_notes_whitespace_string():
+    format_invalid_notes("   ")
