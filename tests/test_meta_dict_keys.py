@@ -30,7 +30,7 @@ def test_no_keys_in_membership():
 
         for node in ast.walk(tree):
             if isinstance(node, ast.Compare):
-                if any(isinstance(op, (ast.In, ast.NotIn)) for op in node.ops):
+                if any(isinstance(op, (ast.In, ast.NotEq, getattr(ast, "NotIn"))) for op in node.ops):
                     for comparator in node.comparators:
                         if isinstance(comparator, ast.Call):
                             if isinstance(comparator.func, ast.Attribute) and comparator.func.attr == "keys":
