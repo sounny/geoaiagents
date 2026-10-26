@@ -121,3 +121,48 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: parse_tool_args silently drops items from list and iterators instead of passing them to tools correctly.")
+def test_parse_tool_args_list_vs_iter(tmp_path):
+    # Use tmp_path to hold some mock data
+    d = tmp_path / "mock"
+    d.mkdir(exist_ok=True)
+    p = d / "data.json"
+    p.write_text('{"key": "value"}')
+
+    l = [p.read_text()]
+    i = iter([p.read_text()])
+
+    res_list = parse_tool_args(l)
+    res_iter = parse_tool_args(i)
+
+    # Assert expected correct behavior: list and iterator should not be ignored
+    assert res_list != {}
+    assert res_iter != {}
+    assert res_list == res_iter
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: ToolRegistry.invoke implicitly drops lists and iterators via parse_tool_args.")
+def test_invoke_list_vs_iter(mocker, tmp_path):
+    registry = create_registry()
+    mocker.patch("file_loaders.requests.get")
+
+    # Use tmp_path to store mock input argument per instructions
+    dummy_dir = tmp_path / "dummy_dir"
+    dummy_dir.mkdir(exist_ok=True)
+    dummy_file = dummy_dir / "iso.txt"
+    dummy_file.write_text("USA")
+
+    iso_code = dummy_file.read_text().strip()
+
+    l = [iso_code]
+    i = iter([iso_code])
+
+    res_list = registry.invoke("fetch_geo_boundaries", l)
+    res_iter = registry.invoke("fetch_geo_boundaries", i)
+
+    # Expected correct behavior: they should handle the iso_code correctly,
+    # and they should not evaluate identically to the empty arguments fallback.
+    empty_res = registry.invoke("fetch_geo_boundaries", "")
+    assert res_list != empty_res
+    assert res_iter != empty_res
+    assert res_list == res_iter
