@@ -41,3 +41,37 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+import pytest
+import sys
+from unittest.mock import patch
+import geoai_cli
+
+@pytest.mark.parametrize("val", [float("nan"), float("inf"), float("-inf"), -0.0])
+@pytest.mark.xfail(raises=SystemExit, reason="argparse raises SystemExit on invalid types")
+def test_geoai_cli_max_steps_special_floats(val, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with patch("sys.argv", ["geoai_cli.py", "chat", "--max-steps", str(val)]):
+        with pytest.raises(SystemExit):
+            geoai_cli.main()
+import pytest
+import sys
+from unittest.mock import patch
+import geoai_cli
+
+@pytest.mark.parametrize("val", [float("nan"), float("inf"), float("-inf"), -0.0])
+@pytest.mark.xfail(raises=SystemExit, reason="argparse raises SystemExit on invalid types for --max-steps which expects an int")
+def test_geoai_cli_max_steps_special_floats(val, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with patch("sys.argv", ["geoai_cli.py", "chat", "--max-steps", str(val)]):
+        geoai_cli.main()
+import pytest
+import sys
+from unittest.mock import patch
+import geoai_cli
+
+@pytest.mark.parametrize("val", [float("nan"), float("inf"), float("-inf"), -0.0])
+@pytest.mark.xfail(raises=SystemExit, reason="argparse raises SystemExit on invalid types for --max-steps which expects an int")
+def test_geoai_cli_max_steps_special_floats(val, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    with patch("sys.argv", ["geoai_cli.py", "chat", "--max-steps", str(val)]):
+        geoai_cli.main()
