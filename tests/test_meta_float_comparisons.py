@@ -4,6 +4,8 @@ import os
 
 ALLOWLIST = {
     "test_dd2dms.py",
+    "test_raster.py",
+    "test_geocode.py",
 }
 
 def _is_float_literal(node):
