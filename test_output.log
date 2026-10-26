@@ -1,0 +1,1249 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.1.1, pluggy-1.7.0
+rootdir: /app
+configfile: pytest.ini
+plugins: mock-3.17.0, anyio-4.15.1
+collected 728 items
+
+test_humboldt_draft.py ....x                                             [  0%]
+tests/test_actionlint_workflow.py .                                      [  0%]
+tests/test_agents_md.py ..............                                   [  2%]
+tests/test_ast_class_attributes.py .                                     [  2%]
+tests/test_ast_lambdas.py .                                              [  3%]
+tests/test_ast_meta_raise_from.py F                                      [  3%]
+tests/test_ast_subprocess.py .                                           [  3%]
+tests/test_bare_except.py .                                              [  3%]
+tests/test_bbox.py x                                                     [  3%]
+tests/test_chained_assignment.py .                                       [  3%]
+tests/test_chmod_meta.py ...............                                 [  5%]
+tests/test_citation.py .                                                 [  5%]
+tests/test_code_quality.py .                                             [  6%]
+tests/test_configuration.py ......                                       [  6%]
+tests/test_crs.py xx                                                     [  7%]
+tests/test_dd2dms.py ...........X                                        [  8%]
+tests/test_deprecated_imports.py ...............                         [ 10%]
+tests/test_distance.py .................xx                               [ 13%]
+tests/test_docs_snippets.py .                                            [ 13%]
+tests/test_docstrings.py F                                               [ 13%]
+tests/test_example_plugin.py ...x                                        [ 14%]
+tests/test_file_loaders.py x.F..x                                        [ 15%]
+tests/test_fstring_meta.py ...............                               [ 17%]
+tests/test_function_params.py ...............                            [ 19%]
+tests/test_geoai_cli.py x..                                              [ 19%]
+tests/test_geocode.py ......                                             [ 20%]
+tests/test_geocode_fallback.py .                                         [ 20%]
+tests/test_geohash.py xx                                                 [ 20%]
+tests/test_gitignore.py .                                                [ 21%]
+tests/test_gitleaks_workflow.py .                                        [ 21%]
+tests/test_hardcoded_paths.py .                                          [ 21%]
+tests/test_hashlib_security.py .                                         [ 21%]
+tests/test_humboldt.py x                                                 [ 21%]
+tests/test_import_order.py ..........                                    [ 22%]
+tests/test_imports.py x..                                                [ 23%]
+tests/test_index_html.py .                                               [ 23%]
+tests/test_install_requirements.py .s...                                 [ 24%]
+tests/test_license.py .                                                  [ 24%]
+tests/test_line_length.py F                                              [ 24%]
+tests/test_llm_utils.py FF                                               [ 24%]
+tests/test_manifest_icons.py x                                           [ 24%]
+tests/test_manifest_json.py .                                            [ 25%]
+tests/test_manifest_link.py x                                            [ 25%]
+tests/test_mercator.py xx                                                [ 25%]
+tests/test_meta.py .                                                     [ 25%]
+tests/test_meta_all_defined.py ..............                            [ 27%]
+tests/test_meta_assert_tuple.py .                                        [ 27%]
+tests/test_meta_asserts.py F                                             [ 27%]
+tests/test_meta_ast_is_literal.py .                                      [ 27%]
+tests/test_meta_ast_nonlocal.py .                                        [ 28%]
+tests/test_meta_base_exception.py .                                      [ 28%]
+tests/test_meta_bool_compare.py .                                        [ 28%]
+tests/test_meta_capwords.py .                                            [ 28%]
+tests/test_meta_class_method_count.py .                                  [ 28%]
+tests/test_meta_complexity.py F                                          [ 28%]
+tests/test_meta_dataclass_replace.py .                                   [ 28%]
+tests/test_meta_datetime.py .                                            [ 28%]
+tests/test_meta_debug_statements.py .                                    [ 29%]
+tests/test_meta_del.py ...............                                   [ 31%]
+tests/test_meta_dict_assignment.py ...............                       [ 33%]
+tests/test_meta_dict_keys.py .                                           [ 33%]
+tests/test_meta_docstring.py ..............                              [ 35%]
+tests/test_meta_duplicate_methods.py .                                   [ 35%]
+tests/test_meta_duplicate_names.py .                                     [ 35%]
+tests/test_meta_empty_except.py .                                        [ 35%]
+tests/test_meta_empty_tests.py ......................................... [ 41%]
+........................................................................ [ 51%]
+...............................................                          [ 57%]
+tests/test_meta_except_handlers.py F                                     [ 57%]
+tests/test_meta_exit.py .                                                [ 57%]
+tests/test_meta_finally_blocks.py .                                      [ 58%]
+tests/test_meta_fixture_sleep.py .                                       [ 58%]
+tests/test_meta_float_comparison.py .                                    [ 58%]
+tests/test_meta_float_comparisons.py F                                   [ 58%]
+tests/test_meta_functions_nesting.py .                                   [ 58%]
+tests/test_meta_input.py .                                               [ 58%]
+tests/test_meta_len_comparison.py .                                      [ 58%]
+tests/test_meta_logger_fstring.py .                                      [ 59%]
+tests/test_meta_logging.py F                                             [ 59%]
+tests/test_meta_logging_fstring.py ..........s....                       [ 61%]
+tests/test_meta_loops.py .                                               [ 61%]
+tests/test_meta_magic_numbers.py ...............                         [ 63%]
+tests/test_meta_map_filter_lambda.py ...............                     [ 65%]
+tests/test_meta_markers.py .                                             [ 65%]
+tests/test_meta_mktemp.py ..............                                 [ 67%]
+tests/test_meta_module_length.py .                                       [ 67%]
+tests/test_meta_network_imports.py F                                     [ 67%]
+tests/test_meta_no_literal_write_paths.py .                              [ 67%]
+tests/test_meta_no_os_chdir.py ...............                           [ 70%]
+tests/test_meta_no_print_in_tests.py F                                   [ 70%]
+tests/test_meta_not_in.py .                                              [ 70%]
+tests/test_meta_open_encoding.py .....F.........                         [ 72%]
+tests/test_meta_open_path.py .                                           [ 72%]
+tests/test_meta_pass_statement.py ...............                        [ 74%]
+tests/test_meta_pep604_annotations.py s                                  [ 74%]
+tests/test_meta_print_outside_entry.py .ss.ss..s...s..                   [ 76%]
+tests/test_meta_relative_imports.py .                                    [ 76%]
+tests/test_meta_secrets.py .                                             [ 77%]
+tests/test_meta_skip.py .                                                [ 77%]
+tests/test_meta_skip_reason.py .                                         [ 77%]
+tests/test_meta_sleep.py .                                               [ 77%]
+tests/test_meta_str_concat.py .                                          [ 77%]
+tests/test_meta_subprocess_shell.py ...............                      [ 79%]
+tests/test_meta_swallowed_exceptions.py .                                [ 79%]
+tests/test_meta_sys_path.py F                                            [ 79%]
+tests/test_meta_tabs.py .                                                [ 80%]
+tests/test_meta_tarfile_extraction.py .                                  [ 80%]
+tests/test_meta_test_bare_return_fixture.py .                            [ 80%]
+tests/test_meta_tests.py .                                               [ 80%]
+tests/test_meta_three_arg_getattr.py .                                   [ 80%]
+tests/test_meta_tmp.py .                                                 [ 80%]
+tests/test_meta_tuple_assert.py .                                        [ 80%]
+tests/test_meta_type_compare.py .                                        [ 81%]
+tests/test_meta_type_ignore.py .                                         [ 81%]
+tests/test_meta_unittest_aliases.py .                                    [ 81%]
+tests/test_meta_unittest_testcase.py .                                   [ 81%]
+tests/test_meta_verify.py .                                              [ 81%]
+tests/test_meta_walrus.py ...............                                [ 83%]
+tests/test_meta_yaml.py .                                                [ 83%]
+tests/test_meta_yield_from.py .                                          [ 83%]
+tests/test_module_docstrings.py F                                        [ 84%]
+tests/test_mutable_defaults.py .                                         [ 84%]
+tests/test_nesting.py .                                                  [ 84%]
+tests/test_nesting_meta.py .                                             [ 84%]
+tests/test_network_block.py x                                            [ 84%]
+tests/test_newlines_eof.py .                                             [ 84%]
+tests/test_no_globals.py .                                               [ 84%]
+tests/test_no_pickle.py .                                                [ 85%]
+tests/test_no_print.py F                                                 [ 85%]
+tests/test_none_comparisons.py ...............                           [ 87%]
+tests/test_noqa_meta.py .                                                [ 87%]
+tests/test_open_meta.py .                                                [ 87%]
+tests/test_orchestration_retry.py ...Fx                                  [ 88%]
+tests/test_os_environ_ast.py .                                           [ 88%]
+tests/test_os_system_calls.py .                                          [ 88%]
+tests/test_pip_check_workflow.py .                                       [ 88%]
+tests/test_plugins_init.py ..                                            [ 88%]
+tests/test_provider_edge_cases.py ......                                 [ 89%]
+tests/test_provider_selection.py .........                               [ 90%]
+tests/test_pytest_config.py .                                            [ 91%]
+tests/test_raise_not_implemented.py .                                    [ 91%]
+tests/test_random_seed_meta.py .                                         [ 91%]
+tests/test_raster.py x                                                   [ 91%]
+tests/test_readme.py .                                                   [ 91%]
+tests/test_security_eval_exec.py .                                       [ 91%]
+tests/test_setattr_meta.py .                                             [ 91%]
+tests/test_snake_case_names.py .                                         [ 92%]
+tests/test_star_imports.py .                                             [ 92%]
+tests/test_subprocess_ast.py .                                           [ 92%]
+tests/test_tile_helpers.py x                                             [ 92%]
+tests/test_todos.py .                                                    [ 92%]
+tests/test_tool_registry.py ..............                               [ 94%]
+tests/test_unreachable.py .                                              [ 94%]
+tests/test_utm.py x                                                      [ 94%]
+tests/test_validation.py ........x                                       [ 96%]
+tests/test_wcag_ui.py ...                                                [ 96%]
+tests/test_webchat.py ..                                                 [ 96%]
+tests/test_webchat_config.py ...                                         [ 97%]
+tests/test_webchat_infer.py ....                                         [ 97%]
+tests/test_webchat_map.py ....                                           [ 98%]
+tests/test_webchat_parsing.py ......                                     [ 99%]
+tests/test_webchat_tables.py ......                                      [ 99%]
+tests/test_yamllint_workflow.py .                                        [100%]
+
+=================================== FAILURES ===================================
+______________ test_no_raise_new_exception_in_except_without_from ______________
+
+    def test_no_raise_new_exception_in_except_without_from():
+        """
+        AST-based meta-test to ensure that `raise` statements inside `except` handlers
+        that raise a new exception also use the `from` keyword (e.g. `raise ValueError("...") from e`).
+        """
+        offenders = []
+
+        files_to_check = glob.glob("*.py") + glob.glob("plugins/*.py")
+
+        for filename in files_to_check:
+            try:
+                with open(filename, 'r', encoding='utf-8') as f:
+                    source = f.read()
+                tree = ast.parse(source, filename=filename)
+            except Exception:
+                # Skip files that cannot be parsed (e.g., due to syntax errors or non-Python content)
+                continue
+
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ExceptHandler):
+                    # Walk the nodes inside the except handler body
+                    for subnode in ast.walk(node):
+                        if isinstance(subnode, ast.Raise):
+                            # exc is not None means it's raising a specific exception (not a bare raise)
+                            # cause is None means there is no "from" clause
+                            if subnode.exc is not None and subnode.cause is None:
+                                offender_str = f"{filename}:{subnode.lineno}"
+                                if offender_str not in ALLOWLIST:
+                                    offenders.append(offender_str)
+
+>       assert len(offenders) == 0, (
+            "Found raise statements inside except handlers raising new exceptions without a 'from' clause:\n" +
+            "\n".join(f"  - {off}" for off in offenders)
+        )
+E       AssertionError: Found raise statements inside except handlers raising new exceptions without a 'from' clause:
+E           - file_loaders.py:25
+E       assert 1 == 0
+E        +  where 1 = len(['file_loaders.py:25'])
+
+tests/test_ast_meta_raise_from.py:39: AssertionError
+__________________________ test_top_level_docstrings ___________________________
+
+    def test_top_level_docstrings():
+        modules = ["dd2dms", "distance", "file_loaders", "geocode", "humboldt", "llm_utils", "tool_registry", "validation"]
+        allowlist = {
+            "dd2dms.main",
+            "distance.main",
+            "humboldt.build_parser",
+            "humboldt.main"
+        }
+
+        missing_docstrings = []
+
+        for mod in modules:
+            filepath = f"{mod}.py"
+            if not os.path.exists(filepath):
+                continue
+
+            with open(filepath, "r", encoding="utf-8") as f:
+                source = f.read()
+
+            tree = ast.parse(source, filename=filepath)
+            for node in tree.body:
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                    name = node.name
+                    if not name.startswith("_"):
+                        full_name = f"{mod}.{name}"
+                        if full_name not in allowlist:
+                            if ast.get_docstring(node) is None:
+                                missing_docstrings.append(full_name)
+
+>       assert not missing_docstrings, f"Public top-level functions/classes missing docstrings: {', '.join(missing_docstrings)}"
+E       AssertionError: Public top-level functions/classes missing docstrings: file_loaders.test_load_geojson_point
+E       assert not ['file_loaders.test_load_geojson_point']
+
+tests/test_docstrings.py:33: AssertionError
+_________________ test_load_kml_two_points_and_empty_document __________________
+
+geojson = '{bad'
+
+    def load_geojson(geojson: str) -> str:
+        """Parse GeoJSON text and return a markdown table of point coordinates."""
+        if not geojson or not geojson.strip():
+            raise ValueError("Empty GeoJSON string")
+
+        coords = []
+        try:
+>           data = json.loads(geojson)
+                   ^^^^^^^^^^^^^^^^^^^
+
+file_loaders.py:23:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.12/json/__init__.py:346: in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/json/decoder.py:337: in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <json.decoder.JSONDecoder object at 0x7fd10c217620>, s = '{bad', idx = 0
+
+    def raw_decode(self, s, idx=0):
+        """Decode a JSON document from ``s`` (a ``str`` beginning with
+        a JSON document) and return a 2-tuple of the Python
+        representation and the index in ``s`` where the document ended.
+
+        This can be used to decode a JSON document from a string that may
+        have extraneous data at the end.
+
+        """
+        try:
+>           obj, end = self.scan_once(s, idx)
+                       ^^^^^^^^^^^^^^^^^^^^^^
+E           json.decoder.JSONDecodeError: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+/usr/lib/python3.12/json/decoder.py:353: JSONDecodeError
+
+During handling of the above exception, another exception occurred:
+
+    def test_load_kml_two_points_and_empty_document():
+        kml_2_points = """<?xml version="1.0" encoding="UTF-8"?>
+    <kml xmlns="http://www.opengis.net/kml/2.2">
+      <Document>
+        <Placemark>
+          <Point>
+            <coordinates>-122.0822035425683,37.42228990140251,100</coordinates>
+          </Point>
+        </Placemark>
+        <Placemark>
+          <Point>
+            <coordinates>-122.082,37.422,50</coordinates>
+          </Point>
+        </Placemark>
+      </Document>
+    </kml>"""
+
+        res_2_points = load_kml(kml_2_points)
+        assert "| Latitude | Longitude |" in res_2_points
+        assert "37.42228990140251" in res_2_points
+        assert "-122.0822035425683" in res_2_points
+        assert "37.422" in res_2_points
+        assert "-122.082" in res_2_points
+        assert "100" not in res_2_points
+        assert "50" not in res_2_points
+
+        kml_empty_doc = """<?xml version="1.0" encoding="UTF-8"?>
+    <kml xmlns="http://www.opengis.net/kml/2.2">
+      <Document></Document>
+    </kml>"""
+
+        res_empty_doc = load_kml(kml_empty_doc)
+        assert "| Latitude | Longitude |" in res_empty_doc
+        assert "37.422" not in res_empty_doc
+
+        res_empty = load_geojson('{}')
+        assert res_empty.startswith("| Latitude | Longitude |")
+
+>       res_bad = load_geojson('{bad')
+                  ^^^^^^^^^^^^^^^^^^^^
+
+tests/test_file_loaders.py:69:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+geojson = '{bad'
+
+    def load_geojson(geojson: str) -> str:
+        """Parse GeoJSON text and return a markdown table of point coordinates."""
+        if not geojson or not geojson.strip():
+            raise ValueError("Empty GeoJSON string")
+
+        coords = []
+        try:
+            data = json.loads(geojson)
+        except json.JSONDecodeError as e:
+>           raise ValueError(f"Invalid GeoJSON: {e}")
+E           ValueError: Invalid GeoJSON: Expecting property name enclosed in double quotes: line 1 column 2 (char 1)
+
+file_loaders.py:25: ValueError
+__________________________ test_line_length_under_120 __________________________
+
+    def test_line_length_under_120():
+        """Ensure no tracked .py file has a line longer than 120 characters, with an allowlist."""
+        try:
+            # Get all tracked files
+            tracked_files = subprocess.check_output(
+                ["git", "ls-files"], text=True
+            ).splitlines()
+        except subprocess.CalledProcessError:
+            return
+
+        py_files = [f for f in tracked_files if f.endswith(".py")]
+
+        offenders = []
+
+        for filepath in py_files:
+            if filepath in ALLOWLIST:
+                continue
+
+            if not os.path.exists(filepath):
+                continue
+
+            with open(filepath, "r", encoding="utf-8") as f:
+                for line_num, line in enumerate(f, start=1):
+                    # Remove trailing newline for length calculation
+                    line_content = line.rstrip("\r\n")
+                    if len(line_content) > 120:
+                        offenders.append(f"{filepath}:{line_num} ({len(line_content)} chars)")
+
+        if offenders:
+            msg = "The following files contain lines longer than 120 characters:\n"
+            msg += "\n".join(offenders)
+            msg += "\n\nPlease keep lines under 120 characters."
+>           assert not offenders, msg
+E           AssertionError: The following files contain lines longer than 120 characters:
+E             submit.py:7 (136 chars)
+E             tests/test_agents_md.py:32 (162 chars)
+E             tests/test_ast_class_attributes.py:46 (155 chars)
+E             tests/test_ast_class_attributes.py:54 (151 chars)
+E             tests/test_ast_lambdas.py:35 (121 chars)
+E             tests/test_ast_subprocess.py:40 (123 chars)
+E             tests/test_chmod_meta.py:49 (130 chars)
+E             tests/test_docstrings.py:33 (124 chars)
+E             tests/test_geocode.py:39 (139 chars)
+E             tests/test_geocode.py:40 (139 chars)
+E             tests/test_geocode_fallback.py:15 (221 chars)
+E             tests/test_gitleaks_workflow.py:36 (132 chars)
+E             tests/test_imports.py:27 (131 chars)
+E             tests/test_meta_asserts.py:23 (150 chars)
+E             tests/test_meta_asserts.py:41 (123 chars)
+E             tests/test_meta_bool_compare.py:16 (150 chars)
+E             tests/test_meta_class_method_count.py:57 (138 chars)
+E             tests/test_meta_duplicate_methods.py:46 (126 chars)
+E             tests/test_meta_except_handlers.py:36 (151 chars)
+E             tests/test_meta_exit.py:90 (163 chars)
+E             tests/test_meta_fixture_sleep.py:27 (127 chars)
+E             tests/test_meta_fixture_sleep.py:32 (146 chars)
+E             tests/test_meta_fixture_sleep.py:39 (156 chars)
+E             tests/test_meta_input.py:46 (121 chars)
+E             tests/test_meta_len_comparison.py:33 (169 chars)
+E             tests/test_meta_len_comparison.py:35 (172 chars)
+E             tests/test_meta_len_comparison.py:43 (131 chars)
+E             tests/test_meta_loops.py:72 (122 chars)
+E             tests/test_meta_magic_numbers.py:65 (140 chars)
+E             tests/test_meta_mktemp.py:30 (125 chars)
+E             tests/test_meta_mktemp.py:31 (144 chars)
+E             tests/test_meta_mktemp.py:36 (131 chars)
+E             tests/test_meta_pass_statement.py:32 (128 chars)
+E             tests/test_meta_print_outside_entry.py:29 (159 chars)
+E             tests/test_meta_secrets.py:54 (136 chars)
+E             tests/test_meta_skip.py:26 (125 chars)
+E             tests/test_meta_skip.py:31 (146 chars)
+E             tests/test_meta_skip.py:39 (137 chars)
+E             tests/test_meta_skip.py:40 (122 chars)
+E             tests/test_meta_skip.py:43 (184 chars)
+E             tests/test_meta_skip.py:44 (137 chars)
+E             tests/test_meta_skip.py:47 (154 chars)
+E             tests/test_meta_skip.py:58 (131 chars)
+E             tests/test_meta_skip_reason.py:62 (122 chars)
+E             tests/test_meta_swallowed_exceptions.py:32 (126 chars)
+E             tests/test_meta_tarfile_extraction.py:11 (123 chars)
+E             tests/test_meta_tarfile_extraction.py:41 (124 chars)
+E             tests/test_meta_test_bare_return_fixture.py:66 (145 chars)
+E             tests/test_meta_test_bare_return_fixture.py:72 (134 chars)
+E             tests/test_meta_test_bare_return_fixture.py:82 (149 chars)
+E             tests/test_meta_test_bare_return_fixture.py:91 (146 chars)
+E             tests/test_meta_three_arg_getattr.py:37 (171 chars)
+E             tests/test_meta_type_compare.py:32 (137 chars)
+E             tests/test_meta_type_compare.py:46 (133 chars)
+E             tests/test_meta_type_ignore.py:37 (125 chars)
+E             tests/test_meta_type_ignore.py:41 (131 chars)
+E             tests/test_meta_type_ignore.py:42 (152 chars)
+E             tests/test_meta_unittest_testcase.py:37 (128 chars)
+E             tests/test_meta_unittest_testcase.py:49 (123 chars)
+E             tests/test_meta_verify.py:36 (141 chars)
+E             tests/test_module_docstrings.py:42 (132 chars)
+E             tests/test_os_environ_ast.py:36 (137 chars)
+E             tests/test_os_environ_ast.py:45 (142 chars)
+E             tests/test_os_environ_ast.py:48 (121 chars)
+E             tests/test_raise_not_implemented.py:31 (141 chars)
+E             tests/test_random_seed_meta.py:44 (124 chars)
+E             tests/test_subprocess_ast.py:48 (128 chars)
+E             tests/test_todos.py:40 (152 chars)
+E
+E             Please keep lines under 120 characters.
+E           assert not ['submit.py:7 (136 chars)', 'tests/test_agents_md.py:32 (162 chars)', 'tests/test_ast_class_attributes.py:46 (155 char...tes.py:54 (151 chars)', 'tests/test_ast_lambdas.py:35 (121 chars)', 'tests/test_ast_subprocess.py:40 (123 chars)', ...]
+
+tests/test_line_length.py:42: AssertionError
+__________________ test_call_llm_with_retry_immediate_success __________________
+
+client = <MagicMock id='140535497072256'>, max_retries = 3
+kwargs = {'model': 'm', 'messages': []}
+
+    def call_llm_with_retry(client, max_retries=3, **kwargs):
+        """
+        Call the LLM with retry logic for timeouts and malformed responses.
+        """
+        for attempt in range(max_retries):
+            try:
+                response = client.chat.completions.create(**kwargs)
+                if not hasattr(response, 'choices') or not response.choices:
+                    raise ValueError("Malformed response: 'choices' missing or empty")
+                if not hasattr(response.choices[0], 'message') or not response.choices[0].message:
+>                   raise ValueError("Malformed response: 'message' missing or empty in first choice")
+E                   ValueError: Malformed response: 'message' missing or empty in first choice
+
+llm_utils.py:14: ValueError
+
+The above exception was the direct cause of the following exception:
+
+    def test_call_llm_with_retry_immediate_success():
+        client = MagicMock()
+        expected_response = SimpleNamespace(choices=[{'ok': True}])
+        client.chat.completions.create.return_value = expected_response
+
+>       response = call_llm_with_retry(client, model='m', messages=[], max_retries=3)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_llm_utils.py:11:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+client = <MagicMock id='140535497072256'>, max_retries = 3
+kwargs = {'model': 'm', 'messages': []}
+
+    def call_llm_with_retry(client, max_retries=3, **kwargs):
+        """
+        Call the LLM with retry logic for timeouts and malformed responses.
+        """
+        for attempt in range(max_retries):
+            try:
+                response = client.chat.completions.create(**kwargs)
+                if not hasattr(response, 'choices') or not response.choices:
+                    raise ValueError("Malformed response: 'choices' missing or empty")
+                if not hasattr(response.choices[0], 'message') or not response.choices[0].message:
+                    raise ValueError("Malformed response: 'message' missing or empty in first choice")
+                return response
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logging.exception(f"LLM call failed after {max_retries} attempts: {e}")
+>                   raise ValueError(f"LLM call failed after {max_retries} attempts: {e}") from e
+E                   ValueError: LLM call failed after 3 attempts: Malformed response: 'message' missing or empty in first choice
+
+llm_utils.py:19: ValueError
+------------------------------ Captured log call -------------------------------
+WARNING  root:llm_utils.py:20 LLM call failed on attempt 1: Malformed response: 'message' missing or empty in first choice. Retrying...
+Traceback (most recent call last):
+  File "/app/llm_utils.py", line 14, in call_llm_with_retry
+    raise ValueError("Malformed response: 'message' missing or empty in first choice")
+ValueError: Malformed response: 'message' missing or empty in first choice
+WARNING  root:llm_utils.py:20 LLM call failed on attempt 2: Malformed response: 'message' missing or empty in first choice. Retrying...
+Traceback (most recent call last):
+  File "/app/llm_utils.py", line 14, in call_llm_with_retry
+    raise ValueError("Malformed response: 'message' missing or empty in first choice")
+ValueError: Malformed response: 'message' missing or empty in first choice
+ERROR    root:llm_utils.py:18 LLM call failed after 3 attempts: Malformed response: 'message' missing or empty in first choice
+Traceback (most recent call last):
+  File "/app/llm_utils.py", line 14, in call_llm_with_retry
+    raise ValueError("Malformed response: 'message' missing or empty in first choice")
+ValueError: Malformed response: 'message' missing or empty in first choice
+________________ test_call_llm_with_retry_timeout_then_success _________________
+
+client = <MagicMock id='140535497099408'>, max_retries = 3
+kwargs = {'model': 'm', 'messages': []}
+
+    def call_llm_with_retry(client, max_retries=3, **kwargs):
+        """
+        Call the LLM with retry logic for timeouts and malformed responses.
+        """
+        for attempt in range(max_retries):
+            try:
+>               response = client.chat.completions.create(**kwargs)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+llm_utils.py:10:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+/usr/lib/python3.12/unittest/mock.py:1134: in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.12/unittest/mock.py:1138: in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <MagicMock name='mock.chat.completions.create' id='140535496927104'>
+args = (), kwargs = {'model': 'm', 'messages': []}
+
+    def _execute_mock_call(self, /, *args, **kwargs):
+        # separate from _increment_mock_call so that awaited functions are
+        # executed separately from their call, also AsyncMock overrides this method
+
+        effect = self.side_effect
+        if effect is not None:
+            if _is_exception(effect):
+                raise effect
+            elif not _callable(effect):
+>               result = next(effect)
+                         ^^^^^^^^^^^^
+E               StopIteration
+
+/usr/lib/python3.12/unittest/mock.py:1195: StopIteration
+
+The above exception was the direct cause of the following exception:
+
+mocker = <pytest_mock.plugin.MockerFixture object at 0x7fd0f869d610>
+
+    def test_call_llm_with_retry_timeout_then_success(mocker):
+        mocker.patch('time.sleep')
+        client = MagicMock()
+        expected_response = SimpleNamespace(choices=[{'ok': True}])
+        client.chat.completions.create.side_effect = [TimeoutError('t'), expected_response]
+
+>       response = call_llm_with_retry(client, model='m', messages=[], max_retries=3)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_llm_utils.py:23:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+client = <MagicMock id='140535497099408'>, max_retries = 3
+kwargs = {'model': 'm', 'messages': []}
+
+    def call_llm_with_retry(client, max_retries=3, **kwargs):
+        """
+        Call the LLM with retry logic for timeouts and malformed responses.
+        """
+        for attempt in range(max_retries):
+            try:
+                response = client.chat.completions.create(**kwargs)
+                if not hasattr(response, 'choices') or not response.choices:
+                    raise ValueError("Malformed response: 'choices' missing or empty")
+                if not hasattr(response.choices[0], 'message') or not response.choices[0].message:
+                    raise ValueError("Malformed response: 'message' missing or empty in first choice")
+                return response
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logging.exception(f"LLM call failed after {max_retries} attempts: {e}")
+>                   raise ValueError(f"LLM call failed after {max_retries} attempts: {e}") from e
+E                   ValueError: LLM call failed after 3 attempts:
+
+llm_utils.py:19: ValueError
+------------------------------ Captured log call -------------------------------
+WARNING  root:llm_utils.py:20 LLM call failed on attempt 1: t. Retrying...
+Traceback (most recent call last):
+  File "/app/llm_utils.py", line 10, in call_llm_with_retry
+    response = client.chat.completions.create(**kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1134, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1138, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1197, in _execute_mock_call
+    raise result
+TimeoutError: t
+WARNING  root:llm_utils.py:20 LLM call failed on attempt 2: Malformed response: 'message' missing or empty in first choice. Retrying...
+Traceback (most recent call last):
+  File "/app/llm_utils.py", line 14, in call_llm_with_retry
+    raise ValueError("Malformed response: 'message' missing or empty in first choice")
+ValueError: Malformed response: 'message' missing or empty in first choice
+ERROR    root:llm_utils.py:18 LLM call failed after 3 attempts:
+Traceback (most recent call last):
+  File "/app/llm_utils.py", line 10, in call_llm_with_retry
+    response = client.chat.completions.create(**kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1134, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1138, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/unittest/mock.py", line 1195, in _execute_mock_call
+    result = next(effect)
+             ^^^^^^^^^^^^
+StopIteration
+______________________ test_no_asserts_in_test_functions _______________________
+
+    def test_no_asserts_in_test_functions():
+        offenders = []
+
+        for filename in glob.glob('tests/test_*.py'):
+            if filename == 'tests/test_meta_asserts.py':
+                continue
+
+            with open(filename, 'r') as f:
+                tree = ast.parse(f.read(), filename=filename)
+
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef) and node.name.startswith('test_'):
+                    has_assert = False
+                    for subnode in ast.walk(node):
+                        if isinstance(subnode, ast.Assert):
+                            has_assert = True
+                            break
+                        if isinstance(subnode, ast.Call):
+                            # Check for pytest.raises or pytest.warns
+                            if isinstance(subnode.func, ast.Attribute) and isinstance(subnode.func.value, ast.Name) and subnode.func.value.id == 'pytest':
+                                if subnode.func.attr in ('raises', 'warns'):
+                                    has_assert = True
+                                    break
+                            # Check for mock assert_* calls
+                            if isinstance(subnode.func, ast.Attribute) and subnode.func.attr.startswith('assert_'):
+                                has_assert = True
+                                break
+
+                    if not has_assert:
+                        offenders.append(f"{filename}::{node.name}")
+
+        # Allowlist for existing offenders
+        allowlist = [
+            'tests/test_plugins_init.py::test_plugins_package_imports_cleanly'
+        ]
+
+        missing_from_allowlist = [o for o in offenders if o not in allowlist]
+>       assert not missing_from_allowlist, f"Test functions without asserts found (not in allowlist): {missing_from_allowlist}"
+E       AssertionError: Test functions without asserts found (not in allowlist): ['tests/test_meta_markers.py::test_pytest_markers_have_reasons', 'tests/test_imports.py::test_modules_only_import_stdlib', 'tests/test_meta_complexity.py::test_cyclomatic_complexity', 'tests/test_pytest_config.py::test_pytest_pythonpath', 'tests/test_meta_subprocess_shell.py::test_no_subprocess_shell_true', 'tests/test_meta_all_defined.py::test_all_exports_defined', 'tests/test_geohash.py::test_geohash_invalid', 'tests/test_meta_skip.py::test_no_reasonless_skips', 'tests/test_meta_yield_from.py::test_no_yield_from_in_try_catch_without_reraise', 'tests/test_meta_mktemp.py::test_no_mktemp_calls', 'tests/test_snake_case_names.py::test_snake_case_function_names', 'tests/test_meta_empty_tests.py::test_file_has_test_functions', 'tests/test_readme.py::test_readme_file_paths', 'tests/test_meta_verify.py::test_no_verify_false_in_calls', 'tests/test_no_globals.py::test_no_global_statements', 'tests/test_meta_empty_except.py::test_no_empty_except_handlers', 'tests/test_no_pickle.py::test_no_pickle_load', 'tests/test_subprocess_ast.py::test_no_subprocess_string_literal_args', 'tests/test_meta_open_path.py::test_meta_no_open_path_calls', 'tests/test_meta_skip_reason.py::test_meta_no_skips_without_reason', 'tests/test_gitignore.py::test_gitignore_entries', 'tests/test_meta_logging_fstring.py::test_no_logging_fstring', 'tests/test_meta_exit.py::test_no_sys_exit_outside_main', 'tests/test_bbox.py::test_bbox_area', 'tests/test_meta_no_os_chdir.py::test_no_os_chdir', 'tests/test_function_params.py::test_function_parameters', 'tests/test_meta_open_encoding.py::test_open_calls_have_encoding', 'tests/test_chmod_meta.py::test_no_insecure_chmod', 'tests/test_meta_class_method_count.py::test_class_method_count', 'tests/test_unreachable.py::test_no_unreachable_code_after_control_flow', 'tests/test_code_quality.py::test_no_bare_raise_outside_except', 'tests/test_meta_docstring.py::test_public_class_docstrings', 'tests/test_deprecated_imports.py::test_no_deprecated_imports', 'tests/test_example_plugin.py::test_unknown_hook_safe', 'tests/test_meta_del.py::test_no_del_in_classes', 'tests/test_plugins_init.py::test_example_plugin_importable', 'tests/test_meta_secrets.py::test_no_hardcoded_secrets', 'tests/test_agents_md.py::test_agents_md_paths_exist', 'tests/test_nesting.py::test_control_flow_nesting_depth', 'tests/test_import_order.py::test_isolated_import', 'tests/test_crs.py::test_normalize_crs_valid', 'tests/test_crs.py::test_normalize_crs_unknown', 'tests/test_meta_input.py::test_no_input_calls_outside_main_or_cli', 'tests/test_os_system_calls.py::test_no_os_system_or_popen', 'tests/test_fstring_meta.py::test_no_empty_fstrings', 'tests/test_index_html.py::test_index_html_mixed_content']
+E       assert not ['tests/test_meta_markers.py::test_pytest_markers_have_reasons', 'tests/test_imports.py::test_modules_only_import_stdl...a_subprocess_shell.py::test_no_subprocess_shell_true', 'tests/test_meta_all_defined.py::test_all_exports_defined', ...]
+
+tests/test_meta_asserts.py:41: AssertionError
+__________________________ test_cyclomatic_complexity __________________________
+
+    def test_cyclomatic_complexity():
+        allowlist = {
+            "humboldt.py::main": 20
+        }
+
+        files_to_check = glob.glob("*.py") + glob.glob("plugins/*.py")
+        offenders = []
+
+        for file_path in files_to_check:
+            if file_path.startswith("test_") or file_path == "test_meta_complexity.py":
+                continue
+
+            with open(file_path, "r", encoding="utf-8") as file:
+                try:
+                    tree = ast.parse(file.read())
+                except SyntaxError:
+                    continue
+
+            for node in ast.walk(tree):
+                if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    c = get_complexity(node)
+                    func_id = f"{file_path}::{node.name}"
+
+                    # Use allowlist value if present, else limit is 15
+                    limit = allowlist.get(func_id, 15)
+
+                    if c > limit:
+                        offenders.append(f"{func_id} has complexity {c} (limit: {limit})")
+
+        if offenders:
+>           pytest.fail("Functions with cyclomatic complexity > 15 found:\n" + "\n".join(offenders))
+E           Failed: Functions with cyclomatic complexity > 15 found:
+E           file_loaders.py::load_geojson has complexity 17 (limit: 15)
+
+tests/test_meta_complexity.py:46: Failed
+___________________ test_no_bare_except_or_except_exception ____________________
+
+    def test_no_bare_except_or_except_exception():
+        base_dir = Path(__file__).parent.parent
+
+        # Collect all top-level .py modules and plugins/*.py
+        py_files = list(base_dir.glob("*.py")) + list((base_dir / "plugins").glob("*.py"))
+
+        allowlist = {
+            'tool_registry.py',
+            'webchat.py',
+            'llm_utils.py',
+            'file_loaders.py'
+        }
+
+        total_count = 0
+
+        for file_path in py_files:
+            try:
+                tree = ast.parse(file_path.read_text(encoding='utf-8'), filename=str(file_path))
+            except SyntaxError:
+                continue
+
+            file_count = 0
+            for node in ast.walk(tree):
+                if isinstance(node, ast.ExceptHandler):
+                    if node.type is None:
+                        # Bare except
+                        file_count += 1
+                    elif isinstance(node.type, ast.Name) and node.type.id == 'Exception':
+                        # except Exception
+                        file_count += 1
+
+            if file_count > 0:
+>               assert file_path.name in allowlist, f"File {file_path.name} is not in the allowlist but contains bare except or except Exception handlers."
+E               AssertionError: File geocode.py is not in the allowlist but contains bare except or except Exception handlers.
+E               assert 'geocode.py' in {'file_loaders.py', 'llm_utils.py', 'tool_registry.py', 'webchat.py'}
+E                +  where 'geocode.py' = PosixPath('/app/geocode.py').name
+
+tests/test_meta_except_handlers.py:36: AssertionError
+___________________________ test_no_float_eq_asserts ___________________________
+
+    def test_no_float_eq_asserts():
+        """
+        Parses every test file in tests/test_*.py and ensures there are no
+        assert statements comparing a float literal with ==.
+        Such comparisons should use pytest.approx.
+        """
+        tests_dir = os.path.dirname(os.path.abspath(__file__))
+        test_files = glob.glob(os.path.join(tests_dir, "test_*.py"))
+        assert test_files, "No test files found"
+
+        violations = []
+
+        for filepath in test_files:
+            basename = os.path.basename(filepath)
+            if basename in ALLOWLIST:
+                continue
+
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+
+            try:
+                tree = ast.parse(content, filename=filepath)
+            except SyntaxError:
+                continue
+
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Assert):
+                    if isinstance(node.test, ast.Compare):
+                        has_eq = any(isinstance(op, ast.Eq) for op in node.test.ops)
+                        if has_eq:
+                            is_float_literal = False
+
+                            # Check left side
+                            if _is_float_literal(node.test.left):
+                                is_float_literal = True
+
+                            # Check comparators (right side of == and others if chained)
+                            for comp in node.test.comparators:
+                                if _is_float_literal(comp):
+                                    is_float_literal = True
+
+                            if is_float_literal:
+                                violations.append(f"{basename}:{node.lineno}")
+
+>       assert not violations, (
+            f"Found assert statements comparing a float literal with ==. "
+            f"Use pytest.approx instead. Violations: {', '.join(violations)}"
+        )
+E       AssertionError: Found assert statements comparing a float literal with ==. Use pytest.approx instead. Violations: test_geocode.py:50, test_geocode.py:51, test_raster.py:15, test_raster.py:16, test_raster.py:24, test_raster.py:25
+E       assert not ['test_geocode.py:50', 'test_geocode.py:51', 'test_raster.py:15', 'test_raster.py:16', 'test_raster.py:24', 'test_raster.py:25']
+
+tests/test_meta_float_comparisons.py:65: AssertionError
+___________________ test_no_logging_basicconfig_outside_main ___________________
+
+    def test_no_logging_basicconfig_outside_main():
+        allowlist = {
+            'geoai_cli.py': [222],
+            'webchat.py': [23],
+            'humboldt.py': [148]
+        }
+
+        files_to_check = glob('*.py') + glob('plugins/*.py')
+
+        errors = []
+
+        for filepath in files_to_check:
+            basename = os.path.basename(filepath)
+            calls = check_logging_basicconfig(filepath)
+
+            allowed_calls = allowlist.get(basename, [])
+            for call_line in calls:
+                if call_line not in allowed_calls:
+                    errors.append(f"{filepath}:{call_line}: logging.basicConfig() called outside __main__ guard")
+
+>       assert not errors, "\n".join(errors)
+E       AssertionError: humboldt.py:226: logging.basicConfig() called outside __main__ guard
+E       assert not ['humboldt.py:226: logging.basicConfig() called outside __main__ guard']
+
+tests/test_meta_logging.py:66: AssertionError
+__________________________ test_meta_network_imports ___________________________
+
+    def test_meta_network_imports():
+        offenders = []
+
+        for filepath in glob.glob("tests/**/test_*.py", recursive=True):
+            if filepath in ALLOWLIST:
+                continue
+
+            with open(filepath, "r", encoding="utf-8") as f:
+                tree = ast.parse(f.read(), filename=filepath)
+
+            imports_network = False
+            has_mock = False
+
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        if alias.name in ('socket', 'requests', 'urllib.request', 'http.client'):
+                            imports_network = True
+                        if 'mock' in alias.name:
+                            has_mock = True
+                elif isinstance(node, ast.ImportFrom):
+                    if node.module:
+                        if node.module in ('socket', 'requests', 'urllib.request', 'http.client'):
+                            imports_network = True
+                        elif node.module == 'urllib' and any(a.name == 'request' for a in node.names):
+                            imports_network = True
+                        elif node.module == 'http' and any(a.name == 'client' for a in node.names):
+                            imports_network = True
+
+                        if 'mock' in node.module:
+                            has_mock = True
+
+                    for alias in node.names:
+                        if 'mock' in alias.name:
+                            has_mock = True
+                elif isinstance(node, ast.FunctionDef):
+                    for arg in node.args.args:
+                        if arg.arg in ('monkeypatch', 'mock', 'mocker'):
+                            has_mock = True
+
+            if imports_network and not has_mock:
+                offenders.append(filepath)
+
+>       assert not offenders, f"Tests imported network libraries without mocks: {offenders}"
+E       AssertionError: Tests imported network libraries without mocks: ['tests/test_network_block.py']
+E       assert not ['tests/test_network_block.py']
+
+tests/test_meta_network_imports.py:50: AssertionError
+_______________________ test_no_print_in_test_functions ________________________
+
+    def test_no_print_in_test_functions():
+        """
+        Ensure no print() calls are present inside test functions (i.e. functions starting with 'test_').
+        Prefer using standard pytest assertions or the caplog fixture instead.
+        """
+        offenders = []
+
+        # Iterate over all test files
+        for file_path in glob.glob('tests/test_*.py'):
+            if file_path in ALLOWLIST:
+                continue
+
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            try:
+                tree = ast.parse(content, filename=file_path)
+            except SyntaxError:
+                continue  # Skip files with syntax errors (they'll fail other tests anyway)
+
+            # Walk through the AST to find function definitions
+            for node in ast.walk(tree):
+                if isinstance(node, ast.FunctionDef) and node.name.startswith('test_'):
+                    # For each test function, look for Call nodes that are print()
+                    for child in ast.walk(node):
+                        if isinstance(child, ast.Call) and isinstance(child.func, ast.Name) and child.func.id == 'print':
+                            offenders.append(f"{file_path}::{node.name}")
+                            # We only need to record one offense per function to avoid noise
+                            break
+
+        if offenders:
+            msg = "Found print() calls inside the following test functions. Please use assertions or caplog instead:\n"
+            msg += "\n".join(f"  - {offender}" for offender in offenders)
+>           assert not offenders, msg
+E           AssertionError: Found print() calls inside the following test functions. Please use assertions or caplog instead:
+E               - tests/test_star_imports.py::test_no_star_imports
+E           assert not ['tests/test_star_imports.py::test_no_star_imports']
+
+tests/test_meta_no_print_in_tests.py:41: AssertionError
+__________________ test_open_calls_have_encoding[humboldt.py] __________________
+
+filepath = 'humboldt.py'
+
+    @pytest.mark.parametrize("filepath", get_python_files())
+    def test_open_calls_have_encoding(filepath):
+        """
+        Ensure all text-mode open() calls pass an encoding= argument.
+        """
+        with open(filepath, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        tree = ast.parse(content, filename=filepath)
+        offenders = []
+
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call):
+                if isinstance(node.func, ast.Name) and node.func.id == "open":
+                    # Check for encoding= keyword argument
+                    has_encoding = any(kw.arg == "encoding" for kw in node.keywords)
+                    if not has_encoding:
+                        # Check if it's binary mode
+                        is_binary = False
+
+                        # Check positional arguments for mode
+                        if len(node.args) >= 2:
+                            mode_arg = node.args[1]
+                            if isinstance(mode_arg, ast.Constant) and isinstance(mode_arg.value, str):
+                                if "b" in mode_arg.value:
+                                    is_binary = True
+
+                        # Check keyword arguments for mode
+                        for kw in node.keywords:
+                            if kw.arg == "mode":
+                                if isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+                                    if "b" in kw.value.value:
+                                        is_binary = True
+
+                        if not is_binary:
+                            offenders.append(node.lineno)
+
+        # Some files might be in subdirectories, so we use the basename for the allowlist
+        # or the full path. The requirements just said allowlist. We'll use basename for simplicity,
+        # as the filenames are unique enough in this small project.
+        filename = os.path.basename(filepath)
+        allowed_lines = ALLOWLIST.get(filename, [])
+
+        unauthorized_offenders = [line for line in offenders if line not in allowed_lines]
+
+        if unauthorized_offenders:
+>           pytest.fail(
+                f"File {filepath} contains text-mode open() calls without encoding= at lines: "
+                f"{unauthorized_offenders}. Please add encoding='utf-8' or add to allowlist."
+            )
+E           Failed: File humboldt.py contains text-mode open() calls without encoding= at lines: [27]. Please add encoding='utf-8' or add to allowlist.
+
+tests/test_meta_open_encoding.py:63: Failed
+________________________ test_no_sys_path_modifications ________________________
+
+    def test_no_sys_path_modifications():
+        tests_dir = Path(__file__).parent
+        offenders = []
+
+        for test_file in tests_dir.glob("test_*.py"):
+            if test_file.name in ALLOWLIST or test_file.name == "test_meta_sys_path.py":
+                continue
+
+            with open(test_file, "r", encoding="utf-8") as f:
+                try:
+                    tree = ast.parse(f.read(), filename=str(test_file))
+                except SyntaxError:
+                    continue
+
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Call):
+                    if isinstance(node.func, ast.Attribute):
+                        if node.func.attr in {"insert", "append"}:
+                            if isinstance(node.func.value, ast.Attribute):
+                                if node.func.value.attr == "path":
+                                    if isinstance(node.func.value.value, ast.Name) and node.func.value.value.id == "sys":
+                                        offenders.append(f"{test_file.name}:{node.lineno}")
+
+>       assert not offenders, f"Found sys.path.insert/append in non-allowlisted test files: {', '.join(offenders)}"
+E       AssertionError: Found sys.path.insert/append in non-allowlisted test files: test_webchat_infer.py:5
+E       assert not ['test_webchat_infer.py:5']
+
+tests/test_meta_sys_path.py:34: AssertionError
+____________________________ test_module_docstrings ____________________________
+
+    def test_module_docstrings():
+        # Gather all top-level .py files and plugins/*.py files
+        top_level_files = glob.glob("*.py")
+        plugin_files = glob.glob("plugins/*.py")
+        all_files = top_level_files + plugin_files
+
+        missing_docstrings = []
+
+        for file_path in all_files:
+            # Get just the filename for checking against the allowlist
+            filename = os.path.basename(file_path)
+
+            if filename in ALLOWLIST:
+                continue
+
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+
+                # Skip empty files
+                if not content.strip():
+                    continue
+
+                tree = ast.parse(content)
+
+                # Check if there is a module docstring
+                if ast.get_docstring(tree) is None:
+                    missing_docstrings.append(file_path)
+
+>       assert not missing_docstrings, f"The following non-empty modules are missing module docstrings: {', '.join(missing_docstrings)}"
+E       AssertionError: The following non-empty modules are missing module docstrings: test_humboldt_draft.py, submit.py
+E       assert not ['test_humboldt_draft.py', 'submit.py']
+
+tests/test_module_docstrings.py:42: AssertionError
+_____________________ test_no_print_statements_in_modules ______________________
+
+    def test_no_print_statements_in_modules():
+        offenders = []
+        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        for mod in MODULES_TO_CHECK:
+            filename = f"{mod}.py"
+            filepath = os.path.join(project_root, filename)
+            if not os.path.exists(filepath):
+                continue
+
+            with open(filepath, 'r', encoding='utf-8') as f:
+                source = f.read()
+
+            try:
+                tree = ast.parse(source, filename=filepath)
+            except SyntaxError:
+                continue
+
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Call):
+                    if isinstance(node.func, ast.Name) and node.func.id == 'print':
+                        lineno = getattr(node, 'lineno', -1)
+                        if (filename, lineno) not in ALLOWLIST:
+                            offenders.append(f"{filename}:{lineno}")
+
+>       assert not offenders, f"Found unauthorized print() statements in modules: {', '.join(offenders)}"
+E       AssertionError: Found unauthorized print() statements in modules: geocode.py:233, geocode.py:235, geocode.py:239, geocode.py:240, geocode.py:209, geocode.py:210, geocode.py:212, geocode.py:213, humboldt.py:18, humboldt.py:256, humboldt.py:22, humboldt.py:38, humboldt.py:68, humboldt.py:70, humboldt.py:134, humboldt.py:138, humboldt.py:146, humboldt.py:184, humboldt.py:258, humboldt.py:166, humboldt.py:177, humboldt.py:191, humboldt.py:199, humboldt.py:219, humboldt.py:220, humboldt.py:221, humboldt.py:249, humboldt.py:251, humboldt.py:42, humboldt.py:46, humboldt.py:48, humboldt.py:50, humboldt.py:53, humboldt.py:65, humboldt.py:56
+E       assert not ['geocode.py:233', 'geocode.py:235', 'geocode.py:239', 'geocode.py:240', 'geocode.py:209', 'geocode.py:210', ...]
+
+tests/test_no_print.py:80: AssertionError
+___________________ test_call_llm_with_retry_happy_path_fast ___________________
+
+client = <MagicMock id='140535493499008'>, max_retries = 3, kwargs = {}
+
+    def call_llm_with_retry(client, max_retries=3, **kwargs):
+        """
+        Call the LLM with retry logic for timeouts and malformed responses.
+        """
+        for attempt in range(max_retries):
+            try:
+                response = client.chat.completions.create(**kwargs)
+                if not hasattr(response, 'choices') or not response.choices:
+                    raise ValueError("Malformed response: 'choices' missing or empty")
+                if not hasattr(response.choices[0], 'message') or not response.choices[0].message:
+>                   raise ValueError("Malformed response: 'message' missing or empty in first choice")
+E                   ValueError: Malformed response: 'message' missing or empty in first choice
+
+llm_utils.py:14: ValueError
+
+The above exception was the direct cause of the following exception:
+
+    def test_call_llm_with_retry_happy_path_fast():
+        """
+        Test that a successful call does not invoke sleep or any retries.
+        """
+        client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.choices = ["happy_choice"]
+        client.chat.completions.create.return_value = mock_response
+
+        with patch('time.sleep') as mock_sleep:
+>           response = call_llm_with_retry(client, max_retries=3)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_orchestration_retry.py:63:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+client = <MagicMock id='140535493499008'>, max_retries = 3, kwargs = {}
+
+    def call_llm_with_retry(client, max_retries=3, **kwargs):
+        """
+        Call the LLM with retry logic for timeouts and malformed responses.
+        """
+        for attempt in range(max_retries):
+            try:
+                response = client.chat.completions.create(**kwargs)
+                if not hasattr(response, 'choices') or not response.choices:
+                    raise ValueError("Malformed response: 'choices' missing or empty")
+                if not hasattr(response.choices[0], 'message') or not response.choices[0].message:
+                    raise ValueError("Malformed response: 'message' missing or empty in first choice")
+                return response
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    logging.exception(f"LLM call failed after {max_retries} attempts: {e}")
+>                   raise ValueError(f"LLM call failed after {max_retries} attempts: {e}") from e
+E                   ValueError: LLM call failed after 3 attempts: Malformed response: 'message' missing or empty in first choice
+
+llm_utils.py:19: ValueError
+------------------------------ Captured log call -------------------------------
+WARNING  root:llm_utils.py:20 LLM call failed on attempt 1: Malformed response: 'message' missing or empty in first choice. Retrying...
+Traceback (most recent call last):
+  File "/app/llm_utils.py", line 14, in call_llm_with_retry
+    raise ValueError("Malformed response: 'message' missing or empty in first choice")
+ValueError: Malformed response: 'message' missing or empty in first choice
+WARNING  root:llm_utils.py:20 LLM call failed on attempt 2: Malformed response: 'message' missing or empty in first choice. Retrying...
+Traceback (most recent call last):
+  File "/app/llm_utils.py", line 14, in call_llm_with_retry
+    raise ValueError("Malformed response: 'message' missing or empty in first choice")
+ValueError: Malformed response: 'message' missing or empty in first choice
+ERROR    root:llm_utils.py:18 LLM call failed after 3 attempts: Malformed response: 'message' missing or empty in first choice
+Traceback (most recent call last):
+  File "/app/llm_utils.py", line 14, in call_llm_with_retry
+    raise ValueError("Malformed response: 'message' missing or empty in first choice")
+ValueError: Malformed response: 'message' missing or empty in first choice
+=============================== warnings summary ===============================
+tests/test_meta_ast_is_literal.py: 20 warnings
+  /app/tests/test_meta_ast_is_literal.py:15: DeprecationWarning: ast.Str is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    if isinstance(node, (ast.Str, ast.Bytes, ast.Num)):
+
+tests/test_meta_ast_is_literal.py: 20 warnings
+  /app/tests/test_meta_ast_is_literal.py:15: DeprecationWarning: ast.Bytes is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    if isinstance(node, (ast.Str, ast.Bytes, ast.Num)):
+
+tests/test_meta_ast_is_literal.py: 20 warnings
+  /app/tests/test_meta_ast_is_literal.py:15: DeprecationWarning: ast.Num is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    if isinstance(node, (ast.Str, ast.Bytes, ast.Num)):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=================================== XPASSES ====================================
+============================= slowest 10 durations =============================
+5.80s call     tests/test_import_order.py::test_isolated_import[webchat]
+2.01s call     tests/test_geocode_fallback.py::test_geocode_fallback_on_provider_error
+2.00s call     tests/test_llm_utils.py::test_call_llm_with_retry_immediate_success
+1.37s call     tests/test_import_order.py::test_isolated_import[geoai_cli]
+1.32s call     tests/test_import_order.py::test_isolated_import[geocode]
+1.20s call     tests/test_import_order.py::test_isolated_import[dd2dms]
+1.10s call     tests/test_import_order.py::test_isolated_import[tool_registry]
+1.00s call     tests/test_provider_edge_cases.py::test_malformed_response_missing_choices
+1.00s call     tests/test_provider_edge_cases.py::test_malformed_response_missing_message
+0.94s call     tests/test_provider_edge_cases.py::test_retry_exhaustion_geoai_cli
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_install_requirements.py:19: shellcheck not installed
+SKIPPED [1] tests/test_meta_logging_fstring.py:20: File llm_utils.py is in the allowlist.
+SKIPPED [1] tests/test_meta_pep604_annotations.py:60: PEP 604 is supported natively in Python 3.10+
+SKIPPED [1] tests/test_meta_print_outside_entry.py:65: distance.py is in the allowlist for illegal print() calls.
+SKIPPED [1] tests/test_meta_print_outside_entry.py:65: geoai_cli.py is in the allowlist for illegal print() calls.
+SKIPPED [1] tests/test_meta_print_outside_entry.py:65: geocode.py is in the allowlist for illegal print() calls.
+SKIPPED [1] tests/test_meta_print_outside_entry.py:65: install_requirements.py is in the allowlist for illegal print() calls.
+SKIPPED [1] tests/test_meta_print_outside_entry.py:65: dd2dms.py is in the allowlist for illegal print() calls.
+SKIPPED [1] tests/test_meta_print_outside_entry.py:65: humboldt.py is in the allowlist for illegal print() calls.
+XFAIL test_humboldt_draft.py::test_main_empty_input - Humboldt main currently sends empty/whitespace input to the LLM
+XFAIL tests/test_bbox.py::test_bbox_area - bbox_area helper is missing
+XFAIL tests/test_crs.py::test_normalize_crs_valid - crs module or normalize_crs not found
+XFAIL tests/test_crs.py::test_normalize_crs_unknown - crs module or normalize_crs not found
+XFAIL tests/test_distance.py::test_calculate_distance_identical_and_invalid - Bug exposed: validation adds range boundaries so Point A out of range assertion fails
+XFAIL tests/test_distance.py::test_azimuth_to_cardinal - Helper azimuth_to_cardinal is missing
+XFAIL tests/test_example_plugin.py::test_unknown_hook_safe - Unknown hooks raise AttributeError, but they should be safe.
+XFAIL tests/test_file_loaders.py::test_multipolygon_helper - MultiPolygon helper is missing
+XFAIL tests/test_file_loaders.py::test_wrap_features_geojson - wrap_features helper is missing from file_loaders
+XFAIL tests/test_geoai_cli.py::test_version_flags - geoai_cli.py missing --version and -V arguments
+XFAIL tests/test_geohash.py::test_geohash_encode_decode_neighbor - geohash module is missing
+XFAIL tests/test_geohash.py::test_geohash_invalid - geohash module is missing
+XFAIL tests/test_humboldt.py::test_humboldt_empty_input - Humboldt calls LLM for empty or whitespace-only input instead of a no-op
+XFAIL tests/test_imports.py::test_modules_only_import_stdlib[dd2dms.py] - dd2dms.py imports third-party package: openai
+XFAIL tests/test_manifest_icons.py::test_manifest_json - manifest.json missing 'icons' key
+XFAIL tests/test_manifest_link.py::test_index_html_manifest_link - index.html is missing <link rel=manifest> pointing to manifest.json
+XFAIL tests/test_mercator.py::test_web_mercator_roundtrip - Web Mercator projection helper is missing.
+XFAIL tests/test_mercator.py::test_web_mercator_latitude_bounds - Web Mercator projection helper is missing.
+XFAIL tests/test_network_block.py::test_network_block - Network blocks are not actually implemented yet.
+XFAIL tests/test_orchestration_retry.py::test_call_llm_missing_api_key - Raises ValueError with raw traceback (__cause__) instead of a clean handled error message
+XFAIL tests/test_raster.py::test_raster_normalize - Raster normalize helper is missing
+XFAIL tests/test_tile_helpers.py::test_xyz_to_bbox - Tile XYZ-to-bbox helper function is missing
+XFAIL tests/test_utm.py::test_utm_zone_helper - UTM helper is missing
+XFAIL tests/test_validation.py::test_swap_axis_order - swap_axis_order helper is missing
+XPASS tests/test_dd2dms.py::test_dd_to_dms_value_negative_longitudes - dd_to_dms_value returns unsigned 0 for -0.1 due to int truncation of floats
+FAILED tests/test_ast_meta_raise_from.py::test_no_raise_new_exception_in_except_without_from
+FAILED tests/test_docstrings.py::test_top_level_docstrings - AssertionError: ...
+FAILED tests/test_file_loaders.py::test_load_kml_two_points_and_empty_document
+FAILED tests/test_line_length.py::test_line_length_under_120 - AssertionError...
+FAILED tests/test_llm_utils.py::test_call_llm_with_retry_immediate_success - ...
+FAILED tests/test_llm_utils.py::test_call_llm_with_retry_timeout_then_success
+FAILED tests/test_meta_asserts.py::test_no_asserts_in_test_functions - Assert...
+FAILED tests/test_meta_complexity.py::test_cyclomatic_complexity - Failed: Fu...
+FAILED tests/test_meta_except_handlers.py::test_no_bare_except_or_except_exception
+FAILED tests/test_meta_float_comparisons.py::test_no_float_eq_asserts - Asser...
+FAILED tests/test_meta_logging.py::test_no_logging_basicconfig_outside_main
+FAILED tests/test_meta_network_imports.py::test_meta_network_imports - Assert...
+FAILED tests/test_meta_no_print_in_tests.py::test_no_print_in_test_functions
+FAILED tests/test_meta_open_encoding.py::test_open_calls_have_encoding[humboldt.py]
+FAILED tests/test_meta_sys_path.py::test_no_sys_path_modifications - Assertio...
+FAILED tests/test_module_docstrings.py::test_module_docstrings - AssertionErr...
+FAILED tests/test_no_print.py::test_no_print_statements_in_modules - Assertio...
+FAILED tests/test_orchestration_retry.py::test_call_llm_with_retry_happy_path_fast
+= 18 failed, 676 passed, 9 skipped, 24 xfailed, 1 xpassed, 60 warnings in 33.47s =
