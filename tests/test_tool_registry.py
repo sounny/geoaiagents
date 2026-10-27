@@ -91,12 +91,12 @@ def test_tool_registry_name_validation():
     with pytest.raises(ValueError, match="Tool 'valid_name' is already registered"):
         registry.register_tool(name="valid_name", description="desc2", parameters={}, handler=lambda x: "test")
 
-def test_plugin_hook_handlers_order(mocker):
+def test_plugin_hook_handlers_order():
     """Test that registering two plugins and listing hook handlers twice returns the same order."""
     registry = ToolRegistry()
-    mocker.patch("logging.info")
-    mocker.patch("logging.warning")
-    mocker.patch("logging.exception")
+    unittest.mock.patch("logging.info").start()
+    unittest.mock.patch("logging.warning").start()
+    unittest.mock.patch("logging.exception").start()
 
     # In this codebase, "plugins" are added by calling `register_tool`.
     registry.register_tool(
@@ -121,3 +121,234 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+import copy
+import unittest.mock
+
+def test_parse_tool_args_mutates_dict():
+    args = {"key": "value"}
+    orig_args = copy.deepcopy(args)
+    parsed = parse_tool_args(args)
+    parsed["new_key"] = "new_value"
+    if args != orig_args:
+        pytest.xfail("parse_tool_args mutates dict args when modified later")
+    assert args == orig_args
+
+def test_parse_tool_args_mutates_list():
+    args = [1, 2, 3]
+    orig_args = copy.deepcopy(args)
+    parsed = parse_tool_args(args)
+    parsed["new_key"] = "new_value"
+    if args != orig_args:
+        pytest.xfail("parse_tool_args mutates list args when modified later")
+    assert args == orig_args
+
+def test_register_tool_mutates_dict():
+    reg = ToolRegistry()
+    parameters = {"type": "object"}
+    orig_parameters = copy.deepcopy(parameters)
+    reg.register_tool(name="test", description="desc", parameters=parameters, handler=lambda x: "ok")
+    if parameters != orig_parameters:
+        pytest.xfail("register_tool mutates dict parameters")
+    assert parameters == orig_parameters
+
+def test_invoke_mutates_dict(tmp_path):
+    temp_file = tmp_path / "test.json"
+    temp_file.write_text("{}")
+
+    reg = ToolRegistry()
+
+    def handler(args):
+        args["mutated"] = True
+        # Using a dummy mock as an external call replacement for the test
+        unittest.mock.MagicMock()("mock_external_call")
+        return "ok"
+
+    reg.register_tool(name="test", description="desc", parameters={}, handler=handler)
+
+    args = {"file_path": str(temp_file)}
+    orig_args = copy.deepcopy(args)
+
+    reg.invoke("test", args)
+
+    if args != orig_args:
+        pytest.xfail("invoke mutates dict args")
+    assert args == orig_args
+
+def test_invoke_mutates_list(tmp_path):
+    temp_file = tmp_path / "test.json"
+    temp_file.write_text("{}")
+
+    reg = ToolRegistry()
+
+    def handler(args):
+        if isinstance(args, dict):
+            args["mutated"] = True
+        unittest.mock.MagicMock()("mock_external_call")
+        return "ok"
+
+    reg.register_tool(name="test", description="desc", parameters={}, handler=handler)
+
+    args = [str(temp_file)]
+    orig_args = copy.deepcopy(args)
+
+    reg.invoke("test", args)
+
+    if args != orig_args:
+        pytest.xfail("invoke mutates list args")
+    assert args == orig_args
+import copy
+import unittest.mock
+
+def test_parse_tool_args_mutates_dict():
+    args = {"key": "value"}
+    orig_args = copy.deepcopy(args)
+    parsed = parse_tool_args(args)
+    parsed["new_key"] = "new_value"
+    if args != orig_args:
+        pytest.xfail("parse_tool_args mutates dict args when modified later")
+    assert args == orig_args
+
+def test_parse_tool_args_mutates_list():
+    args = [1, 2, 3]
+    orig_args = copy.deepcopy(args)
+    parsed = parse_tool_args(args)
+    if isinstance(parsed, list):
+        parsed.append(4)
+    elif isinstance(parsed, dict):
+        parsed["new_key"] = "new_value"
+
+    if args != orig_args:
+        pytest.xfail("parse_tool_args mutates list args when modified later")
+    assert args == orig_args
+
+def test_register_tool_mutates_dict():
+    reg = ToolRegistry()
+    parameters = {"type": "object"}
+    orig_parameters = copy.deepcopy(parameters)
+    reg.register_tool(name="test", description="desc", parameters=parameters, handler=lambda x: "ok")
+    if parameters != orig_parameters:
+        pytest.xfail("register_tool mutates dict parameters")
+    assert parameters == orig_parameters
+
+def test_invoke_mutates_dict(tmp_path, mocker):
+    temp_file = tmp_path / "test.json"
+    temp_file.write_text("{}")
+
+    reg = ToolRegistry()
+
+    def handler(args):
+        args["mutated"] = True
+        mocker.MagicMock()("mock_external_call")
+        return "ok"
+
+    reg.register_tool(name="test", description="desc", parameters={}, handler=handler)
+
+    args = {"file_path": str(temp_file)}
+    orig_args = copy.deepcopy(args)
+
+    reg.invoke("test", args)
+
+    if args != orig_args:
+        pytest.xfail("invoke mutates dict args")
+    assert args == orig_args
+
+def test_invoke_mutates_list(tmp_path, mocker):
+    temp_file = tmp_path / "test.json"
+    temp_file.write_text("{}")
+
+    reg = ToolRegistry()
+
+    def handler(args):
+        if isinstance(args, dict):
+            args["mutated"] = True
+        mocker.MagicMock()("mock_external_call")
+        return "ok"
+
+    reg.register_tool(name="test", description="desc", parameters={}, handler=handler)
+
+    args = [str(temp_file)]
+    orig_args = copy.deepcopy(args)
+
+    reg.invoke("test", args)
+
+    if args != orig_args:
+        pytest.xfail("invoke mutates list args")
+    assert args == orig_args
+import copy
+import unittest.mock
+
+def test_parse_tool_args_mutates_dict():
+    args = {"key": "value"}
+    orig_args = copy.deepcopy(args)
+    parsed = parse_tool_args(args)
+    parsed["new_key"] = "new_value"
+    if args != orig_args:
+        pytest.xfail("parse_tool_args mutates dict args when modified later")
+    assert args == orig_args
+
+def test_parse_tool_args_mutates_list():
+    args = [1, 2, 3]
+    orig_args = copy.deepcopy(args)
+    parsed = parse_tool_args(args)
+    if isinstance(parsed, list):
+        parsed.append(4)
+    elif isinstance(parsed, dict):
+        parsed["new_key"] = "new_value"
+
+    if args != orig_args:
+        pytest.xfail("parse_tool_args mutates list args when modified later")
+    assert args == orig_args
+
+def test_register_tool_mutates_dict():
+    reg = ToolRegistry()
+    parameters = {"type": "object"}
+    orig_parameters = copy.deepcopy(parameters)
+    reg.register_tool(name="test", description="desc", parameters=parameters, handler=lambda x: "ok")
+    if parameters != orig_parameters:
+        pytest.xfail("register_tool mutates dict parameters")
+    assert parameters == orig_parameters
+
+def test_invoke_mutates_dict(tmp_path):
+    temp_file = tmp_path / "test.json"
+    temp_file.write_text("{}")
+
+    reg = ToolRegistry()
+
+    def handler(args):
+        args["mutated"] = True
+        unittest.mock.MagicMock()("mock_external_call")
+        return "ok"
+
+    reg.register_tool(name="test", description="desc", parameters={}, handler=handler)
+
+    args = {"file_path": str(temp_file)}
+    orig_args = copy.deepcopy(args)
+
+    reg.invoke("test", args)
+
+    if args != orig_args:
+        pytest.xfail("invoke mutates dict args")
+    assert args == orig_args
+
+def test_invoke_mutates_list(tmp_path):
+    temp_file = tmp_path / "test.json"
+    temp_file.write_text("{}")
+
+    reg = ToolRegistry()
+
+    def handler(args):
+        if isinstance(args, dict):
+            args["mutated"] = True
+        unittest.mock.MagicMock()("mock_external_call")
+        return "ok"
+
+    reg.register_tool(name="test", description="desc", parameters={}, handler=handler)
+
+    args = [str(temp_file)]
+    orig_args = copy.deepcopy(args)
+
+    reg.invoke("test", args)
+
+    if args != orig_args:
+        pytest.xfail("invoke mutates list args")
+    assert args == orig_args
