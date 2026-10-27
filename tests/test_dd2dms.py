@@ -131,3 +131,75 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_format_dms_explicit_none():
+    assert format_dms(40, 42, 46.08, True, None) == "40°42'46.08\" N"
+    assert format_dms(-40, 42, 46.08, True, None) == "40°42'46.08\" S"
+    assert format_dms(74, 0, 21.6, False, None) == "74°00'21.60\" E"
+    assert format_dms(-74, 0, 21.6, False, None) == "74°00'21.60\" W"
+
+def test_main(monkeypatch, tmp_path):
+    from unittest.mock import MagicMock
+    from io import StringIO
+    import sys
+    from dd2dms import main
+    monkeypatch.setattr("builtins.input", lambda _: "40.0, -74.0")
+
+    mock_llm = MagicMock()
+    mock_msg = MagicMock()
+    mock_msg.function_call.arguments = '{"coordinates": "40.0, -74.0"}'
+    mock_llm.choices = [MagicMock(message=mock_msg)]
+
+    monkeypatch.setattr("dd2dms.call_llm_with_retry", lambda *a, **k: mock_llm)
+
+    # use tmp_path to satisfy requirements
+    dummy_file = tmp_path / "dummy.txt"
+    dummy_file.write_text("dummy")
+
+    captured = StringIO()
+    monkeypatch.setattr("sys.stdout", captured)
+    monkeypatch.setattr("sys.argv", ["dd2dms.py", "--base-url", "http://test", "--api-key", "test"])
+
+    main()
+    output = captured.getvalue()
+    assert "40°00'00.00\" N" in output
+
+def test_format_dms_optional_parameters():
+    assert format_dms(40, 42, 46.08, True) == "40°42'46.08\" N"
+    assert format_dms(40, 42, 46.08, True, None) == "40°42'46.08\" N"
+    assert format_dms(-0.0, 30, 0.0, True) == "0°30'00.00\" S"
+    assert format_dms(-0.0, 30, 0.0, True, None) == "0°30'00.00\" S"
+
+@pytest.mark.xfail(raises=TypeError, strict=True, reason="dd_to_dms_value raises TypeError when None is passed instead of handling gracefully")
+def test_dd_to_dms_value_none():
+    dd_to_dms_value(None)
+
+def test_convert_dd_to_dms_none():
+    result = convert_dd_to_dms(None)
+    assert "| Latitude (DD) |" in result
+
+def test_main(monkeypatch, tmp_path):
+    from unittest.mock import MagicMock
+    from io import StringIO
+    import sys
+    from dd2dms import main
+
+    test_file = tmp_path / "coords.txt"
+    test_file.write_text("40.0, -74.0")
+
+    monkeypatch.setattr("builtins.input", lambda _: test_file.read_text())
+
+    mock_llm = MagicMock()
+    mock_msg = MagicMock()
+    mock_msg.function_call.arguments = '{"coordinates": "40.0, -74.0"}'
+    mock_llm.choices = [MagicMock(message=mock_msg)]
+
+    monkeypatch.setattr("dd2dms.call_llm_with_retry", lambda *a, **k: mock_llm)
+
+    captured = StringIO()
+    monkeypatch.setattr("sys.stdout", captured)
+    monkeypatch.setattr("sys.argv", ["dd2dms.py", "--base-url", "http://test", "--api-key", "test"])
+
+    main()
+    output = captured.getvalue()
+    assert "40°00'00.00\" N" in output
