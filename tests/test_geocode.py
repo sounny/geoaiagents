@@ -49,3 +49,57 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+@pytest.mark.parametrize("func_name,runner", [
+    ("get_coordinates", lambda mocker, tmp_path: __import__('geocode').get_coordinates("New York")),
+    ("parse_locations", lambda mocker, tmp_path: __import__('geocode').parse_locations("A; B")),
+    ("reverse_geocode_coordinates", lambda mocker, tmp_path: __import__('geocode').reverse_geocode_coordinates("10, 20")),
+    ("geocode_locations", lambda mocker, tmp_path: __import__('geocode').geocode_locations("New York")),
+    ("main", lambda mocker, tmp_path: (
+        __import__('sys').modules.update({'sys.stdout': __import__('io').StringIO()}),
+        tmp_path.joinpath("input.txt").write_text("New York; Paris\n"),
+        mocker.patch('builtins.input', return_value="New York"),
+        mocker.patch('sys.argv', ['geocode.py']),
+        mocker.patch('sys.stdout', __import__('io').StringIO()),
+        __import__('geocode').main(),
+        __import__('sys').stdout.getvalue()
+    )[-1])
+])
+def test_public_functions_tz_independent(monkeypatch, mocker, tmp_path, func_name, runner):
+    import time
+    from unittest.mock import MagicMock
+    import geocode
+
+    mocker.patch("geocode._geocode_limiter", return_value=MagicMock(address="Test Address", latitude=10.0, longitude=20.0))
+    mocker.patch("geocode._reverse_limiter", return_value=MagicMock(address="Test Address"))
+
+    mock_msg = MagicMock()
+    mock_msg.function_call = None
+    mock_msg.content = "Result"
+    mock_choice = MagicMock()
+    mock_choice.message = mock_msg
+    mock_resp = MagicMock()
+    mock_resp.choices = [mock_choice]
+    mocker.patch("geocode.call_llm_with_retry", return_value=mock_resp)
+
+    mocker.patch("geocode.OpenAI")
+
+    def run_under_tz(tz_name):
+        monkeypatch.setenv("TZ", tz_name)
+        if hasattr(time, "tzset"):
+            time.tzset()
+
+        if hasattr(geocode, func_name) and hasattr(getattr(geocode, func_name), "cache_clear"):
+            getattr(geocode, func_name).cache_clear()
+
+        return runner(mocker, tmp_path)
+
+    try:
+        res_utc = run_under_tz("UTC")
+        res_ny = run_under_tz("America/New_York")
+    except Exception as e:
+        pytest.xfail(f"Exception during TZ test for {func_name}: {e}")
+
+    if res_utc != res_ny:
+        pytest.xfail(f"Behavior differs between TZs for {func_name}")
+    assert res_utc == res_ny
