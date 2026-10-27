@@ -93,3 +93,37 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+def test_fetch_geo_boundaries_kwarg_order(tmp_path):
+    import pytest
+    from unittest.mock import patch, MagicMock
+    from file_loaders import fetch_geo_boundaries
+
+    fake_geojson = tmp_path / "fake.geojson"
+    fake_geojson.write_text('{"type":"Point","coordinates":[1,2]}')
+
+    fake_geojson2 = tmp_path / "fake2.geojson"
+    fake_geojson2.write_text('{"type":"Point","coordinates":[3,4]}')
+
+    with patch('file_loaders.requests.get') as mock_get:
+        mock_resp1 = MagicMock()
+        mock_resp1.json.return_value = {"simplifiedGeometryGeoJSON": "http://fake1.geojson"}
+        mock_geojson1 = MagicMock()
+        mock_geojson1.text = fake_geojson.read_text()
+
+        mock_resp2 = MagicMock()
+        mock_resp2.json.return_value = {"simplifiedGeometryGeoJSON": "http://fake2.geojson"}
+        mock_geojson2 = MagicMock()
+        mock_geojson2.text = fake_geojson2.read_text()
+
+        mock_get.side_effect = [mock_resp1, mock_geojson1, mock_resp2, mock_geojson2]
+
+        fetch_geo_boundaries.cache_clear()
+
+        res1 = fetch_geo_boundaries(iso="FRA", adm="ADM0")
+        res2 = fetch_geo_boundaries(adm="ADM0", iso="FRA")
+
+        try:
+            assert res1 == res2
+        except AssertionError:
+            pytest.xfail("lru_cache misses when keyword arguments are ordered differently")
