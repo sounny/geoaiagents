@@ -121,3 +121,35 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: bytes input not parsed identically to str")
+def test_parse_tool_args_bytes_equivalence():
+    text = '{"key": "value"}'
+    b_text = text.encode('utf-8')
+    assert parse_tool_args(text) == parse_tool_args(b_text)
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: bytes tool name not handled identically to str")
+def test_tool_registry_has_tool_bytes_equivalence():
+    registry = ToolRegistry()
+    registry.register_tool(name="test_tool", description="desc", parameters={}, handler=lambda x: "ok")
+    assert registry.has_tool("test_tool") == registry.has_tool(b"test_tool")
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: bytes tool name not handled identically to str in invoke")
+def test_tool_registry_invoke_tool_name_bytes_equivalence():
+    registry = ToolRegistry()
+    registry.register_tool(name="test_tool", description="desc", parameters={}, handler=lambda x: "ok")
+    assert registry.invoke("test_tool", {}) == registry.invoke(b"test_tool", {})
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: bytes raw args not handled identically to str in invoke")
+def test_tool_registry_invoke_raw_args_bytes_equivalence():
+    registry = ToolRegistry()
+    registry.register_tool(name="test_tool", description="desc", parameters={}, handler=lambda x: str(x))
+    text = '{"key": "value"}'
+    b_text = text.encode('utf-8')
+    assert registry.invoke("test_tool", text) == registry.invoke("test_tool", b_text)
+
+def test_tool_registry_register_tool_bytes():
+    # register_tool explicitly validates name is a string and raises ValueError otherwise
+    registry = ToolRegistry()
+    with pytest.raises(ValueError, match="Tool name must be a string"):
+        registry.register_tool(name=b"test_tool", description="desc", parameters={}, handler=lambda x: "ok")
