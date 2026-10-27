@@ -1,6 +1,6 @@
 import math
 import pytest
-from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms
+from dd2dms import dd_to_dms_value, format_dms, convert_dd_to_dms, main
 
 import math
 
@@ -20,7 +20,13 @@ def test_dd_to_dms_value_whole_degrees(val):
     assert math.copysign(1, deg) == math.copysign(1, val)
 
 def test_dd_to_dms_value():
-    assert dd_to_dms_value(40.7128) == (40, 42, pytest.approx(46.08, abs=0.01))
+    res = dd_to_dms_value(40.7128)
+    assert type(res) is tuple
+    assert len(res) == 3
+    assert type(res[0]) in (int, float)
+    assert type(res[1]) is int
+    assert type(res[2]) is float
+    assert res == (40, 42, pytest.approx(46.08, abs=0.01))
     assert dd_to_dms_value(-74.0060) == (-74, 0, pytest.approx(21.6, abs=0.01))
     assert dd_to_dms_value(0) == (0, 0, 0)
 
@@ -56,7 +62,9 @@ def test_dd_to_dms_value_75_125_degrees_minutes_seconds():
     assert math.copysign(1, deg) == math.copysign(1, 75.125)
 
 def test_format_dms():
-    assert format_dms(40, 42, 46.08, True) == "40°42'46.08\" N"
+    res = format_dms(40, 42, 46.08, True)
+    assert type(res) is str
+    assert res == "40°42'46.08\" N"
     assert format_dms(-40, 42, 46.08, True) == "40°42'46.08\" S"
     assert format_dms(74, 0, 21.6, False) == "74°00'21.60\" E"
     assert format_dms(-74, 0, 21.6, False) == "74°00'21.60\" W"
@@ -73,6 +81,7 @@ def test_format_dms():
 def test_convert_dd_to_dms():
     text = "40.7128,-74.0060"
     result = convert_dd_to_dms(text)
+    assert type(result) is str
     assert "40.7128" in result
     assert "-74.0060" in result
     assert "40°42'46.08\" N" in result
@@ -131,3 +140,16 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+def test_main_type(mocker, tmp_path):
+    mocker.patch("builtins.input", return_value="40.7128,-74.0060")
+    mocker.patch("sys.argv", ["dd2dms.py", "--base-url", "http://fake", "--api-key", "fake"])
+    mock_client = mocker.patch("dd2dms.OpenAI")
+
+    mock_response = mocker.MagicMock()
+    mock_message = mocker.MagicMock()
+    mock_message.function_call.arguments = '{"coordinates": "40.7128,-74.0060"}'
+    mock_response.choices = [mocker.MagicMock(message=mock_message)]
+    mocker.patch("dd2dms.call_llm_with_retry", return_value=mock_response)
+
+    res = main()
+    assert res is None
