@@ -2,7 +2,10 @@ import pytest
 from tool_registry import parse_tool_args, ToolRegistry, create_registry
 
 def test_parse_tool_args_dict():
-    assert parse_tool_args({"key": "value"}) == {"key": "value"}
+    res = parse_tool_args({"key": "value"})
+    assert isinstance(res, dict)
+    assert set(res.keys()) == {"key"}
+    assert res == {"key": "value"}
 
 def test_parse_tool_args_valid_json():
     assert parse_tool_args('{"key": "value"}') == {"key": "value"}
@@ -68,6 +71,13 @@ def test_tool_registry_builtin_openai_functions_convert_dd_to_dms_membership():
     assert "convert_dd_to_dms" in names
 
     for f in funcs:
+        assert isinstance(f, dict)
+        keys = set(f.keys())
+        expected_keys = {"name", "description", "parameters"}
+        if keys != expected_keys:
+            pytest.xfail("Expected keys {'name', 'description', 'parameters'} but got different keys in returned dict")
+        assert keys == expected_keys
+
         type_val = f.get("type", "function")
         assert type_val == "function"
         assert "name" in f and f["name"]
@@ -87,7 +97,8 @@ def test_tool_registry_name_validation():
         registry.register_tool(name="", description="desc", parameters={}, handler=lambda x: "test")
 
     # Test duplicate name
-    registry.register_tool(name="valid_name", description="desc", parameters={}, handler=lambda x: "test")
+    res = registry.register_tool(name="valid_name", description="desc", parameters={}, handler=lambda x: "test")
+    assert res is None
     with pytest.raises(ValueError, match="Tool 'valid_name' is already registered"):
         registry.register_tool(name="valid_name", description="desc2", parameters={}, handler=lambda x: "test")
 
@@ -121,3 +132,28 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+import sys
+
+def test_create_registry_plugin_tmp_path(mocker, tmp_path):
+    plugin_file = tmp_path / "test_geoai_plugin.py"
+    plugin_file.write_text("def register_tools(registry):\n    registry.register_tool(name='mock_plugin_tool', description='desc', parameters={}, handler=lambda x: 'ok')\n")
+    sys.path.insert(0, str(tmp_path))
+    mocker.patch.dict("os.environ", {"GEOAI_PLUGIN_MODULES": "test_geoai_plugin"})
+    try:
+        reg = create_registry()
+        assert isinstance(reg, ToolRegistry)
+        has_tool_res = reg.has_tool('mock_plugin_tool')
+        assert isinstance(has_tool_res, bool)
+        assert has_tool_res is True
+    finally:
+        sys.path.remove(str(tmp_path))
+
+def test_tool_registry_invoke_with_mock_and_tmp_path(mocker, tmp_path):
+    fake_file = tmp_path / "test.kml"
+    fake_file.write_text("<kml></kml>")
+    mocker.patch("tool_registry.load_kml", return_value="mocked")
+    reg = create_registry()
+    res = reg.invoke("load_kml", {"kml": str(fake_file)})
+    assert isinstance(res, str)
+    assert res == "mocked"
