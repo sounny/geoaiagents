@@ -3,6 +3,7 @@ from distance import _parse_distance_pairs, _haversine_km, calculate_distance
 
 def test_parse_distance_pairs():
     text = "0,0,10,10\n91,0,0,0\nabc,123,0,0\n10, 20, 30, 40"
+    assert type(_parse_distance_pairs(text)) is tuple
     pairs, invalid = _parse_distance_pairs(text)
     assert pairs == [(0, 0, 10, 10), (10, 20, 30, 40)]
     assert len(invalid) == 2
@@ -50,6 +51,7 @@ def test_parse_distance_pairs_all_zero():
 def test_haversine_km():
     # New York to London
     distance = _haversine_km(40.7128, -74.0060, 51.5074, -0.1278)
+    assert type(distance) is float
     assert 5500 < distance < 5600
     assert abs(_haversine_km(0, 0, 0, 0)) < 1e-6
 
@@ -63,6 +65,7 @@ def test_haversine_km():
 def test_calculate_distance():
     text = "40.7128,-74.0060,51.5074,-0.1278"
     result = calculate_distance(text)
+    assert type(result) is str
     assert "40.7128" in result
     assert "51.5074" in result
     assert "Distance (km)" in result
@@ -116,7 +119,15 @@ def test_azimuth_to_cardinal():
         from distance import azimuth_to_cardinal
     except ImportError:
         pytest.xfail("Helper azimuth_to_cardinal is missing")
+    assert type(azimuth_to_cardinal(0)) is str
     assert azimuth_to_cardinal(0) == 'N'
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+
+def test_main(monkeypatch, capsys):
+    from distance import main
+    monkeypatch.setattr('builtins.input', lambda _: "40.7128,-74.0060,51.5074,-0.1278")
+    result = main()
+    assert type(result) is type(None)
