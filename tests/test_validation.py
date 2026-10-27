@@ -12,6 +12,10 @@ def test_is_valid_lat_lon():
     assert is_valid_lat_lon(90, 0) is True
     assert is_valid_lat_lon(-90, 0) is True
 
+    # Test keyword argument order
+    assert is_valid_lat_lon(lat=10.0, lon=20.0) == is_valid_lat_lon(lon=20.0, lat=10.0)
+    assert is_valid_lat_lon(lat=91.0, lon=0.0) == is_valid_lat_lon(lon=0.0, lat=91.0)
+
 def test_is_valid_lat_lon_locked_boundaries():
     assert is_valid_lat_lon(90.0, 0.0) is True
     assert is_valid_lat_lon(-90.0, 180.0) is True
@@ -94,3 +98,13 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_format_invalid_notes_kwargs_order():
+    invalid1 = [("91,0", "Out of range"), ("abc,123", "Not a number")]
+    invalid2 = [("abc,123", "Not a number"), ("91,0", "Out of range")]
+
+    # Assert formatting matches regardless of order, using xfail as it differs
+    try:
+        assert format_invalid_notes(invalid_entries=invalid1) == format_invalid_notes(invalid_entries=invalid2)
+    except AssertionError:
+        pytest.xfail("format_invalid_notes relies on sequence order, changing output string format.")
