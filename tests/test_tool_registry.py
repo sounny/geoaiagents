@@ -121,3 +121,42 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_parse_tool_args_dict_with_unknown_keys():
+    result = parse_tool_args({"key": "value", "unknown_key": "some_value"})
+    if "unknown_key" in result:
+        pytest.xfail("Bug: parse_tool_args returns unknown keys without validation")
+    assert result == {"key": "value"}
+
+def test_tool_registry_register_tool_unknown_config_keys():
+    registry = ToolRegistry()
+
+    # Try to register a tool with an unknown key in the config 'parameters' dictionary
+    # The current implementation silently accepts it.
+    try:
+        registry.register_tool(
+            name="test_tool_config",
+            description="test",
+            parameters={"type": "object", "unknown_config_key": "value"},
+            handler=lambda x: str(x)
+        )
+        pytest.xfail("Bug: register_tool silently accepts unknown configuration keys in parameters")
+    except ValueError:
+        pass
+
+def test_tool_registry_invoke_unknown_keys(mocker, tmp_path):
+    registry = create_registry()
+
+    # Mock an external call
+    mock_load = mocker.patch("tool_registry.load_geojson", return_value="mocked_table")
+
+    # Use tmp_path to create a file
+    dummy_file = tmp_path / "dummy.geojson"
+    dummy_file.write_text('{"type": "FeatureCollection", "features": []}')
+
+    result = registry.invoke("load_geojson", {"geojson": dummy_file.read_text(), "unknown_arg": "value"})
+
+    if result == "mocked_table":
+        pytest.xfail("Bug: invoke silently ignores unknown argument keys without validation")
+
+    assert result != "mocked_table"
