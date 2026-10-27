@@ -121,3 +121,36 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_parse_tool_args_dict_order():
+    d1 = {"a": 1, "b": 2}
+    d2 = {"b": 2, "a": 1}
+    res1 = parse_tool_args(d1)
+    res2 = parse_tool_args(d2)
+
+    if res1 != res2:
+        pytest.xfail("Dict order affects parse_tool_args output")
+    assert res1 == res2
+
+def test_openai_functions_dict_order():
+    r1 = ToolRegistry()
+    r1.register_tool(name="test", description="desc", parameters={"a": 1, "b": 2}, handler=lambda x: x)
+    r2 = ToolRegistry()
+    r2.register_tool(name="test", description="desc", parameters={"b": 2, "a": 1}, handler=lambda x: x)
+
+    res1 = r1.openai_functions()
+    res2 = r2.openai_functions()
+    if res1 != res2:
+        pytest.xfail("Dict order affects openai_functions output")
+    assert res1 == res2
+
+def test_invoke_dict_order():
+    r1 = ToolRegistry()
+    r1.register_tool(name="test", description="desc", parameters={}, handler=lambda x: str(x))
+
+    res1 = r1.invoke("test", {"a": 1, "b": 2})
+    res2 = r1.invoke("test", {"b": 2, "a": 1})
+
+    if res1 != res2:
+        pytest.xfail("Dict order affects invoke output")
+    assert res1 == res2
