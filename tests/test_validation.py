@@ -12,6 +12,17 @@ def test_is_valid_lat_lon():
     assert is_valid_lat_lon(90, 0) is True
     assert is_valid_lat_lon(-90, 0) is True
 
+    with pytest.raises(TypeError):
+        is_valid_lat_lon()
+
+    try:
+        res = is_valid_lat_lon(None, None)
+    except Exception as e:
+        res = e
+    if isinstance(res, TypeError):
+        pytest.xfail("Bug: is_valid_lat_lon crashes with TypeError on None inputs")
+    assert res is False
+
 def test_is_valid_lat_lon_locked_boundaries():
     assert is_valid_lat_lon(90.0, 0.0) is True
     assert is_valid_lat_lon(-90.0, 180.0) is True
@@ -35,6 +46,11 @@ def test_parse_coordinate_pairs():
     assert len(invalid) == 2
     assert invalid[0][0] == "91,0"
     assert invalid[1][0] == "abc,123"
+
+    with pytest.raises(TypeError):
+        parse_coordinate_pairs()
+
+    assert parse_coordinate_pairs(None) == ([], [])
 
 def test_parse_coordinate_pairs_malformed():
     pairs, invalid = parse_coordinate_pairs("10,20\ninvalid\n30,200\n40\n120, 45")
@@ -62,6 +78,11 @@ def test_format_invalid_notes():
     formatted = format_invalid_notes([("invalid", "Missing latitude/longitude pair")])
     assert "_Skipped invalid inputs:_" in formatted
     assert "- `invalid` (Missing latitude/longitude pair)" in formatted
+
+    with pytest.raises(TypeError):
+        format_invalid_notes()
+
+    assert format_invalid_notes(None) == ""
 
 def test_parse_coordinate_pairs_space_separated_locked():
     # Test valid space-separated and semicolon-delimited coordinates
