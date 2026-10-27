@@ -1,6 +1,6 @@
 import sys
 import pytest
-from geoai_cli import _read_value_or_stdin, main
+from geoai_cli import _read_value_or_stdin, main, _tool_args_for, _build_parser
 
 import subprocess
 
@@ -41,3 +41,62 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+from unittest.mock import patch
+import argparse
+
+def test_main_list_tools_public():
+    with patch("sys.argv", ["geoai_cli.py", "list-tools"]):
+        result = main()
+        assert type(result) is int
+        assert result == 0
+
+def test_main_run_tool_public(tmp_path):
+    test_file = tmp_path / "payload.txt"
+    test_file.write_text("Paris")
+
+    with patch("sys.argv", ["geoai_cli.py", "run-tool", "geocode_locations", "--payload", str(test_file)]):
+        with patch("tool_registry.ToolRegistry.invoke", return_value="mocked") as mock_invoke:
+            result = main()
+            assert type(result) is int
+            assert result == 0
+            args_call = mock_invoke.call_args[0][1]
+            assert set(args_call.keys()) == {"locations"}
+            mock_invoke.assert_called_once_with("geocode_locations", {"locations": str(test_file)})
+
+def test_main_geocode_stdin_public(tmp_path, monkeypatch):
+    test_file = tmp_path / "input.txt"
+    test_file.write_text("Seattle\n")
+
+    with open(test_file, "r") as f:
+        monkeypatch.setattr("sys.stdin", f)
+        # we can mock read() instead of isatty since we're using a real file which will return False for isatty
+        # wait no, let's just patch read to return the file content
+
+        with patch("sys.argv", ["geoai_cli.py", "geocode"]):
+            with patch("tool_registry.ToolRegistry.invoke", return_value="mocked") as mock_invoke:
+                result = main()
+                assert type(result) is int
+                assert result == 0
+                args_call = mock_invoke.call_args[0][1]
+                assert set(args_call.keys()) == {"locations"}
+                mock_invoke.assert_called_once_with("geocode_locations", {"locations": "Seattle"})
+
+def test_main_boundaries_public():
+    with patch("sys.argv", ["geoai_cli.py", "boundaries", "USA", "--adm", "ADM1"]):
+        with patch("tool_registry.ToolRegistry.invoke", return_value="mocked") as mock_invoke:
+            result = main()
+            assert type(result) is int
+            assert result == 0
+            args_call = mock_invoke.call_args[0][1]
+            assert set(args_call.keys()) == {"iso", "adm"}
+            mock_invoke.assert_called_once_with("fetch_geo_boundaries", {"iso": "USA", "adm": "ADM1"})
+
+def test_main_chat_public():
+    with patch("sys.argv", ["geoai_cli.py", "chat"]):
+        with patch("builtins.input", side_effect=["exit"]):
+            with patch("openai.OpenAI") as mock_openai:
+                result = main()
+                assert type(result) is int
+                assert result == 0
+                mock_openai.assert_called_once()
