@@ -2,6 +2,7 @@ import pytest
 from validation import is_valid_lat_lon, parse_coordinate_pairs, format_invalid_notes
 
 def test_is_valid_lat_lon():
+    assert type(is_valid_lat_lon(0, 0)) is bool
     assert is_valid_lat_lon(0, 0) is True
     assert is_valid_lat_lon(90, 180) is True
     assert is_valid_lat_lon(-90, -180) is True
@@ -31,6 +32,8 @@ def test_is_valid_lat_lon_nan_inf():
 def test_parse_coordinate_pairs():
     text = "0,0\n91,0\nabc,123\n10, 20"
     pairs, invalid = parse_coordinate_pairs(text)
+    assert type(pairs) is list
+    assert type(invalid) is list
     assert pairs == [(0, 0), (10, 20)]
     assert len(invalid) == 2
     assert invalid[0][0] == "91,0"
@@ -55,6 +58,7 @@ def test_parse_coordinate_pairs_not_a_number():
 def test_format_invalid_notes():
     invalid = [("91,0", "Out of range"), ("abc,123", "Not a number")]
     result = format_invalid_notes(invalid)
+    assert type(result) is str
     assert "Skipped invalid inputs" in result
     assert "`91,0`" in result
     assert "`abc,123`" in result
