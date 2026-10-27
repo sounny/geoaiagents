@@ -1,3 +1,4 @@
+import humboldt
 import pytest
 import sys
 from unittest.mock import patch, MagicMock
@@ -26,3 +27,20 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+def test_is_package_installed_str():
+    assert isinstance(humboldt.is_package_installed("openai"), bool)
+
+@pytest.mark.xfail(raises=TypeError, reason="is_package_installed throws TypeError on bytes")
+def test_is_package_installed_bytes():
+    humboldt.is_package_installed(b"openai")
+
+def test_handle_direct_command_str():
+    tool_registry = MagicMock()
+    tool_registry.invoke.return_value = "mock_output"
+    assert humboldt.handle_direct_command("/geocode test", tool_registry) is True
+
+@pytest.mark.xfail(raises=TypeError, reason="handle_direct_command throws TypeError on bytes")
+def test_handle_direct_command_bytes():
+    tool_registry = MagicMock()
+    humboldt.handle_direct_command(b"/geocode test", tool_registry)
