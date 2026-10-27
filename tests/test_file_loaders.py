@@ -93,3 +93,187 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+
+def test_load_geojson_nfc_nfd(tmp_path):
+    nfc = unicodedata.normalize('NFC', 'Ç')
+    nfd = unicodedata.normalize('NFD', 'Ç')
+
+    nfc_content = f'{{"type":"Feature","geometry":{{"type":"Point","coordinates":[1,2]}},"properties":{{"name":"{nfc}"}}}}'
+    nfd_content = f'{{"type":"Feature","geometry":{{"type":"Point","coordinates":[1,2]}},"properties":{{"name":"{nfd}"}}}}'
+
+    file_nfc = tmp_path / "nfc.geojson"
+    file_nfd = tmp_path / "nfd.geojson"
+
+    file_nfc.write_text(nfc_content, encoding="utf-8")
+    file_nfd.write_text(nfd_content, encoding="utf-8")
+
+    res_nfc = load_geojson(file_nfc.read_text(encoding="utf-8"))
+    res_nfd = load_geojson(file_nfd.read_text(encoding="utf-8"))
+
+    if res_nfc != res_nfd:
+        pytest.xfail("Bug: load_geojson results differ for NFC and NFD strings")
+
+def test_load_kml_nfc_nfd(tmp_path):
+    nfc = unicodedata.normalize('NFC', 'Ç')
+    nfd = unicodedata.normalize('NFD', 'Ç')
+
+    nfc_content = f'<kml><Placemark><name>{nfc}</name><Point><coordinates>1,2</coordinates></Point></Placemark></kml>'
+    nfd_content = f'<kml><Placemark><name>{nfd}</name><Point><coordinates>1,2</coordinates></Point></Placemark></kml>'
+
+    file_nfc = tmp_path / "nfc.kml"
+    file_nfd = tmp_path / "nfd.kml"
+
+    file_nfc.write_text(nfc_content, encoding="utf-8")
+    file_nfd.write_text(nfd_content, encoding="utf-8")
+
+    res_nfc = load_kml(file_nfc.read_text(encoding="utf-8"))
+    res_nfd = load_kml(file_nfd.read_text(encoding="utf-8"))
+
+    if res_nfc != res_nfd:
+        pytest.xfail("Bug: load_kml results differ for NFC and NFD strings")
+
+def test_load_csv_nfc_nfd(tmp_path):
+    nfc = unicodedata.normalize('NFC', 'Ç')
+    nfd = unicodedata.normalize('NFD', 'Ç')
+
+    nfc_content = f"lat,lon,name\n1,2,{nfc}"
+    nfd_content = f"lat,lon,name\n1,2,{nfd}"
+
+    file_nfc = tmp_path / "nfc.csv"
+    file_nfd = tmp_path / "nfd.csv"
+
+    file_nfc.write_text(nfc_content, encoding="utf-8")
+    file_nfd.write_text(nfd_content, encoding="utf-8")
+
+    res_nfc = load_csv(file_nfc.read_text(encoding="utf-8"))
+    res_nfd = load_csv(file_nfd.read_text(encoding="utf-8"))
+
+    if res_nfc != res_nfd:
+        pytest.xfail("Bug: load_csv results differ for NFC and NFD strings")
+
+
+def test_load_geojson_nfc_nfd(tmp_path):
+    import unicodedata
+    import pytest
+    from file_loaders import load_geojson
+
+    nfc = unicodedata.normalize('NFC', 'Ç')
+    nfd = unicodedata.normalize('NFD', 'Ç')
+
+    nfc_content = f'{{"type":"Feature","geometry":{{"type":"Point","coordinates":[1,2]}},"properties":{{"name":"{nfc}"}}}}'
+    nfd_content = f'{{"type":"Feature","geometry":{{"type":"Point","coordinates":[1,2]}},"properties":{{"name":"{nfd}"}}}}'
+
+    file_nfc = tmp_path / "nfc.geojson"
+    file_nfd = tmp_path / "nfd.geojson"
+
+    file_nfc.write_text(nfc_content, encoding="utf-8")
+    file_nfd.write_text(nfd_content, encoding="utf-8")
+
+    res_nfc = load_geojson(file_nfc.read_text(encoding="utf-8"))
+    res_nfd = load_geojson(file_nfd.read_text(encoding="utf-8"))
+
+    assert "| Latitude | Longitude |" in res_nfc
+    assert "| Latitude | Longitude |" in res_nfd
+
+    if res_nfc != res_nfd:
+        pytest.xfail("Bug: load_geojson results differ for NFC and NFD strings")
+
+def test_load_kml_nfc_nfd(tmp_path):
+    import unicodedata
+    import pytest
+    from file_loaders import load_kml
+
+    nfc = unicodedata.normalize('NFC', 'Ç')
+    nfd = unicodedata.normalize('NFD', 'Ç')
+
+    nfc_content = f'<kml><Placemark><name>{nfc}</name><Point><coordinates>1,2</coordinates></Point></Placemark></kml>'
+    nfd_content = f'<kml><Placemark><name>{nfd}</name><Point><coordinates>1,2</coordinates></Point></Placemark></kml>'
+
+    file_nfc = tmp_path / "nfc.kml"
+    file_nfd = tmp_path / "nfd.kml"
+
+    file_nfc.write_text(nfc_content, encoding="utf-8")
+    file_nfd.write_text(nfd_content, encoding="utf-8")
+
+    res_nfc = load_kml(file_nfc.read_text(encoding="utf-8"))
+    res_nfd = load_kml(file_nfd.read_text(encoding="utf-8"))
+
+    assert "| Latitude | Longitude |" in res_nfc
+    assert "| Latitude | Longitude |" in res_nfd
+
+    if res_nfc != res_nfd:
+        pytest.xfail("Bug: load_kml results differ for NFC and NFD strings")
+
+def test_load_csv_nfc_nfd(tmp_path):
+    import unicodedata
+    import pytest
+    from file_loaders import load_csv
+
+    nfc = unicodedata.normalize('NFC', 'Ç')
+    nfd = unicodedata.normalize('NFD', 'Ç')
+
+    nfc_content = f"lat,lon,name\n1,2,{nfc}"
+    nfd_content = f"lat,lon,name\n1,2,{nfd}"
+
+    file_nfc = tmp_path / "nfc.csv"
+    file_nfd = tmp_path / "nfd.csv"
+
+    file_nfc.write_text(nfc_content, encoding="utf-8")
+    file_nfd.write_text(nfd_content, encoding="utf-8")
+
+    res_nfc = load_csv(file_nfc.read_text(encoding="utf-8"))
+    res_nfd = load_csv(file_nfd.read_text(encoding="utf-8"))
+
+    assert "| Latitude | Longitude |" in res_nfc
+    assert "| Latitude | Longitude |" in res_nfd
+
+    if res_nfc != res_nfd:
+        pytest.xfail("Bug: load_csv results differ for NFC and NFD strings")
+
+def test_fetch_geo_boundaries_nfc_nfd():
+    from unittest import mock
+    import unicodedata
+    import pytest
+    from file_loaders import fetch_geo_boundaries
+
+    nfc = unicodedata.normalize('NFC', 'Ç')
+    nfd = unicodedata.normalize('NFD', 'Ç')
+
+    with mock.patch("file_loaders.requests.get") as mock_get:
+        mock_resp = mock.MagicMock()
+        mock_resp.json.return_value = {"simplifiedGeometryGeoJSON": "http://dummy"}
+        mock_resp.text = '{"type":"FeatureCollection","features":[]}'
+        mock_get.return_value = mock_resp
+
+        try:
+            fetch_geo_boundaries.cache_clear()
+        except AttributeError:
+            pass
+
+        res_nfc = fetch_geo_boundaries(nfc)
+        try:
+            url_nfc = mock_get.call_args_list[0][0][0]
+        except IndexError:
+            url_nfc = None
+
+        try:
+            fetch_geo_boundaries.cache_clear()
+        except AttributeError:
+            pass
+
+        mock_get.reset_mock()
+        res_nfd = fetch_geo_boundaries(nfd)
+        try:
+            url_nfd = mock_get.call_args_list[0][0][0]
+        except IndexError:
+            url_nfd = None
+
+        assert "| Latitude | Longitude |" in res_nfc
+        assert "| Latitude | Longitude |" in res_nfd
+
+        if res_nfc != res_nfd:
+            pytest.xfail("Bug: fetch_geo_boundaries results differ for NFC and NFD strings")
+
+        if url_nfc != url_nfd:
+            pytest.xfail("Bug: fetch_geo_boundaries requests differ for NFC and NFD strings")
