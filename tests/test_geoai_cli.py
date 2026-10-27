@@ -41,3 +41,35 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+from geoai_cli import _build_parser
+
+@pytest.mark.parametrize('parse_method_name', [
+    'parse_args',
+    'parse_known_args',
+    'parse_intermixed_args',
+    'parse_known_intermixed_args'
+])
+def test_geoai_cli_parse_args_omitted_vs_none(mocker, parse_method_name):
+    mocker.patch('sys.argv', ['geoai_cli.py', 'geocode', 'Paris'])
+    parser = _build_parser()
+    parse_method = getattr(parser, parse_method_name)
+
+    try:
+        res_omitted = parse_method()
+    except Exception as e:
+        res_omitted = e
+
+    try:
+        res_none = parse_method(None)
+    except Exception as e:
+        res_none = e
+
+    if isinstance(res_omitted, Exception):
+        assert isinstance(res_omitted, TypeError)
+        assert "parse_intermixed_args: positional arg with nargs=A" in str(res_omitted)
+        assert type(res_omitted) is type(res_none)
+        assert str(res_omitted) == str(res_none)
+        pytest.xfail(f"argparse bug with subparsers: {res_omitted}")
+
+    assert res_omitted == res_none
