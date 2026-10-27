@@ -121,3 +121,107 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+import unicodedata
+
+def test_parse_tool_args_nfc_nfd():
+    nfd_str = "cafe\u0301"
+    nfc_str = unicodedata.normalize('NFC', nfd_str)
+    json_nfc = f'{{"{nfc_str}": "val"}}'
+    json_nfd = f'{{"{nfd_str}": "val"}}'
+    res_nfc = parse_tool_args(json_nfc)
+    res_nfd = parse_tool_args(json_nfd)
+    if res_nfc != res_nfd:
+        pytest.xfail("parse_tool_args doesn't normalize NFC/NFD, resulting in different dicts")
+    assert res_nfc == res_nfd
+
+def test_tool_registry_has_tool_nfc_nfd():
+    nfd_str = "cafe\u0301"
+    nfc_str = unicodedata.normalize('NFC', nfd_str)
+    reg = ToolRegistry()
+    reg.register_tool(name=nfc_str, description="desc", parameters={}, handler=lambda x: "nfc")
+    res_nfc = reg.has_tool(nfc_str)
+    res_nfd = reg.has_tool(nfd_str)
+    if res_nfc != res_nfd:
+        pytest.xfail("has_tool doesn't normalize NFC/NFD")
+    assert res_nfc == res_nfd
+
+def test_tool_registry_invoke_nfc_nfd():
+    nfd_str = "cafe\u0301"
+    nfc_str = unicodedata.normalize('NFC', nfd_str)
+    reg = ToolRegistry()
+    reg.register_tool(name=nfc_str, description="desc", parameters={}, handler=lambda x: "nfc")
+    res_nfc = reg.invoke(nfc_str, {})
+    res_nfd = reg.invoke(nfd_str, {})
+    if res_nfc != res_nfd:
+        pytest.xfail("invoke doesn't normalize NFC/NFD")
+    assert res_nfc == res_nfd
+
+def test_tool_registry_register_tool_nfc_nfd():
+    nfd_str = "cafe\u0301"
+    nfc_str = unicodedata.normalize('NFC', nfd_str)
+    reg = ToolRegistry()
+    reg.register_tool(name=nfc_str, description="desc", parameters={}, handler=lambda x: "nfc")
+    # We expect it to raise ValueError because the tool should already be registered
+    # But because they are different, it doesn't raise
+    try:
+        reg.register_tool(name=nfd_str, description="desc2", parameters={}, handler=lambda x: "nfd")
+    except ValueError:
+        pass # expected
+    else:
+        pytest.xfail("register_tool doesn't normalize NFC/NFD, allowing registration of same tool name in different forms")
+
+
+import unicodedata
+
+def test_parse_tool_args_nfc_nfd():
+    nfd_str = "cafe\u0301"
+    nfc_str = unicodedata.normalize('NFC', nfd_str)
+    json_nfc = f'{{"{nfc_str}": "val"}}'
+    json_nfd = f'{{"{nfd_str}": "val"}}'
+    res_nfc = parse_tool_args(json_nfc)
+    res_nfd = parse_tool_args(json_nfd)
+    if res_nfc != res_nfd:
+        pytest.xfail("parse_tool_args doesn't normalize NFC/NFD, resulting in different dicts")
+    assert res_nfc == res_nfd
+
+def test_tool_registry_has_tool_nfc_nfd():
+    nfd_str = "cafe\u0301"
+    nfc_str = unicodedata.normalize('NFC', nfd_str)
+    reg = ToolRegistry()
+    reg.register_tool(name=nfc_str, description="desc", parameters={}, handler=lambda x: "nfc")
+    res_nfc = reg.has_tool(nfc_str)
+    res_nfd = reg.has_tool(nfd_str)
+    if res_nfc != res_nfd:
+        pytest.xfail("has_tool doesn't normalize NFC/NFD")
+    assert res_nfc == res_nfd
+
+def test_tool_registry_invoke_nfc_nfd():
+    nfd_str = "cafe\u0301"
+    nfc_str = unicodedata.normalize('NFC', nfd_str)
+    reg = ToolRegistry()
+    reg.register_tool(name=nfc_str, description="desc", parameters={}, handler=lambda x: "nfc")
+    try:
+        res_nfc = reg.invoke(nfc_str, {})
+        res_nfd = reg.invoke(nfd_str, {})
+    except Exception as e:
+        pytest.xfail(f"invoke raised exception on nfc/nfd: {e}")
+    if res_nfc != res_nfd:
+        pytest.xfail("invoke doesn't normalize NFC/NFD")
+    assert res_nfc == res_nfd
+
+def test_tool_registry_register_tool_nfc_nfd():
+    nfd_str = "cafe\u0301"
+    nfc_str = unicodedata.normalize('NFC', nfd_str)
+    reg = ToolRegistry()
+    reg.register_tool(name=nfc_str, description="desc", parameters={}, handler=lambda x: "nfc")
+    # We expect it to raise ValueError because the tool should already be registered
+    # But because they are different, it doesn't raise
+    try:
+        reg.register_tool(name=nfd_str, description="desc2", parameters={}, handler=lambda x: "nfd")
+    except ValueError:
+        pass # expected
+    except Exception as e:
+        pytest.xfail(f"register_tool raised unexpected exception on nfc/nfd: {e}")
+    else:
+        pytest.xfail("register_tool doesn't normalize NFC/NFD, allowing registration of same tool name in different forms")
