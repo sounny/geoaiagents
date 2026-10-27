@@ -21,3 +21,49 @@ def test_create_map_html_markers_and_skips_invalid_locking_markers():
     assert len(points) == 2
     html = create_map_html(points)
     assert len(re.findall(r"L\.marker", html)) == 2
+
+import signal
+
+class TimeoutException(Exception):
+    pass
+
+def timeout_handler(signum, frame):
+    raise TimeoutException("Timeout!")
+
+@pytest.mark.xfail(raises=ValueError, strict=True, reason="create_map_html with deeply nested list causes ValueError from folium.Map location arg")
+def test_create_map_html_deep_list():
+    l = []
+    for _ in range(200):
+        l = [l]
+
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(2)
+    try:
+        create_map_html(l)
+    finally:
+        signal.alarm(0)
+
+@pytest.mark.xfail(raises=KeyError, strict=True, reason="create_map_html with deeply nested dict causes KeyError from list destructuring")
+def test_create_map_html_deep_dict():
+    d = {}
+    for _ in range(200):
+        d = {"k": d}
+
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(2)
+    try:
+        create_map_html(d)
+    finally:
+        signal.alarm(0)
+
+@pytest.mark.xfail(raises=ValueError, strict=True, reason="create_map_html with self-referential list causes ValueError from folium.Map location arg")
+def test_create_map_html_self_ref_list():
+    self_ref = []
+    self_ref.append(self_ref)
+
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(2)
+    try:
+        create_map_html(self_ref)
+    finally:
+        signal.alarm(0)
