@@ -121,3 +121,86 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+import signal
+
+@pytest.fixture
+def timeout_guard():
+    def handler(signum, frame):
+        raise TimeoutError("Test timed out")
+    signal.signal(signal.SIGALRM, handler)
+    signal.alarm(2)
+    yield
+    signal.alarm(0)
+
+def test_parse_tool_args_deep_dict(timeout_guard):
+    d = {}
+    curr = d
+    for _ in range(200):
+        curr["k"] = {}
+        curr = curr["k"]
+    assert parse_tool_args(d) is d
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: lists are swallowed into empty dicts")
+def test_parse_tool_args_deep_list(timeout_guard):
+    l = []
+    curr = l
+    for _ in range(200):
+        new_l = []
+        curr.append(new_l)
+        curr = new_l
+    assert parse_tool_args(l) != {}
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: self-referencing lists are swallowed into empty dicts")
+def test_parse_tool_args_self_ref_list(timeout_guard):
+    l = []
+    l.append(l)
+    assert parse_tool_args(l) != {}
+
+def test_invoke_deep_dict(timeout_guard):
+    d = {}
+    curr = d
+    for _ in range(200):
+        curr["k"] = {}
+        curr = curr["k"]
+    reg = ToolRegistry()
+    received = None
+    def handler(args):
+        nonlocal received
+        received = args
+        return "ok"
+    reg.register_tool(name="dummy", description="desc", parameters=d, handler=handler)
+    reg.invoke("dummy", d)
+    assert received is d
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: lists are swallowed into empty dicts")
+def test_invoke_deep_list(timeout_guard):
+    l = []
+    curr = l
+    for _ in range(200):
+        new_l = []
+        curr.append(new_l)
+        curr = new_l
+    reg = ToolRegistry()
+    received = None
+    def handler(args):
+        nonlocal received
+        received = args
+        return "ok"
+    reg.register_tool(name="dummy_list", description="desc", parameters={}, handler=handler)
+    reg.invoke("dummy_list", l)
+    assert received != {}
+
+@pytest.mark.xfail(raises=AssertionError, strict=True, reason="Bug: self-referencing lists are swallowed into empty dicts")
+def test_invoke_self_ref_list(timeout_guard):
+    l = []
+    l.append(l)
+    reg = ToolRegistry()
+    received = None
+    def handler(args):
+        nonlocal received
+        received = args
+        return "ok"
+    reg.register_tool(name="dummy_self_list", description="desc", parameters={}, handler=handler)
+    reg.invoke("dummy_self_list", l)
+    assert received != {}
