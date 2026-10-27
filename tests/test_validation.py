@@ -1,3 +1,5 @@
+import signal
+import contextlib
 import pytest
 from validation import is_valid_lat_lon, parse_coordinate_pairs, format_invalid_notes
 
@@ -94,3 +96,38 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+@contextlib.contextmanager
+def timeout_guard(seconds=1):
+    def handler(signum, frame):
+        raise TimeoutError("Timeout!")
+    old_handler = signal.signal(signal.SIGALRM, handler)
+    signal.alarm(seconds)
+    try:
+        yield
+    finally:
+        signal.alarm(0)
+        signal.signal(signal.SIGALRM, old_handler)
+
+@pytest.mark.xfail(raises=TimeoutError, reason="Bug: hangs on deeply nested lists")
+def test_format_invalid_notes_deep_list():
+    l = ["raw", "reason"]
+    for _ in range(200):
+        l = [l, l]
+    with timeout_guard(1):
+        format_invalid_notes([l])
+
+@pytest.mark.xfail(raises=TimeoutError, reason="Bug: hangs on deeply nested dicts")
+def test_format_invalid_notes_deep_dict():
+    d = {"raw": "reason", "r2": "v2"}
+    for _ in range(200):
+        d = {"1": d, "2": d}
+    with timeout_guard(1):
+        format_invalid_notes([(d, "reason")])
+
+def test_format_invalid_notes_self_ref_list():
+    x = []
+    x.append(x)
+    x.append(x)
+    res = format_invalid_notes([x])
+    assert res == "\n_Skipped invalid inputs:_\n- `[[...], [...]]` ([[...], [...]])"
