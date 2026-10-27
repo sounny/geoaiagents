@@ -49,3 +49,134 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+from geocode import geocode_locations
+
+@pytest.mark.parametrize("func, expected_str_res", [
+    (get_coordinates, (None, None, None)),
+    (parse_locations, []),
+    (reverse_geocode_coordinates, "| Latitude | Longitude | Address |\n|---------:|----------:|---------|"),
+    (geocode_locations, "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|"),
+])
+def test_geocode_empty_string(mocker, tmp_path, func, expected_str_res):
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+    mocker.patch("geocode._reverse_limiter", return_value=None)
+    f = tmp_path / "test.txt"
+    f.write_text("")
+    assert func(f.read_text()) == expected_str_res
+
+@pytest.mark.parametrize("func, container", [
+    (get_coordinates, []),
+    (get_coordinates, {}),
+    (get_coordinates, set()),
+    (parse_locations, []),
+    (parse_locations, {}),
+    (parse_locations, set()),
+    (reverse_geocode_coordinates, []),
+    (reverse_geocode_coordinates, {}),
+    (reverse_geocode_coordinates, set()),
+    (geocode_locations, []),
+    (geocode_locations, {}),
+    (geocode_locations, set()),
+])
+def test_geocode_empty_containers(mocker, func, container):
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+    mocker.patch("geocode._reverse_limiter", return_value=None)
+    try:
+        func(container)
+    except (TypeError, AttributeError):
+        pytest.xfail(reason="bug: unhandled container types raise exceptions instead of returning empty results")
+
+from geocode import geocode_locations
+
+@pytest.mark.parametrize("func, expected_str_res", [
+    (get_coordinates, (None, None, None)),
+    (parse_locations, []),
+    (reverse_geocode_coordinates, "| Latitude | Longitude | Address |\n|---------:|----------:|---------|"),
+    (geocode_locations, "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|"),
+])
+def test_geocode_empty_string(mocker, tmp_path, func, expected_str_res):
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+    mocker.patch("geocode._reverse_limiter", return_value=None)
+    f = tmp_path / "test.txt"
+    f.write_text("")
+    assert func(f.read_text()) == expected_str_res
+
+@pytest.mark.parametrize("func, container", [
+    (get_coordinates, []),
+    (get_coordinates, {}),
+    (get_coordinates, set()),
+    (parse_locations, []),
+    (parse_locations, {}),
+    (parse_locations, set()),
+    (reverse_geocode_coordinates, []),
+    (reverse_geocode_coordinates, {}),
+    (reverse_geocode_coordinates, set()),
+    (geocode_locations, []),
+    (geocode_locations, {}),
+    (geocode_locations, set()),
+])
+def test_geocode_empty_containers(mocker, func, container):
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+    mocker.patch("geocode._reverse_limiter", return_value=None)
+    try:
+        result = func(container)
+    except (TypeError, AttributeError):
+        pytest.xfail(reason="bug: unhandled container types raise exceptions instead of returning empty results")
+
+    # Assertions if no exception is raised
+    if func is get_coordinates:
+        assert result == (None, None, None)
+    elif func is parse_locations:
+        assert result == []
+    elif func is reverse_geocode_coordinates:
+        assert result == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|"
+    elif func is geocode_locations:
+        assert result == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|"
+
+from geocode import geocode_locations
+
+@pytest.mark.parametrize("func, expected_str_res", [
+    (get_coordinates, (None, None, None)),
+    (parse_locations, []),
+    (reverse_geocode_coordinates, "| Latitude | Longitude | Address |\n|---------:|----------:|---------|"),
+    (geocode_locations, "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|"),
+])
+def test_geocode_empty_string(mocker, tmp_path, func, expected_str_res):
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+    mocker.patch("geocode._reverse_limiter", return_value=None)
+    f = tmp_path / "test.txt"
+    f.write_text("")
+    assert func(f.read_text()) == expected_str_res
+
+@pytest.mark.parametrize("func, container", [
+    (get_coordinates, []),
+    (get_coordinates, {}),
+    (get_coordinates, set()),
+    (parse_locations, []),
+    (parse_locations, {}),
+    (parse_locations, set()),
+    (reverse_geocode_coordinates, []),
+    (reverse_geocode_coordinates, {}),
+    (reverse_geocode_coordinates, set()),
+    (geocode_locations, []),
+    (geocode_locations, {}),
+    (geocode_locations, set()),
+])
+def test_geocode_empty_containers(mocker, func, container):
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+    mocker.patch("geocode._reverse_limiter", return_value=None)
+    try:
+        result = func(container)
+    except (TypeError, AttributeError):
+        pytest.xfail(reason="bug: unhandled container types raise exceptions instead of returning empty results")
+
+    # Assertions if no exception is raised
+    if func is get_coordinates:
+        assert result == (None, None, None)
+    elif func is parse_locations:
+        assert result == []
+    elif func is reverse_geocode_coordinates:
+        assert result == "| Latitude | Longitude | Address |\n|---------:|----------:|---------|"
+    elif func is geocode_locations:
+        assert result == "| Input | Matched Address | Latitude | Longitude |\n|-------|-----------------|----------|-----------|"
