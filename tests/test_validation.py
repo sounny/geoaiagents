@@ -94,3 +94,8 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_parse_coordinate_pairs_whitespace():
+    text = "0,0\n91,0\nabc,123\n10, 20"
+    text_ws = " \n \t " + text + " \t \n "
+    assert parse_coordinate_pairs(text) == parse_coordinate_pairs(text_ws)
