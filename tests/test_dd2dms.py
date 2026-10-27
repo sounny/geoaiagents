@@ -131,3 +131,8 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_format_dms_kwargs_order():
+    res1 = format_dms(deg=40.0, minutes=42, seconds=46.08, is_lat=True, original_dd=40.7128)
+    res2 = format_dms(original_dd=40.7128, is_lat=True, seconds=46.08, minutes=42, deg=40.0)
+    assert res1 == res2
