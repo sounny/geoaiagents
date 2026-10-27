@@ -1,17 +1,33 @@
 import pytest
 from unittest.mock import MagicMock, patch
 from llm_utils import call_llm_with_retry
+from openai.types.chat.chat_completion import ChatCompletion
+from openai.types.chat.chat_completion_message import ChatCompletionMessage
+from openai.types.chat.chat_completion import Choice
 
 def test_call_llm_with_retry_success():
     client = MagicMock()
-    mock_response = MagicMock()
-    mock_choice = MagicMock()
-    mock_choice.message = "some_message"
-    mock_response.choices = [mock_choice]
-    client.chat.completions.create.return_value = mock_response
+
+    expected_response = ChatCompletion(
+        id="test-id",
+        choices=[
+            Choice(
+                finish_reason="stop",
+                index=0,
+                message=ChatCompletionMessage(
+                    content="some_message",
+                    role="assistant"
+                )
+            )
+        ],
+        created=1234567890,
+        model="gpt-4",
+        object="chat.completion"
+    )
+    client.chat.completions.create.return_value = expected_response
 
     response = call_llm_with_retry(client, max_retries=3)
-    assert response == mock_response
+    assert response == expected_response
     assert client.chat.completions.create.call_count == 1
 
 @patch("time.sleep")
@@ -32,21 +48,33 @@ def test_call_llm_with_retry_malformed(mock_sleep):
 def test_call_llm_with_retry_timeout_then_success(mock_sleep):
     client = MagicMock()
 
-    mock_response = MagicMock()
-    mock_choice = MagicMock()
-    mock_choice.message = "some_message"
-    mock_response.choices = [mock_choice]
+    expected_response = ChatCompletion(
+        id="test-id",
+        choices=[
+            Choice(
+                finish_reason="stop",
+                index=0,
+                message=ChatCompletionMessage(
+                    content="some_message",
+                    role="assistant"
+                )
+            )
+        ],
+        created=1234567890,
+        model="gpt-4",
+        object="chat.completion"
+    )
 
     # Fail first two times, succeed on the third
     client.chat.completions.create.side_effect = [
         TimeoutError("Request timed out"),
         ValueError("Something went wrong"),
-        mock_response
+        expected_response
     ]
 
     response = call_llm_with_retry(client, max_retries=3)
 
-    assert response == mock_response
+    assert response == expected_response
     assert client.chat.completions.create.call_count == 3
     assert mock_sleep.call_count == 2
 
@@ -55,14 +83,29 @@ def test_call_llm_with_retry_happy_path_fast():
     Test that a successful call does not invoke sleep or any retries.
     """
     client = MagicMock()
-    mock_response = MagicMock()
-    mock_response.choices = ["happy_choice"]
-    client.chat.completions.create.return_value = mock_response
+    expected_response = ChatCompletion(
+        id="test-id",
+        choices=[
+            Choice(
+                finish_reason="stop",
+                index=0,
+                message=ChatCompletionMessage(
+                    content="happy_choice",
+                    role="assistant"
+                )
+            )
+        ],
+        created=1234567890,
+        model="gpt-4",
+        object="chat.completion"
+    )
+
+    client.chat.completions.create.return_value = expected_response
 
     with patch('time.sleep') as mock_sleep:
         response = call_llm_with_retry(client, max_retries=3)
 
-    assert response == mock_response
+    assert response == expected_response
     assert client.chat.completions.create.call_count == 1
     mock_sleep.assert_not_called()
 
