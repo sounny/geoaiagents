@@ -41,3 +41,33 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+def test_cli_kwarg_order_no_differ(mocker, tmp_path):
+    mocker.patch('urllib.request.urlopen')
+    dummy_file = tmp_path / "dummy.txt"
+    dummy_file.write_text("dummy")
+
+    import sys
+    from geoai_cli import main
+
+    mock_chat = mocker.patch('geoai_cli._run_chat_mode', return_value=0)
+
+    mocker.patch.object(sys, 'argv', ['geoai_cli.py', 'chat', '--api-key', 'k', '--base-url', 'u'])
+    try:
+        main()
+    except SystemExit:
+        pass
+
+    args1 = mock_chat.call_args[0][0]
+
+    mock_chat.reset_mock()
+
+    mocker.patch.object(sys, 'argv', ['geoai_cli.py', 'chat', '--base-url', 'u', '--api-key', 'k'])
+    try:
+        main()
+    except SystemExit:
+        pass
+
+    args2 = mock_chat.call_args[0][0]
+
+    assert vars(args1) == vars(args2)
