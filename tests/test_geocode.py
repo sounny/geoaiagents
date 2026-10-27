@@ -1,5 +1,5 @@
 import pytest
-from geocode import get_coordinates, reverse_geocode_coordinates, parse_locations
+from geocode import get_coordinates, reverse_geocode_coordinates, parse_locations, geocode_locations
 
 def test_get_coordinates_timeout_or_error(mocker):
     # Mock _geocode_limiter to raise an exception
@@ -49,3 +49,82 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+@pytest.fixture
+def deep_list():
+    l = []
+    for _ in range(200):
+        l = [l]
+    return l
+
+@pytest.fixture
+def deep_dict():
+    d = {}
+    for _ in range(200):
+        d = {"k": d}
+    return d
+
+@pytest.fixture
+def self_ref_list():
+    l = []
+    l.append(l)
+    return l
+
+@pytest.mark.timeout(2)
+@pytest.mark.xfail(raises=TypeError, reason="unhashable type: 'list'")
+def test_get_coordinates_deep_list(mocker, deep_list):
+    mocker.patch("geocode._geocode_limiter", side_effect=Exception("Mocked timeout"))
+    get_coordinates(deep_list)
+
+@pytest.mark.timeout(2)
+@pytest.mark.xfail(raises=TypeError, reason="unhashable type: 'dict'")
+def test_get_coordinates_deep_dict(mocker, deep_dict):
+    mocker.patch("geocode._geocode_limiter", side_effect=Exception("Mocked timeout"))
+    get_coordinates(deep_dict)
+
+@pytest.mark.timeout(2)
+@pytest.mark.xfail(raises=TypeError, reason="unhashable type: 'list'")
+def test_get_coordinates_self_ref_list_bbox(mocker, self_ref_list):
+    mocker.patch("geocode._geocode_limiter", side_effect=Exception("Mocked timeout"))
+    get_coordinates("a", bounding_box=self_ref_list)
+
+@pytest.mark.timeout(2)
+@pytest.mark.xfail(raises=TypeError, reason="expected string or bytes-like object, got 'list'")
+def test_parse_locations_self_ref_list(self_ref_list):
+    parse_locations(self_ref_list)
+
+@pytest.mark.timeout(2)
+@pytest.mark.xfail(raises=TypeError, reason="expected string or bytes-like object, got 'list'")
+def test_reverse_geocode_coordinates_deep_list(mocker, deep_list):
+    mocker.patch("geocode._reverse_limiter", side_effect=Exception("Mocked timeout"))
+    reverse_geocode_coordinates(deep_list)
+
+@pytest.mark.timeout(2)
+@pytest.mark.xfail(raises=TypeError, reason="expected string or bytes-like object, got 'dict'")
+def test_reverse_geocode_coordinates_deep_dict(mocker, deep_dict):
+    mocker.patch("geocode._reverse_limiter", side_effect=Exception("Mocked timeout"))
+    reverse_geocode_coordinates(deep_dict)
+
+@pytest.mark.timeout(2)
+@pytest.mark.xfail(raises=TypeError, reason="expected string or bytes-like object, got 'list'")
+def test_reverse_geocode_coordinates_self_ref_list(mocker, self_ref_list):
+    mocker.patch("geocode._reverse_limiter", side_effect=Exception("Mocked timeout"))
+    reverse_geocode_coordinates(self_ref_list)
+
+@pytest.mark.timeout(2)
+@pytest.mark.xfail(raises=TypeError, reason="expected string or bytes-like object, got 'list'")
+def test_geocode_locations_deep_list(mocker, deep_list):
+    mocker.patch("geocode._geocode_limiter", side_effect=Exception("Mocked timeout"))
+    geocode_locations(deep_list)
+
+@pytest.mark.timeout(2)
+@pytest.mark.xfail(raises=TypeError, reason="expected string or bytes-like object, got 'dict'")
+def test_geocode_locations_deep_dict(mocker, deep_dict):
+    mocker.patch("geocode._geocode_limiter", side_effect=Exception("Mocked timeout"))
+    geocode_locations(deep_dict)
+
+@pytest.mark.timeout(2)
+@pytest.mark.xfail(raises=TypeError, reason="expected string or bytes-like object, got 'list'")
+def test_geocode_locations_self_ref_list(mocker, self_ref_list):
+    mocker.patch("geocode._geocode_limiter", side_effect=Exception("Mocked timeout"))
+    geocode_locations(self_ref_list)
