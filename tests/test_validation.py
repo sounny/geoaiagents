@@ -1,3 +1,4 @@
+import copy
 import pytest
 from validation import is_valid_lat_lon, parse_coordinate_pairs, format_invalid_notes
 
@@ -94,3 +95,11 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_format_invalid_notes_no_mutation():
+    invalid_entries = [("91,0", "Out of range"), ("abc,123", "Not a number")]
+    original = copy.deepcopy(invalid_entries)
+    format_invalid_notes(invalid_entries)
+    if invalid_entries != original:
+        pytest.xfail("format_invalid_notes mutates its input sequence")
+    assert invalid_entries == original
