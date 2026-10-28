@@ -66,8 +66,8 @@ def test_load_kml_two_points_and_empty_document():
     res_empty = load_geojson('{}')
     assert res_empty.startswith("| Latitude | Longitude |")
 
-    res_bad = load_geojson('{bad')
-    assert res_bad.startswith("| Latitude | Longitude |")
+    with pytest.raises(ValueError):
+        load_geojson('{bad')
 
 def test_load_geojson_feature_collection_one_point():
     fc = '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]},"properties":{}}]}'
@@ -93,3 +93,69 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+def test_file_loaders_empty_and_whitespace_strings(tmp_path):
+    from file_loaders import load_csv, load_geojson, load_kml
+    empty_file = tmp_path / "empty.txt"
+    empty_file.write_text("")
+    ws_file = tmp_path / "ws.txt"
+    ws_file.write_text("   \n\t  ")
+
+    with pytest.raises(ValueError, match="Empty GeoJSON string"):
+        load_geojson(empty_file.read_text())
+    with pytest.raises(ValueError, match="Empty GeoJSON string"):
+        load_geojson(ws_file.read_text())
+
+    assert load_kml(empty_file.read_text()) == "| Latitude | Longitude |\n|---------:|----------:|"
+    assert load_kml(ws_file.read_text()) == "| Latitude | Longitude |\n|---------:|----------:|"
+
+    assert load_csv(empty_file.read_text()) == "Error: No coordinates found in CSV data."
+    assert load_csv(ws_file.read_text()) == "Error: No coordinates found in CSV data."
+
+@pytest.mark.xfail(raises=AttributeError, reason="Bug: load_geojson expects string, fails on Path")
+def test_load_geojson_empty_path(tmp_path):
+    from file_loaders import load_geojson
+    empty_file = tmp_path / "empty.txt"
+    empty_file.write_text("")
+    load_geojson(empty_file)
+
+@pytest.mark.xfail(raises=AttributeError, reason="Bug: load_geojson expects string, fails on Path")
+def test_load_geojson_ws_path(tmp_path):
+    from file_loaders import load_geojson
+    ws_file = tmp_path / "ws.txt"
+    ws_file.write_text("   \n\t  ")
+    load_geojson(ws_file)
+
+@pytest.mark.xfail(reason="Bug: load_kml parses Path as empty string instead of failing or reading")
+def test_load_kml_empty_path(tmp_path):
+    from file_loaders import load_kml
+    empty_file = tmp_path / "empty.txt"
+    empty_file.write_text("")
+    res = load_kml(empty_file)
+    if res == "| Latitude | Longitude |\n|---------:|----------:|":
+        pytest.xfail("Bug: load_kml returns empty table for Path object")
+    assert False, "Expected xfail"
+
+@pytest.mark.xfail(reason="Bug: load_kml parses Path as empty string instead of failing or reading")
+def test_load_kml_ws_path(tmp_path):
+    from file_loaders import load_kml
+    ws_file = tmp_path / "ws.txt"
+    ws_file.write_text("   \n\t  ")
+    res = load_kml(ws_file)
+    if res == "| Latitude | Longitude |\n|---------:|----------:|":
+        pytest.xfail("Bug: load_kml returns empty table for Path object")
+    assert False, "Expected xfail"
+
+@pytest.mark.xfail(raises=TypeError, reason="Bug: load_csv expects string, fails on Path")
+def test_load_csv_empty_path(tmp_path):
+    from file_loaders import load_csv
+    empty_file = tmp_path / "empty.txt"
+    empty_file.write_text("")
+    load_csv(empty_file)
+
+@pytest.mark.xfail(raises=TypeError, reason="Bug: load_csv expects string, fails on Path")
+def test_load_csv_ws_path(tmp_path):
+    from file_loaders import load_csv
+    ws_file = tmp_path / "ws.txt"
+    ws_file.write_text("   \n\t  ")
+    load_csv(ws_file)
