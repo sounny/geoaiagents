@@ -1,3 +1,4 @@
+import concurrent.futures
 import pytest
 from validation import is_valid_lat_lon, parse_coordinate_pairs, format_invalid_notes
 
@@ -94,3 +95,30 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+
+@pytest.mark.parametrize("func, args", [
+    (is_valid_lat_lon, (45.0, 90.0)),
+    (parse_coordinate_pairs, ("45,90; -91,180",)),
+    (format_invalid_notes, ([("-91,180", "Out of range")],))
+])
+def test_pure_public_functions_threading(func, args):
+    single_threaded_result = func(*args)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(func, *args) for _ in range(50)]
+        results = [f.result() for f in concurrent.futures.as_completed(futures)]
+
+    assert all(r == single_threaded_result for r in results)
+
+def test_swap_axis_order_threading():
+    try:
+        from validation import swap_axis_order
+    except ImportError:
+        pytest.xfail("swap_axis_order helper is missing")
+
+    single_threaded_result = swap_axis_order((10.0, 20.0))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(swap_axis_order, (10.0, 20.0)) for _ in range(50)]
+        results = [f.result() for f in concurrent.futures.as_completed(futures)]
+
+    assert all(r == single_threaded_result for r in results)
