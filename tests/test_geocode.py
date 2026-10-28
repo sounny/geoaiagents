@@ -49,3 +49,82 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_idempotency_get_coordinates(mocker):
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", side_effect=[
+        [{"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "First Place", "importance": 0.9, "class": "place", "type": "city"}],
+        [{"place_id": 2, "lat": "41.0", "lon": "-71.0", "display_name": "Second Place", "importance": 0.9, "class": "place", "type": "city"}]
+    ])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value="")
+    mocker.patch("time.sleep")
+
+    res1 = geocode.get_coordinates("Mockville")
+    res2 = geocode.get_coordinates("Mockville")
+    assert res1 == res2
+
+def test_idempotency_parse_locations():
+    import geocode
+    res1 = geocode.parse_locations("London; Paris")
+    res2 = geocode.parse_locations("London; Paris")
+    assert res1 == res2
+
+@pytest.mark.xfail(raises=AssertionError, reason="Bug: reverse_geocode_coordinates uses a local dictionary for caching rather than a global cache or lru_cache, meaning separate calls with the same inputs aren't idempotent if the external API changes or returns different results.")
+def test_idempotency_reverse_geocode_coordinates(mocker):
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", side_effect=[
+        {"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "First Place", "importance": 0.9, "class": "place", "type": "city"},
+        {"place_id": 2, "lat": "41.0", "lon": "-71.0", "display_name": "Second Place", "importance": 0.9, "class": "place", "type": "city"}
+    ])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value="")
+    mocker.patch("time.sleep")
+
+    res1 = geocode.reverse_geocode_coordinates("40.0, -70.0")
+    res2 = geocode.reverse_geocode_coordinates("40.0, -70.0")
+    assert res1 == res2
+
+def test_idempotency_geocode_locations(mocker):
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", side_effect=[
+        [{"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "First Place", "importance": 0.9, "class": "place", "type": "city"}],
+        [{"place_id": 2, "lat": "41.0", "lon": "-71.0", "display_name": "Second Place", "importance": 0.9, "class": "place", "type": "city"}]
+    ])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value="")
+    mocker.patch("time.sleep")
+
+    res1 = geocode.geocode_locations("Mockville")
+    res2 = geocode.geocode_locations("Mockville")
+    assert res1 == res2
+
+@pytest.mark.xfail(raises=AssertionError, strict=False, reason="Bug: main function output is non-deterministic since it calls the LLM API whose responses can vary between runs (time/state dependent), and the test fails when LLM responses differ.")
+def test_idempotency_main(mocker, capsys):
+    import geocode
+    mocker.patch("builtins.input", return_value="Mockville")
+    mocker.patch("sys.argv", ["geocode.py"])
+
+    class MockMessage:
+        def __init__(self, content):
+            self.content = content
+            self.function_call = None
+
+    class MockChoice:
+        def __init__(self, content):
+            self.message = MockMessage(content)
+
+    class MockResponse:
+        def __init__(self, content):
+            self.choices = [MockChoice(content)]
+
+    # Yield different responses to simulate LLM non-determinism
+    mocker.patch("geocode.call_llm_with_retry", side_effect=[
+        MockResponse("Response 1"),
+        MockResponse("Response 2")
+    ])
+
+    geocode.main()
+    cap1 = capsys.readouterr().out
+
+    geocode.main()
+    cap2 = capsys.readouterr().out
+
+    assert cap1 == cap2
