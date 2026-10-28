@@ -41,3 +41,24 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+@pytest.mark.xfail(raises=ValueError, reason="Empty strings for env vars like HUMBOLDT_MAX_STEPS cause ValueError during int() parsing")
+def test_geoai_cli_empty_env_variables_parsing(monkeypatch, mocker):
+    env_vars = [
+        "HUMBOLDT_DEBUG",
+        "OPENAI_BASE_URL",
+        "OPENAI_API_KEY",
+        "OPENAI_MODEL",
+        "HUMBOLDT_MODEL",
+        "HUMBOLDT_MAX_STEPS",
+    ]
+    for var in env_vars:
+        monkeypatch.delenv(var, raising=False)
+        monkeypatch.setenv(var, "")
+
+    mocker.patch('sys.argv', ['geoai_cli.py', '--help'])
+
+    try:
+        main()
+    except SystemExit as e:
+        pass
