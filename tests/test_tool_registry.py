@@ -121,3 +121,84 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+import logging
+from unittest.mock import MagicMock
+
+def test_create_registry_plugins_log_info(caplog, mocker):
+    mocker.patch.dict("os.environ", {"GEOAI_PLUGIN_MODULES": "dummy_plugin"})
+    mock_module = MagicMock()
+    mock_module.register_tools = MagicMock()
+    mocker.patch("importlib.import_module", return_value=mock_module)
+
+    with caplog.at_level(logging.INFO):
+        create_registry()
+
+    assert any(
+        r.levelno == logging.INFO and "Loaded plugin module: dummy_plugin" in r.message
+        for r in caplog.records
+    )
+
+def test_create_registry_plugins_log_warning(caplog, mocker):
+    mocker.patch.dict("os.environ", {"GEOAI_PLUGIN_MODULES": "dummy_plugin"})
+    mock_module = MagicMock()
+    del mock_module.register_tools
+    mocker.patch("importlib.import_module", return_value=mock_module)
+
+    with caplog.at_level(logging.WARNING):
+        create_registry()
+
+    assert any(
+        r.levelno == logging.WARNING and "Plugin module 'dummy_plugin' has no callable register_tools(registry)" in r.message
+        for r in caplog.records
+    )
+
+def test_create_registry_plugins_log_error(caplog, mocker):
+    mocker.patch.dict("os.environ", {"GEOAI_PLUGIN_MODULES": "dummy_plugin"})
+    mocker.patch("importlib.import_module", side_effect=ImportError("Cannot import"))
+
+    with caplog.at_level(logging.ERROR):
+        create_registry()
+
+    assert any(
+        r.levelno == logging.ERROR and "Failed to load plugin module 'dummy_plugin'" in r.message
+        for r in caplog.records
+    )
+
+def test_tool_registry_invoke_handler_error_log(caplog):
+    registry = ToolRegistry()
+    def buggy_handler(args):
+        raise ValueError("Simulated handler error")
+    registry.register_tool(name="buggy", description="buggy tool", parameters={}, handler=buggy_handler)
+
+    with caplog.at_level(logging.ERROR):
+        registry.invoke("buggy", {})
+
+    assert any(
+        r.levelno == logging.ERROR and "Tool 'buggy' failed" in r.message
+        for r in caplog.records
+    )
+
+@pytest.mark.xfail(reason="Bug: missing tool returns None and logs nothing instead of warning")
+def test_tool_registry_invoke_missing_tool_log(caplog):
+    registry = ToolRegistry()
+    with caplog.at_level(logging.WARNING):
+        registry.invoke("missing", {})
+
+    assert any(
+        r.levelno >= logging.WARNING and "missing" in r.message
+        for r in caplog.records
+    )
+
+@pytest.mark.xfail(reason="Bug: invoke does not log when parse_tool_args raises ValueError")
+def test_tool_registry_invoke_parse_error_log(caplog):
+    registry = ToolRegistry()
+    registry.register_tool(name="test", description="test tool", parameters={}, handler=lambda x: "ok")
+
+    with caplog.at_level(logging.ERROR):
+        registry.invoke("test", '{"bad": json')
+
+    assert any(
+        r.levelno == logging.ERROR and "test" in r.message
+        for r in caplog.records
+    )
