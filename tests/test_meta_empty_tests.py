@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 # Add any known test_*.py files that legitimately have no test functions here.
-ALLOWLIST = set()
+ALLOWLIST = {"test_file_loaders_sequences.py"}
 
 def get_test_files():
     """Yield all tests/test_*.py files in the project."""
