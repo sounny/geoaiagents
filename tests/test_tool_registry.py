@@ -121,3 +121,39 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_tool_registry_case_sensitivity_register_tool(mocker):
+    registry = ToolRegistry()
+    handler = mocker.MagicMock(return_value="mocked")
+
+    registry.register_tool(name="LOWER", description="lower", parameters={}, handler=handler)
+    assert registry.has_tool("LOWER") is True
+
+    registry.register_tool(name="upper", description="upper", parameters={}, handler=handler)
+    assert registry.has_tool("upper") is True
+
+    registry.register_tool(name="MiXeD", description="mixed", parameters={}, handler=handler)
+    assert registry.has_tool("MiXeD") is True
+
+@pytest.mark.xfail(reason="Bug: Tool registry is case-sensitive when checking tools with has_tool")
+def test_tool_registry_case_sensitivity_has_tool(mocker):
+    registry = ToolRegistry()
+    handler = mocker.MagicMock(return_value="mocked")
+    registry.register_tool(name="lower", description="lower", parameters={}, handler=handler)
+
+    assert registry.has_tool("LOWER") is True
+    assert registry.has_tool("LoWeR") is True
+
+@pytest.mark.xfail(reason="Bug: Tool registry is case-sensitive when invoking tools")
+def test_tool_registry_case_sensitivity_invoke(mocker):
+    registry = ToolRegistry()
+    handler = mocker.MagicMock(return_value="mocked")
+    registry.register_tool(name="lower", description="lower", parameters={}, handler=handler)
+
+    assert registry.invoke("LOWER", {}) == "mocked"
+    assert registry.invoke("LoWeR", {}) == "mocked"
+
+def test_parse_tool_args_string_case():
+    assert parse_tool_args('{"key": "LOWER"}') == {"key": "LOWER"}
+    assert parse_tool_args('{"key": "upper"}') == {"key": "upper"}
+    assert parse_tool_args('{"key": "MiXeD"}') == {"key": "MiXeD"}
