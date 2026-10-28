@@ -121,3 +121,34 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_parse_tool_args_deterministic():
+    args = '{"test": 123}'
+    assert parse_tool_args(args) == parse_tool_args(args)
+
+def test_create_registry_deterministic(mocker):
+    mocker.patch('os.getenv', return_value='')
+    reg1 = create_registry()
+    reg2 = create_registry()
+    assert reg1.openai_functions() == reg2.openai_functions()
+
+def test_tool_registry_openai_functions_deterministic():
+    registry = ToolRegistry()
+    registry.register_tool(name="test_tool", description="desc", parameters={}, handler=lambda x: "success")
+    assert registry.openai_functions() == registry.openai_functions()
+
+def test_tool_registry_invoke_deterministic():
+    registry = ToolRegistry()
+    registry.register_tool(name="test_tool", description="desc", parameters={}, handler=lambda x: "success")
+    assert registry.invoke("test_tool", {}) == registry.invoke("test_tool", {})
+
+def test_tool_registry_has_tool_deterministic():
+    registry = ToolRegistry()
+    registry.register_tool(name="test_tool", description="desc", parameters={}, handler=lambda x: "success")
+    assert registry.has_tool("test_tool") == registry.has_tool("test_tool")
+
+def test_tool_registry_register_tool_deterministic():
+    registry1 = ToolRegistry()
+    registry2 = ToolRegistry()
+    assert registry1.register_tool(name="t", description="d", parameters={}, handler=lambda x: "s") == \
+           registry2.register_tool(name="t", description="d", parameters={}, handler=lambda x: "s")
