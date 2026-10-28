@@ -94,3 +94,12 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+@pytest.mark.xfail(raises=TypeError, reason="bug: bytes input raises TypeError in re.split instead of being handled gracefully")
+def test_parse_coordinate_pairs_bytes():
+    parse_coordinate_pairs(b"40.7, -74.0")
+
+def test_format_invalid_notes_bytes():
+    result = format_invalid_notes([(b"91,0", "Out of range")])
+    assert "Skipped invalid inputs" in result
+    assert "`b'91,0'`" in result
