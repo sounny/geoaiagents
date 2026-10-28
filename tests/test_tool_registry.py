@@ -121,3 +121,37 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_env_geoai_plugin_modules_delenv(monkeypatch, mocker):
+    mocker.patch('importlib.import_module')
+    monkeypatch.delenv("GEOAI_PLUGIN_MODULES", raising=False)
+
+    reg = create_registry()
+    assert isinstance(reg, ToolRegistry)
+    assert reg.has_tool("convert_dd_to_dms")
+
+    parsed = parse_tool_args('{"test": 1}')
+    assert parsed == {"test": 1}
+
+    r = ToolRegistry()
+    r.register_tool(name="t", description="d", parameters={}, handler=lambda x: "x")
+    assert r.has_tool("t")
+    assert r.invoke("t", {}) == "x"
+    assert len(r.openai_functions()) == 1
+
+def test_env_geoai_plugin_modules_empty(monkeypatch, mocker):
+    mocker.patch('importlib.import_module')
+    monkeypatch.setenv("GEOAI_PLUGIN_MODULES", "")
+
+    reg = create_registry()
+    assert isinstance(reg, ToolRegistry)
+    assert reg.has_tool("convert_dd_to_dms")
+
+    parsed = parse_tool_args('{"test": 1}')
+    assert parsed == {"test": 1}
+
+    r = ToolRegistry()
+    r.register_tool(name="t", description="d", parameters={}, handler=lambda x: "x")
+    assert r.has_tool("t")
+    assert r.invoke("t", {}) == "x"
+    assert len(r.openai_functions()) == 1
