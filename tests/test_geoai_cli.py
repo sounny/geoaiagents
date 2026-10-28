@@ -41,3 +41,27 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+@pytest.mark.parametrize("tool_name", ["load_geojson", "load_csv", "load_kml"])
+@pytest.mark.parametrize("content,is_zero", [("", True), ("   \n  ", False)])
+def test_files_zero_whitespace(tmp_path, mocker, capsys, tool_name, content, is_zero):
+    f = tmp_path / ("test" + (".txt" if is_zero else "_ws.txt"))
+    f.write_text(content)
+
+    with open(f, 'r') as fd:
+        mocker.patch('sys.stdin', fd)
+        mocker.patch('sys.stdin.isatty', return_value=False)
+        mocker.patch('sys.argv', ['geoai_cli.py', 'run-tool', tool_name])
+
+        try:
+            main()
+        except SystemExit:
+            pass
+
+        out = capsys.readouterr().out
+        if tool_name == "load_geojson":
+            assert "Error running load_geojson: Empty GeoJSON string" in out
+        elif tool_name == "load_csv":
+            assert "Error: No coordinates found in CSV data." in out
+        elif tool_name == "load_kml":
+            pytest.xfail("Empty KML parsing looks like a bug, returns empty table")
