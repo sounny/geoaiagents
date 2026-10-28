@@ -131,3 +131,112 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+@pytest.mark.xfail(reason="Bug: main calls LLM even when user input is empty")
+def test_main_symlinks_empty_input(tmp_path, monkeypatch, mocker):
+    from unittest.mock import patch, MagicMock
+    from dd2dms import main
+    actual_file = tmp_path / "actual.txt"
+    actual_file.write_text("")
+    symlink_file = tmp_path / "symlink_file.txt"
+
+    actual_dir = tmp_path / "actual_dir"
+    actual_dir.mkdir()
+    symlink_dir = tmp_path / "symlink_dir"
+
+    try:
+        symlink_file.symlink_to(actual_file)
+        symlink_dir.symlink_to(actual_dir)
+    except OSError:
+        pytest.skip("symlinks not supported")
+
+    def mock_input(prompt):
+        with open(symlink_file, "r") as f:
+            return f.read()
+
+    monkeypatch.setattr("builtins.input", mock_input)
+    monkeypatch.setattr("sys.argv", ["dd2dms.py", "--base-url", str(symlink_dir)])
+
+    mock_openai = mocker.patch("dd2dms.OpenAI")
+    mock_call_llm = mocker.patch("dd2dms.call_llm_with_retry")
+    mock_call_llm.return_value.choices = [
+        mocker.MagicMock(message=mocker.MagicMock(function_call=None, content="Fallback"))
+    ]
+
+    main()
+
+    mock_openai.assert_called_once_with(base_url=str(symlink_dir), api_key='unused')
+
+    # Asserting that call_llm should NOT have been called for empty input
+    assert not mock_call_llm.called
+
+def test_convert_dd_to_dms_symlinks(tmp_path):
+    from dd2dms import convert_dd_to_dms
+    actual_dir = tmp_path / "actual_dir"
+    actual_dir.mkdir()
+    symlink_dir = tmp_path / "symlink_dir"
+    try:
+        symlink_dir.symlink_to(actual_dir)
+    except OSError:
+        pytest.skip("symlinks not supported")
+
+    res = convert_dd_to_dms(str(symlink_dir))
+
+    # Check if the result includes the symlink path as skipped
+    assert str(symlink_dir) in res
+
+@pytest.mark.xfail(reason="Bug: main calls LLM even when user input is empty")
+def test_main_symlinks_empty_input(tmp_path, monkeypatch):
+    from unittest.mock import patch, MagicMock
+    from dd2dms import main
+    actual_file = tmp_path / "actual.txt"
+    actual_file.write_text("")
+    symlink_file = tmp_path / "symlink_file.txt"
+
+    actual_dir = tmp_path / "actual_dir"
+    actual_dir.mkdir()
+    symlink_dir = tmp_path / "symlink_dir"
+
+    try:
+        symlink_file.symlink_to(actual_file)
+        symlink_dir.symlink_to(actual_dir)
+    except OSError:
+        pytest.skip("symlinks not supported")
+
+    def mock_input(prompt):
+        with open(symlink_file, "r") as f:
+            return f.read()
+
+    monkeypatch.setattr("builtins.input", mock_input)
+    monkeypatch.setattr("sys.argv", ["dd2dms.py", "--base-url", str(symlink_dir)])
+
+    with patch("dd2dms.OpenAI") as mock_openai, \
+         patch("dd2dms.call_llm_with_retry") as mock_call_llm:
+
+        mock_response = MagicMock()
+        mock_response.choices = [
+            MagicMock(message=MagicMock(function_call=None, content="Fallback"))
+        ]
+        mock_call_llm.return_value = mock_response
+
+        main()
+
+        mock_openai.assert_called_once_with(base_url=str(symlink_dir), api_key='unused')
+
+        # Asserting that call_llm should NOT have been called for empty input
+        assert not mock_call_llm.called
+
+def test_convert_dd_to_dms_symlinks(tmp_path):
+    from dd2dms import convert_dd_to_dms
+    actual_dir = tmp_path / "actual_dir"
+    actual_dir.mkdir()
+    symlink_dir = tmp_path / "symlink_dir"
+    try:
+        symlink_dir.symlink_to(actual_dir)
+    except OSError:
+        pytest.skip("symlinks not supported")
+
+    res = convert_dd_to_dms(str(symlink_dir))
+
+    # Check if the result includes the symlink path as skipped
+    assert str(symlink_dir) in res
