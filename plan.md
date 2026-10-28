@@ -1,7 +1,13 @@
-1. **Create `tests/test_llm_utils.py`**:
-   - Write `test_call_llm_with_retry_immediate_success` that mocks `client.chat.completions.create` to return a successful `SimpleNamespace(choices=[{'ok': True}])`, asserting it is returned identically and called exactly once (no real network).
-   - Write `test_call_llm_with_retry_timeout_then_success` that sets `client.chat.completions.create.side_effect = [TimeoutError('t'), SimpleNamespace(choices=[{'ok': True}])]` to test timeout on the first attempt and success on the second. It will assert the response is the choices response and `create` was called twice, keeping the name distinct from first-attempt success and max_retries failure titles.
-2. **Install testing dependencies**: Run `pip install openai pytest pytest-mock pytest-repeat folium gradio geopy` and `bash install_requirements.sh`.
-3. **Run tests**: Run `python -m pytest tests/test_llm_utils.py` to ensure the tests pass successfully.
-4. **Complete pre-commit steps**: Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
-5. **Submit changes**: Submit the code changes.
+1. **Append a test for argument parsing idempotency**
+   - In `tests/test_geoai_cli.py`, add `test_arg_parsing_twice` testing that calling `parser.parse_args` twice with the same inputs returns identical outputs.
+   - Note that default values like `os.getenv` in `_build_parser` are evaluated at definition/build time, not parse time, so they are not time-dependent during parsing.
+2. **Append a test for main function idempotency**
+   - In `tests/test_geoai_cli.py`, add `test_main_twice` testing that calling `main()` twice with identical arguments returns identical return code, stdout, and stderr.
+   - Mock external dependencies like `tool_registry.create_registry` and `openai.OpenAI`.
+   - Mock `builtins.input` with side effects for chat commands to ensure tests do not hang.
+3. **Run the full test suite**
+   - Ensure `~/.local/share/pipx/venvs/pytest/bin/python -m pytest` passes for the entire suite.
+4. **Complete pre-commit steps**
+   - Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
+5. **Submit changes**
+   - Call the `submit` tool to finish the task.
