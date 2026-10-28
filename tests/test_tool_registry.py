@@ -121,3 +121,25 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_parse_tool_args_concurrency():
+    import concurrent.futures
+    from tool_registry import parse_tool_args
+
+    single_result = parse_tool_args('{"key": "value"}')
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(parse_tool_args, '{"key": "value"}') for _ in range(100)]
+        for f in concurrent.futures.as_completed(futures):
+            assert f.result() == single_result
+
+def test_create_registry_concurrency(mocker):
+    import concurrent.futures
+    from tool_registry import create_registry
+
+    mocker.patch("os.getenv", return_value="")
+    single_result = create_registry().openai_functions()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(lambda: create_registry().openai_functions()) for _ in range(100)]
+        for f in concurrent.futures.as_completed(futures):
+            assert f.result() == single_result
