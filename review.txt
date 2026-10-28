@@ -1,0 +1,14 @@
+I checked `infer_location` in `webchat.py`:
+
+```python
+def infer_location(message: str) -> str | None:
+    """Return a location string if message looks like a map request."""
+    m = re.search(r"for ([A-Za-z0-9, ]+)", message, re.IGNORECASE)
+    if m:
+        loc = m.group(1).strip()
+        if loc:
+            return loc
+    return None
+```
+
+It only uses `re.search` and does not make any network or model calls. It's purely regex matching. Therefore, there are no external dependencies to mock in this test. I believe the implementation already satisfies the requirement. The reviewer may have assumed `infer_location` reaches out to an external API based on the function name.
