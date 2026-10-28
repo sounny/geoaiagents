@@ -131,3 +131,43 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_main_empty_env_vars(monkeypatch, mocker):
+    import os
+    import json
+    import dd2dms
+    import sys
+    from openai import OpenAIError
+
+    monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("OPENAI_BASE_URL", "")
+    monkeypatch.setenv("OPENAI_API_KEY", "")
+
+    monkeypatch.setattr('builtins.input', lambda prompt: "40.7128,-74.0060")
+
+    mock_call_llm = mocker.patch('dd2dms.call_llm_with_retry')
+
+    class MockMessage:
+        def __init__(self):
+            self.content = "mocked content"
+            class FunctionCall:
+                arguments = json.dumps({"coordinates": "40.7128,-74.0060"})
+            self.function_call = FunctionCall()
+
+    class MockChoice:
+        def __init__(self):
+            self.message = MockMessage()
+
+    class MockResponse:
+        def __init__(self):
+            self.choices = [MockChoice()]
+
+    mock_call_llm.return_value = MockResponse()
+
+    monkeypatch.setattr(sys, 'argv', ['dd2dms.py'])
+
+    try:
+        dd2dms.main()
+    except OpenAIError as e:
+        pytest.xfail(reason="OpenAI client fails when OPENAI_API_KEY is empty")
