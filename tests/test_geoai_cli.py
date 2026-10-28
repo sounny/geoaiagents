@@ -41,3 +41,46 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+import concurrent.futures
+from geoai_cli import _build_parser
+
+def test_concurrent_build_parser_args():
+    def task():
+        parser = _build_parser()
+        return parser.parse_args(['run-tool', 'fetch_geo_boundaries', '--payload', 'USA'])
+
+    single_result = task()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(task) for _ in range(50)]
+        for future in concurrent.futures.as_completed(futures):
+            assert str(future.result()) == str(single_result)
+
+def test_concurrent_build_parser_known_args():
+    def task():
+        parser = _build_parser()
+        return parser.parse_known_args(['run-tool', 'fetch_geo_boundaries', '--payload', 'USA', '--extra'])
+
+    single_result = task()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        futures = [executor.submit(task) for _ in range(50)]
+        for future in concurrent.futures.as_completed(futures):
+            assert str(future.result()) == str(single_result)
+
+@pytest.mark.xfail(raises=TypeError, reason="argparse intermixed methods fail with subparsers")
+def test_parse_intermixed_args_xfail():
+    parser = _build_parser()
+    try:
+        parser.parse_intermixed_args(['chat'])
+    except SystemExit:
+        pass
+
+@pytest.mark.xfail(raises=TypeError, reason="argparse intermixed methods fail with subparsers")
+def test_parse_known_intermixed_args_xfail():
+    parser = _build_parser()
+    try:
+        parser.parse_known_intermixed_args(['chat'])
+    except SystemExit:
+        pass
