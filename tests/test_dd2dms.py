@@ -131,3 +131,67 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+import sys
+from unittest.mock import patch, MagicMock
+from dd2dms import main
+
+@pytest.mark.xfail(reason="Calling LLM when input is empty")
+def test_main_empty_input_xfail(tmp_path):
+    empty_file = tmp_path / "empty.txt"
+    empty_file.write_text("")
+
+    mock_client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message.function_call = False
+    mock_response.choices[0].message.content = 'test output'
+    mock_client.chat.completions.create.return_value = mock_response
+
+    def mock_input(*args):
+        content = empty_file.read_text()
+        if not hasattr(mock_input, 'called'):
+            mock_input.called = True
+            return content
+        raise EOFError()
+
+    with patch('builtins.input', side_effect=mock_input):
+        with patch('dd2dms.OpenAI', return_value=mock_client):
+            with patch.object(sys, 'argv', ['dd2dms.py']):
+                try:
+                    main()
+                except EOFError:
+                    pass
+
+    if mock_client.chat.completions.create.called:
+        pytest.xfail("Calling LLM when input is empty")
+
+@pytest.mark.xfail(reason="Calling LLM when input is just whitespace")
+def test_main_whitespace_input_xfail(tmp_path):
+    whitespace_file = tmp_path / "whitespace.txt"
+    whitespace_file.write_text("   \n  \t  ")
+
+    mock_client = MagicMock()
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message.function_call = False
+    mock_response.choices[0].message.content = 'test output'
+    mock_client.chat.completions.create.return_value = mock_response
+
+    def mock_input(*args):
+        content = whitespace_file.read_text()
+        if not hasattr(mock_input, 'called'):
+            mock_input.called = True
+            return content
+        raise EOFError()
+
+    with patch('builtins.input', side_effect=mock_input):
+        with patch('dd2dms.OpenAI', return_value=mock_client):
+            with patch.object(sys, 'argv', ['dd2dms.py']):
+                try:
+                    main()
+                except EOFError:
+                    pass
+
+    if mock_client.chat.completions.create.called:
+        pytest.xfail("Calling LLM when input is just whitespace")
