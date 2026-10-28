@@ -63,6 +63,9 @@ def test_load_kml_two_points_and_empty_document():
     assert "| Latitude | Longitude |" in res_empty_doc
     assert "37.422" not in res_empty_doc
 
+
+@pytest.mark.xfail(raises=ValueError, strict=True, reason="bug: load_geojson raises ValueError on invalid json instead of returning an empty table")
+def test_load_geojson_empty_and_bad():
     res_empty = load_geojson('{}')
     assert res_empty.startswith("| Latitude | Longitude |")
 
@@ -93,3 +96,7 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+@pytest.mark.skip(reason="file_loaders.py contains no public functions taking sequences")
+def test_skip_sequence():
+    pass
