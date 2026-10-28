@@ -1,7 +1,8 @@
-1. **Create `tests/test_llm_utils.py`**:
-   - Write `test_call_llm_with_retry_immediate_success` that mocks `client.chat.completions.create` to return a successful `SimpleNamespace(choices=[{'ok': True}])`, asserting it is returned identically and called exactly once (no real network).
-   - Write `test_call_llm_with_retry_timeout_then_success` that sets `client.chat.completions.create.side_effect = [TimeoutError('t'), SimpleNamespace(choices=[{'ok': True}])]` to test timeout on the first attempt and success on the second. It will assert the response is the choices response and `create` was called twice, keeping the name distinct from first-attempt success and max_retries failure titles.
-2. **Install testing dependencies**: Run `pip install openai pytest pytest-mock pytest-repeat folium gradio geopy` and `bash install_requirements.sh`.
-3. **Run tests**: Run `python -m pytest tests/test_llm_utils.py` to ensure the tests pass successfully.
-4. **Complete pre-commit steps**: Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
-5. **Submit changes**: Submit the code changes.
+1. **Append tests for `convert_dd_to_dms` passing bytes where `str` is expected:**
+   - I will append a test to `tests/test_dd2dms.py` that passes a bytes string (`b"40.7128,-74.0060"`) to `convert_dd_to_dms`, which expects a `str`.
+   - Based on my exploratory run, this raises a `TypeError: cannot use a string pattern on a bytes-like object`.
+   - I will mark this test with `@pytest.mark.xfail(raises=TypeError, reason="convert_dd_to_dms expects string, but raises TypeError when passed bytes due to string regex pattern")` because it exposes a bug where `str` is expected, but bytes fail due to regex processing.
+2. **Pre-commit steps:**
+   - Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
+3. **Submit:**
+   - I will submit the changes.

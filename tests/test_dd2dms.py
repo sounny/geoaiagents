@@ -131,3 +131,7 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+@pytest.mark.xfail(raises=TypeError, reason="convert_dd_to_dms expects string, but raises TypeError when passed bytes due to string regex pattern")
+def test_convert_dd_to_dms_bytes_input():
+    convert_dd_to_dms(b"40.7128,-74.0060")
