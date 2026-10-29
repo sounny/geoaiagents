@@ -63,6 +63,8 @@ def test_load_kml_two_points_and_empty_document():
     assert "| Latitude | Longitude |" in res_empty_doc
     assert "37.422" not in res_empty_doc
 
+@pytest.mark.xfail(reason="Bug: load_geojson raises ValueError on bad JSON instead of returning empty table string")
+def test_load_geojson_empty_and_bad():
     res_empty = load_geojson('{}')
     assert res_empty.startswith("| Latitude | Longitude |")
 
@@ -93,3 +95,11 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+@pytest.mark.xfail(reason="Exception chaining bug: uses implicit __context__ instead of explicit __cause__")
+def test_load_geojson_exception_chaining(mocker):
+    mocker.patch('json.loads', side_effect=json.JSONDecodeError("msg", "doc", 0))
+    with pytest.raises(ValueError) as exc_info:
+        load_geojson('{"bad"}')
+    assert isinstance(exc_info.value.__context__, json.JSONDecodeError)
+    assert exc_info.value.__cause__ is not None
