@@ -26,3 +26,19 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+@pytest.mark.xfail(reason="Reads BOM as part of package name")
+def test_humboldt_bom_crlf_requirements(tmp_path, monkeypatch, mocker):
+    from humboldt import check_and_install_dependencies
+    req_file = tmp_path / "requirements.txt"
+    with open(req_file, "wb") as f:
+        f.write(b'\xef\xbb\xbfopenai>=1.0.0\r\ngeopy==2.0.0\r\n')
+    monkeypatch.chdir(tmp_path)
+    mock_run = mocker.patch("subprocess.run")
+    mocker.patch("humboldt.is_package_installed", return_value=False)
+
+    check_and_install_dependencies()
+
+    # Asserting CURRENT results (the bug)
+    args = mock_run.call_args_list[0][0][0]
+    assert "\ufeffopenai" in args
