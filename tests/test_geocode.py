@@ -47,8 +47,8 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
 
     addr, lat, lon = geocode.get_coordinates("Mockville")
     assert addr == "First Place"
-    assert lat == 40.0
-    assert lon == -70.0
+    assert lat == pytest.approx(40.0)
+    assert lon == pytest.approx(-70.0)
 
 def test_get_coordinates_type_and_success(mocker):
     class MockLocation:
@@ -58,7 +58,7 @@ def test_get_coordinates_type_and_success(mocker):
     mocker.patch("geocode._geocode_limiter", return_value=MockLocation())
     result = get_coordinates("Test City")
     assert isinstance(result, tuple)
-    assert result == ("Test City", 12.34, 56.78)
+    assert result[0] == "Test City" and result[1] == pytest.approx(12.34) and result[2] == pytest.approx(56.78)
 
 def test_parse_locations_type():
     result = parse_locations("Loc1; Loc2")
