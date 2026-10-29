@@ -26,3 +26,7 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+@pytest.mark.skip(reason="humboldt.py contains no public classes or custom object return values to test eq/hash contract")
+def test_humboldt_eq_hash_contract_skipped():
+    pass
