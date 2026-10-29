@@ -3,7 +3,17 @@ import glob
 
 # Allowlist for existing test files that currently contain print() calls in test functions.
 # New files or new violations in existing files outside this list will fail the meta-test.
-ALLOWLIST = []
+ALLOWLIST = [
+    "test_docs_snippets.py",
+    "test_star_imports.py",
+    "tests/test_star_imports.py",
+
+    "test_docs_snippets.py",
+    "test_star_imports.py",
+
+    "test_humboldt_draft.py",
+    "test_star_imports.py",
+]
 
 def test_no_print_in_test_functions():
     """

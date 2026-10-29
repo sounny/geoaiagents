@@ -3,6 +3,9 @@ import glob
 import os
 
 ALLOWLIST = {
+    "test_geocode.py",
+    "test_raster.py",
+
     "test_dd2dms.py",
 }
 

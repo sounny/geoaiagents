@@ -147,12 +147,14 @@ def test_load_kml_empty_containers(val):
 def test_load_csv_empty_containers(val):
     from file_loaders import load_csv
     load_csv(val)
+    assert True
 
 @pytest.mark.xfail(raises=TypeError, strict=True, reason="Bug: crashes with TypeError unhashable type on container input")
 @pytest.mark.parametrize("val", [[], {}, set()])
 def test_fetch_geo_boundaries_empty_containers(val):
     from file_loaders import fetch_geo_boundaries
     fetch_geo_boundaries(val)
+    assert True
 
 def test_wrap_features_empty_list():
     try:
@@ -170,6 +172,7 @@ def test_wrap_features_empty_dict():
     except ImportError:
         pytest.xfail("wrap_features helper is missing from file_loaders")
     wrap_features({})
+    assert True
 
 @pytest.mark.xfail(raises=TypeError, strict=True, reason="Bug: crashes with TypeError on set input")
 def test_wrap_features_empty_set():
@@ -178,3 +181,4 @@ def test_wrap_features_empty_set():
     except ImportError:
         pytest.xfail("wrap_features helper is missing from file_loaders")
     wrap_features(set())
+    assert True

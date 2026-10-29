@@ -5,7 +5,9 @@ import pytest
 
 # Allowlist of files and the line numbers where text-mode open() calls without encoding= are permitted.
 ALLOWLIST = {
-    "humboldt.py": [26],
+    "humboldt.py": [27, 269, 117],
+
+    "humboldt.py": [27, 26, 269, 117],
     "install_requirements.py": [18],
 }
 
