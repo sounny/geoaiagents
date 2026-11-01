@@ -121,3 +121,32 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+
+@pytest.mark.xfail(reason="looks like a bug: silently returns empty dict for set")
+def test_parse_tool_args_set():
+    with pytest.raises((ValueError, TypeError)):
+        parse_tool_args({"a", "b"})
+
+@pytest.mark.xfail(reason="looks like a bug: silently returns empty dict for frozenset")
+def test_parse_tool_args_frozenset():
+    with pytest.raises((ValueError, TypeError)):
+        parse_tool_args(frozenset({"a", "b"}))
+
+@pytest.mark.xfail(reason="looks like a bug: silently swallows set and executes tool")
+def test_tool_registry_invoke_set(mocker):
+    registry = ToolRegistry()
+    mock_handler = mocker.Mock(return_value="mocked")
+    registry.register_tool(name="test", description="desc", parameters={}, handler=mock_handler)
+    result = registry.invoke("test", {"a", "b"})
+    assert result is not None
+    assert result.startswith("Error running")
+
+@pytest.mark.xfail(reason="looks like a bug: silently swallows frozenset and executes tool")
+def test_tool_registry_invoke_frozenset(mocker):
+    registry = ToolRegistry()
+    mock_handler = mocker.Mock(return_value="mocked")
+    registry.register_tool(name="test", description="desc", parameters={}, handler=mock_handler)
+    result = registry.invoke("test", frozenset({"a", "b"}))
+    assert result is not None
+    assert result.startswith("Error running")
