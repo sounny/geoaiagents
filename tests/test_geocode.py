@@ -49,3 +49,36 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_nul_get_coordinates(mocker):
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=[{"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "Mocked", "importance": 0.9, "class": "place", "type": "city"}])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value=[])
+    mocker.patch("time.sleep")
+    addr, lat, lon = geocode.get_coordinates("hello\x00world")
+    assert addr == "Mocked"
+    assert lat == 40.0
+    assert lon == -70.0
+
+def test_nul_reverse_geocode_coordinates(mocker):
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value={"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "Mocked", "address": "Mocked Addr"})
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value="")
+    mocker.patch("time.sleep")
+    res = geocode.reverse_geocode_coordinates("40.0, -70.0\x00")
+    assert "Skipped invalid inputs:" in res
+    assert "Not a number" in res
+
+def test_nul_parse_locations():
+    import geocode
+    res = geocode.parse_locations("hello\x00world")
+    assert res == ["hello\x00world"]
+
+def test_nul_geocode_locations(mocker):
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=[{"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "Mocked", "importance": 0.9, "class": "place", "type": "city"}])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value="")
+    mocker.patch("time.sleep")
+    res = geocode.geocode_locations("hello\x00world")
+    assert "hello\x00world" in res
+    assert "Mocked" in res
