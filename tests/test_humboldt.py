@@ -26,3 +26,15 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+from humboldt import is_package_installed, handle_direct_command
+
+def test_is_package_installed_nul():
+    assert is_package_installed("test\x00") is False
+
+def test_handle_direct_command_nul():
+    registry = MagicMock()
+    registry.invoke.return_value = "mocked"
+    result = handle_direct_command("/geocode test\x00", registry)
+    assert result is True
+    registry.invoke.assert_called_once_with("geocode_locations", {"locations": "test\x00"})
