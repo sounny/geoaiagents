@@ -94,3 +94,8 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+@pytest.mark.xfail(reason="looks like a bug bools are accepted as coordinates")
+def test_is_valid_lat_lon_bool():
+    with pytest.raises(TypeError):
+        is_valid_lat_lon(True, False)
