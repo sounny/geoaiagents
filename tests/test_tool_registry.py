@@ -121,3 +121,6 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_cwd_dependency(monkeypatch, tmp_path, mocker):
+    pytest.skip("tool_registry.py contains no public functions that depend on file paths")
