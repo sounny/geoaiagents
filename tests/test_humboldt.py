@@ -1,3 +1,4 @@
+import humboldt
 import pytest
 import sys
 from unittest.mock import patch, MagicMock
@@ -26,3 +27,17 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+@pytest.mark.xfail(reason="Hardcoded paths look like a bug")
+def test_check_dependencies_chdir(tmp_path, monkeypatch, capsys, mocker):
+    mocker.patch('humboldt.subprocess.run')
+
+    humboldt.check_and_install_dependencies()
+    repo_out, _ = capsys.readouterr()
+
+    monkeypatch.chdir(tmp_path)
+
+    humboldt.check_and_install_dependencies()
+    tmp_out, _ = capsys.readouterr()
+
+    assert tmp_out == repo_out
