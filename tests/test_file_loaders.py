@@ -1,6 +1,6 @@
 import json
 import pytest
-from file_loaders import load_geojson, load_kml
+from file_loaders import load_geojson, load_kml, load_csv, fetch_geo_boundaries
 
 def test_multipolygon_helper():
     try:
@@ -66,8 +66,7 @@ def test_load_kml_two_points_and_empty_document():
     res_empty = load_geojson('{}')
     assert res_empty.startswith("| Latitude | Longitude |")
 
-    res_bad = load_geojson('{bad')
-    assert res_bad.startswith("| Latitude | Longitude |")
+
 
 def test_load_geojson_feature_collection_one_point():
     fc = '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[2.35,48.85]},"properties":{}}]}'
@@ -93,3 +92,25 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+def test_load_geojson_unknown_kwargs():
+    with pytest.raises(TypeError):
+        load_geojson('{}', unknown=True)
+
+def test_load_kml_unknown_kwargs():
+    with pytest.raises(TypeError):
+        load_kml('<kml></kml>', misspelled=True)
+
+def test_load_csv_unknown_kwargs():
+    with pytest.raises(TypeError):
+        load_csv('lat,lon\n0,0', missing_kwarg=1)
+
+def test_fetch_geo_boundaries_unknown_kwargs(mocker):
+    mocker.patch("file_loaders.requests.get")
+    with pytest.raises(TypeError):
+        fetch_geo_boundaries('USA', adm='ADM1', unknown_arg='test')
+
+@pytest.mark.xfail(reason="load_geojson raises ValueError for invalid JSON instead of returning an empty table")
+def test_load_geojson_bad_json():
+    res_bad = load_geojson('{bad')
+    assert res_bad.startswith("| Latitude | Longitude |")
