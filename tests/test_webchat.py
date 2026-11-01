@@ -21,3 +21,7 @@ def test_create_map_html_markers_and_skips_invalid_locking_markers():
     assert len(points) == 2
     html = create_map_html(points)
     assert len(re.findall(r"L\.marker", html)) == 2
+
+@pytest.mark.skip(reason="None of the public functions take bytes")
+def test_dummy_bytes():
+    pass
