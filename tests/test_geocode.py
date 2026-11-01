@@ -1,3 +1,4 @@
+import copy
 import pytest
 from geocode import get_coordinates, reverse_geocode_coordinates, parse_locations
 
@@ -49,3 +50,12 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_parse_locations_deepcopy(mocker):
+    mocker.patch("geocode._geocode_limiter", side_effect=AssertionError("No network calls allowed"))
+    mocker.patch("geocode._reverse_limiter", side_effect=AssertionError("No network calls allowed"))
+    orig = parse_locations("Location A; Location B")
+    cp = copy.deepcopy(orig)
+    assert orig == cp
+    cp.append("Location C")
+    assert orig != cp
