@@ -121,3 +121,6 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_datetime_args():
+    pytest.skip("No public functions in tool_registry.py handle datetime objects")

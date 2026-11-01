@@ -56,7 +56,7 @@ def test_call_llm_with_retry_happy_path_fast():
     """
     client = MagicMock()
     mock_response = MagicMock()
-    mock_response.choices = ["happy_choice"]
+    mock_choice = MagicMock(); mock_choice.message = "happy_choice"; mock_response.choices = [mock_choice]
     client.chat.completions.create.return_value = mock_response
 
     with patch('time.sleep') as mock_sleep:
