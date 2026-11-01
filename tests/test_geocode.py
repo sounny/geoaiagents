@@ -49,3 +49,27 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+@pytest.mark.xfail(reason="looks like a bug when passing unhashable iterable to lru_cache")
+def test_get_coordinates_set(mocker):
+    # Mock network calls to geocode API to avoid actual HTTP requests
+    import geocode
+    mock_resp = mocker.Mock()
+    mock_resp.status = 200
+    mock_resp.data = b'[]'
+    mock_resp.getheaders.return_value = {}
+    mocker.patch('urllib3.connectionpool.HTTPConnectionPool.urlopen', return_value=mock_resp)
+
+    geocode.get_coordinates("Mockville", bounding_box={"1", "2", "3", "4"})
+
+def test_get_coordinates_frozenset(mocker):
+    import geocode
+    # Mock network calls to geocode API to avoid actual HTTP requests
+    mock_resp = mocker.Mock()
+    mock_resp.status = 200
+    mock_resp.data = b'[]'
+    mock_resp.getheaders.return_value = {}
+    mocker.patch('urllib3.connectionpool.HTTPConnectionPool.urlopen', return_value=mock_resp)
+
+    res = geocode.get_coordinates("Mockville", bounding_box=frozenset({"1", "2", "3", "4"}))
+    assert res == (None, None, None)
