@@ -121,3 +121,7 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+@pytest.mark.skip(reason="No public functions take bytes")
+def test_bytes_support_dummy():
+    pass
