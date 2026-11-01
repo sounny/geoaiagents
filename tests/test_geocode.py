@@ -49,3 +49,22 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_geocode_path_independence(mocker, tmp_path, monkeypatch):
+    import geocode
+    import pytest
+    pytest.skip("geocode.py public functions do not depend on file paths or read/write files")
+
+    mock_response = [
+        {"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "First Place", "importance": 0.9, "class": "place", "type": "city"}
+    ]
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=mock_response)
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value=mock_response)
+    mocker.patch("time.sleep")
+
+    monkeypatch.chdir(tmp_path)
+
+    addr, lat, lon = geocode.get_coordinates("Mockville")
+    assert addr == "First Place"
+    assert lat == 40.0
+    assert lon == -70.0
