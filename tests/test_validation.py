@@ -94,3 +94,14 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+def test_parse_coordinate_pairs_nul():
+    pairs, invalid = parse_coordinate_pairs("\x00")
+    assert pairs == []
+    assert len(invalid) == 1
+    assert invalid[0] == ("\x00", "Missing latitude/longitude pair")
+
+    pairs, invalid = parse_coordinate_pairs("10,20\x00")
+    assert pairs == []
+    assert len(invalid) == 1
+    assert invalid[0] == ("10,20\x00", "Not a number")
