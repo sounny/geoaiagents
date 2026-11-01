@@ -41,3 +41,23 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+def test_main_nul_byte_geocode(mocker, capsys):
+    # Test that passing a NUL byte to a normal CLI argument does not crash but produces output
+    # Mock geocoding to prevent external API calls to Nominatim
+    mocker.patch('geocode._geocode_limiter', return_value=mocker.MagicMock(address="Mock Address", latitude=48.0, longitude=2.0))
+    mocker.patch('sys.argv', ['geoai_cli.py', 'geocode', 'Paris\x00'])
+    try:
+        main()
+    except SystemExit as e:
+        assert e.code == 0
+    captured = capsys.readouterr()
+    # The output should contain the input payload with the NUL byte
+    assert "Paris\x00" in captured.out
+
+@pytest.mark.xfail(reason="argparse accepts NUL bytes in arguments, causing a downstream unhandled exception rather than a CLI error")
+def test_main_nul_byte_chat_url(mocker):
+    # Test that passing a NUL byte to a URL argument causes an unhandled exception downstream
+    mocker.patch('sys.argv', ['geoai_cli.py', 'chat', '--base-url', 'http://localhost\x00'])
+    # This will raise httpx.InvalidURL during client initialization, so xfail correctly handles it
+    main()
