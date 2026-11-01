@@ -49,3 +49,43 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+@pytest.mark.xfail(reason="bug: unknown kwargs are silently ignored")
+def test_get_coordinates_bad_kwarg(mocker):
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=[])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value=[])
+    mocker.patch("time.sleep")
+    with pytest.raises(TypeError):
+        geocode.get_coordinates("Test", bad_kwarg=True)
+
+@pytest.mark.xfail(reason="bug: unknown kwargs are silently ignored")
+def test_parse_locations_bad_kwarg(mocker):
+    import geocode
+    with pytest.raises(TypeError):
+        geocode.parse_locations("Test", bad_kwarg=True)
+
+@pytest.mark.xfail(reason="bug: unknown kwargs are silently ignored")
+def test_reverse_geocode_coordinates_bad_kwarg(mocker):
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value={})
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value={})
+    mocker.patch("time.sleep")
+    with pytest.raises(TypeError):
+        geocode.reverse_geocode_coordinates("40.0, -70.0", bad_kwarg=True)
+
+@pytest.mark.xfail(reason="bug: unknown kwargs are silently ignored")
+def test_geocode_locations_bad_kwarg(mocker):
+    import geocode
+    mocker.patch.object(geocode._geolocator.adapter, "get_json", return_value=[])
+    mocker.patch.object(geocode._geolocator.adapter, "get_text", return_value=[])
+    mocker.patch("time.sleep")
+    with pytest.raises(TypeError):
+        geocode.geocode_locations("Test", bad_kwarg=True)
+
+@pytest.mark.xfail(reason="bug: unknown kwargs are silently ignored")
+def test_main_bad_kwarg(mocker):
+    import geocode
+    mocker.patch("builtins.input", side_effect=["exit"])
+    with pytest.raises(TypeError):
+        geocode.main(bad_kwarg=True)
