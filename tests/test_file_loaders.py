@@ -1,6 +1,6 @@
 import json
 import pytest
-from file_loaders import load_geojson, load_kml
+from file_loaders import load_geojson, load_kml, load_csv, fetch_geo_boundaries
 
 def test_multipolygon_helper():
     try:
@@ -93,3 +93,39 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+@pytest.mark.xfail(reason="looks like a bug where it fails on non-string iterables without a proper check")
+def test_set_and_frozenset_load_geojson_set():
+    load_geojson(set(["a"]))
+
+@pytest.mark.xfail(reason="looks like a bug where it fails on non-string iterables without a proper check")
+def test_set_and_frozenset_load_geojson_frozenset():
+    load_geojson(frozenset(["a"]))
+
+@pytest.mark.xfail(reason="looks like a bug where it returns an empty table when passed a set because it swallows Exceptions")
+def test_set_and_frozenset_load_kml_set():
+    res = load_kml(set(["a"]))
+    assert res != "| Latitude | Longitude |\n|---------:|----------:|"
+
+@pytest.mark.xfail(reason="looks like a bug where it returns an empty table when passed a frozenset because it swallows Exceptions")
+def test_set_and_frozenset_load_kml_frozenset():
+    res = load_kml(frozenset(["a"]))
+    assert res != "| Latitude | Longitude |\n|---------:|----------:|"
+
+@pytest.mark.xfail(reason="looks like a bug where it fails on non-string iterables")
+def test_set_and_frozenset_load_csv_set():
+    load_csv(set(["a"]))
+
+@pytest.mark.xfail(reason="looks like a bug where it fails on non-string iterables")
+def test_set_and_frozenset_load_csv_frozenset():
+    load_csv(frozenset(["a"]))
+
+@pytest.mark.xfail(reason="looks like a bug where it fails on non-string iterables")
+def test_set_and_frozenset_fetch_geo_boundaries_set(mocker):
+    mocker.patch("requests.get")
+    fetch_geo_boundaries(set(["a"]))
+
+@pytest.mark.xfail(reason="looks like a bug where it fails on non-string iterables")
+def test_set_and_frozenset_fetch_geo_boundaries_frozenset(mocker):
+    mocker.patch("requests.get")
+    fetch_geo_boundaries(frozenset(["a"]))
