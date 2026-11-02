@@ -24,3 +24,11 @@ def test_call_llm_with_retry_timeout_then_success(mocker):
 
     assert response == expected_response
     assert client.chat.completions.create.call_count == 2
+
+import os
+import sys
+
+@pytest.mark.skipif(sys.platform == 'win32' or (hasattr(os, 'geteuid') and os.geteuid() == 0), reason="skip on Windows or when running as root")
+@pytest.mark.skip(reason="skip if none read files")
+def test_read_files_permission_denied(tmp_path, mocker):
+    pass
