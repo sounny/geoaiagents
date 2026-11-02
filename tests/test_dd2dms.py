@@ -131,3 +131,16 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+class MyStr(str):
+    pass
+
+class MyDict(dict):
+    pass
+
+@pytest.mark.xfail(reason="looks like a bug where convert_dd_to_dms raises TypeError instead of returning invalid entries")
+def test_convert_dd_to_dms_types():
+    convert_dd_to_dms(MyDict({"a": 1}))
+
+def test_convert_dd_to_dms_str():
+    assert "45°00\'00.00\" N" in convert_dd_to_dms(MyStr("45.0, 90.0"))
