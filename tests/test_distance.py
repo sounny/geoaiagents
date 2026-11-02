@@ -120,3 +120,17 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+class MyStr(str):
+    pass
+
+def test_calculate_distance_str_subclass():
+    text = MyStr("40.7128,-74.0060,51.5074,-0.1278")
+    result = calculate_distance(text)
+    assert "40.7128" in result
+    assert "51.5074" in result
+    assert "Distance (km)" in result
+
+@pytest.mark.skip(reason="No public functions take dicts")
+def test_dict_subclass_skipped():
+    pass
