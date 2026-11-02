@@ -26,3 +26,17 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+import os
+
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="Windows")
+@pytest.mark.skipif(hasattr(os, "geteuid") and os.geteuid() == 0, reason="Root")
+@pytest.mark.xfail(raises=PermissionError, reason="looks like a bug")
+def test_check_and_install_dependencies_permission(tmp_path, monkeypatch):
+    with patch("humboldt.subprocess.run"):
+        req = tmp_path / "requirements.txt"
+        req.write_text("pytest\n")
+        req.chmod(0)
+        monkeypatch.chdir(tmp_path)
+        from humboldt import check_and_install_dependencies
+        check_and_install_dependencies()
