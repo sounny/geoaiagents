@@ -131,3 +131,7 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+@pytest.mark.skip(reason="None take tuples or sequences")
+def test_namedtuple_instances_skip(mocker):
+    pass
