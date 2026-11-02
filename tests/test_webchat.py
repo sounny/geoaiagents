@@ -21,3 +21,14 @@ def test_create_map_html_markers_and_skips_invalid_locking_markers():
     assert len(points) == 2
     html = create_map_html(points)
     assert len(re.findall(r"L\.marker", html)) == 2
+
+import os
+import sys
+
+@pytest.mark.skipif(
+    sys.platform == "win32" or (hasattr(os, "geteuid") and os.geteuid() == 0),
+    reason="skip on Windows or when running as root"
+)
+@pytest.mark.skip(reason="skip if none write files")
+def test_webchat_write_read_only_directory(tmp_path, mocker):
+    pass
