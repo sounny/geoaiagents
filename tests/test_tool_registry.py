@@ -121,3 +121,34 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+@pytest.mark.parametrize("char", ["\t", "\r", "\x07", "\x1b"])
+@pytest.mark.xfail(reason="register_tool allows control characters in tool names")
+def test_tool_registry_control_chars_register_tool(char):
+    registry = ToolRegistry()
+    registry.register_tool(name=char, description=char, parameters={}, handler=lambda x: "ok")
+    pytest.fail("register_tool should reject control characters")
+
+@pytest.mark.parametrize("char", ["\t", "\r", "\x07", "\x1b"])
+def test_tool_registry_control_chars_invoke_name(char):
+    registry = ToolRegistry()
+    registry.register_tool(name=char, description=char, parameters={}, handler=lambda x: "ok")
+    assert registry.invoke(char, {}) == "ok"
+
+@pytest.mark.parametrize("char", ["\t", "\r", "\x07", "\x1b"])
+def test_tool_registry_control_chars_invoke_raw_args(char):
+    registry = ToolRegistry()
+    registry.register_tool(name="test_tool", description="test", parameters={}, handler=lambda x: "ok")
+    res = registry.invoke("test_tool", char)
+    assert isinstance(res, str)
+    assert "Error running test_tool: Invalid JSON" in res
+
+@pytest.mark.parametrize("char", ["\t", "\r", "\x07", "\x1b"])
+def test_tool_registry_control_chars_has_tool(char):
+    registry = ToolRegistry()
+    assert not registry.has_tool(char)
+
+@pytest.mark.parametrize("char", ["\t", "\r", "\x07", "\x1b"])
+def test_tool_registry_control_chars_parse_tool_args(char):
+    with pytest.raises(ValueError, match="Invalid JSON"):
+        parse_tool_args(char)
