@@ -120,3 +120,8 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+
+@pytest.mark.skip(reason="No public functions take numbers")
+def test_negative_zero_float():
+    pass
