@@ -94,3 +94,7 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+@pytest.mark.skip(reason="no functions take file paths")
+def test_directory_path_instead_of_file_path(tmp_path, mocker):
+    pass
