@@ -24,3 +24,7 @@ def test_call_llm_with_retry_timeout_then_success(mocker):
 
     assert response == expected_response
     assert client.chat.completions.create.call_count == 2
+
+@pytest.mark.skip(reason="No public functions in llm_utils.py expect a file path.")
+def test_directory_path_instead_of_file_path(tmp_path, mocker):
+    pass
