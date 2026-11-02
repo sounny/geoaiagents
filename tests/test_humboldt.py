@@ -26,3 +26,7 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+@pytest.mark.skip(reason="No public functions in humboldt.py take file paths")
+def test_humboldt_paths_expanded(tmp_path, mocker):
+    pass
