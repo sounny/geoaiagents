@@ -41,3 +41,7 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+@pytest.mark.skip(reason="None of the public functions in geoai_cli.py take file paths")
+def test_geoai_cli_tilde_path_expansion(tmp_path, mocker):
+    pass
