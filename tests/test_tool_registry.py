@@ -121,3 +121,10 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+import os
+
+@pytest.mark.skipif(os.name == "nt" or (hasattr(os, "geteuid") and os.geteuid() == 0), reason="Skip on Windows or root")
+@pytest.mark.skip(reason="No public functions in tool_registry.py read files")
+def test_tool_registry_read_file_chmod_0(tmp_path, mocker):
+    pass
