@@ -49,3 +49,12 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+import os
+import sys
+
+@pytest.mark.skipif(sys.platform == 'win32', reason="Skip on Windows")
+@pytest.mark.skipif(hasattr(os, 'geteuid') and os.geteuid() == 0, reason="Skip when running as root")
+@pytest.mark.skip(reason="No public functions write files")
+def test_readonly_directory_write_errors(tmp_path, mocker):
+    pass
