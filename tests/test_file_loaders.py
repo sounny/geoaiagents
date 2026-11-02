@@ -93,3 +93,7 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+@pytest.mark.skip(reason="No public functions in file_loaders.py take file paths")
+def test_file_loaders_path_handling():
+    pass
