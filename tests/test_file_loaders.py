@@ -93,3 +93,11 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+import os
+import sys
+
+@pytest.mark.skipif(sys.platform == 'win32' or (hasattr(os, 'geteuid') and os.geteuid() == 0), reason="Windows or root")
+@pytest.mark.skip(reason="none read files")
+def test_unreadable_file_error(tmp_path, mocker):
+    pass
