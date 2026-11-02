@@ -131,3 +131,11 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+def test_negative_zero_dd_to_dms_value():
+    res = dd_to_dms_value(-0.0)
+    assert res == (-0.0, 0, 0.0)
+
+def test_negative_zero_format_dms():
+    pytest.xfail("format_dms outputs -0.00 seconds for -0.0 which looks like a bug")
+    assert format_dms(0.0, 0, -0.0, True, 0.0) == "0°00'-0.00\" N"
