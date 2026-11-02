@@ -120,3 +120,7 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+@pytest.mark.skip(reason="distance.py reads no environment variables")
+def test_distance_empty_env_vars(monkeypatch, mocker):
+    pass
