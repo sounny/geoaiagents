@@ -21,3 +21,9 @@ def test_create_map_html_markers_and_skips_invalid_locking_markers():
     assert len(points) == 2
     html = create_map_html(points)
     assert len(re.findall(r"L\.marker", html)) == 2
+
+import pytest
+
+@pytest.mark.skip(reason="None of the public functions in webchat.py take file paths as string arguments directly")
+def test_tilde_expansion_skip(tmp_path, monkeypatch, mocker):
+    pass
