@@ -32,3 +32,11 @@ def test_main_empty_input(mock_input, mock_openai, mock_call_llm):
 
     # Assert LLM is not called for whitespace
     mock_call_llm.assert_not_called()
+
+@pytest.mark.xfail(reason="looks like a bug where utf-16 files crash the open call due to default encoding", raises=UnicodeDecodeError)
+@patch('humboldt.subprocess.run')
+def test_check_and_install_dependencies_utf16(mock_run, tmp_path, monkeypatch):
+    req_file = tmp_path / "requirements.txt"
+    req_file.write_text("openai>=1.0\ngeopy>=2.0\n", encoding="utf-16")
+    monkeypatch.chdir(tmp_path)
+    humboldt.check_and_install_dependencies()
