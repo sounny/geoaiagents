@@ -131,3 +131,12 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+import os
+import sys
+
+@pytest.mark.skipif(sys.platform.startswith("win"), reason="Skip on Windows")
+@pytest.mark.skipif(hasattr(os, "geteuid") and os.geteuid() == 0, reason="Skip when running as root")
+@pytest.mark.skip(reason="no functions read files")
+def test_dd2dms_file_read_permission(tmp_path, mocker):
+    pass
