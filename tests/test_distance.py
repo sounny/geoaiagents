@@ -120,3 +120,7 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+@pytest.mark.skip(reason="No public functions read text files")
+def test_utf16_text_files_reading(tmp_path, mocker):
+    pass
