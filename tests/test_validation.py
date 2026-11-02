@@ -1,3 +1,5 @@
+import sys
+import os
 import pytest
 from validation import is_valid_lat_lon, parse_coordinate_pairs, format_invalid_notes
 
@@ -94,3 +96,8 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+@pytest.mark.skipif(sys.platform == "win32" or (hasattr(os, "geteuid") and os.geteuid() == 0), reason="Skip on Windows or when running as root")
+@pytest.mark.skip(reason="No public functions read files")
+def test_read_files_permission_denied(tmp_path, mocker):
+    pass
