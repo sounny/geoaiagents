@@ -41,3 +41,11 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+@pytest.mark.skip(reason="No public functions in geoai_cli.py take strings directly")
+def test_str_subclasses():
+    pass
+
+@pytest.mark.skip(reason="No public functions in geoai_cli.py take dicts directly")
+def test_dict_subclasses():
+    pass
