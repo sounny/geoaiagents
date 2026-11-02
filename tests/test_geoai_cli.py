@@ -41,3 +41,11 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+import os
+
+@pytest.mark.skipif(sys.platform == 'win32', reason="Skip on Windows")
+@pytest.mark.skipif(hasattr(os, 'geteuid') and os.geteuid() == 0, reason="Skip when running as root")
+@pytest.mark.skip(reason="No public functions in geoai_cli.py read files")
+def test_geoai_cli_read_files_permission_error(tmp_path, mocker):
+    pass
