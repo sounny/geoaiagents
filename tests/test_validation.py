@@ -94,3 +94,18 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+class _TestStrSubclass(str):
+    pass
+
+@pytest.mark.xfail(reason="looks like a bug where subclasses of str are downgraded to base str in the returned invalid list")
+def test_parse_coordinate_pairs_str_subclass():
+    text = _TestStrSubclass("10,20\n30,foo")
+    pairs, invalid = parse_coordinate_pairs(text)
+    assert pairs == [(10.0, 20.0)]
+    assert invalid == [("30,foo", "Not a number")]
+    assert isinstance(invalid[0][0], _TestStrSubclass)
+
+@pytest.mark.skip(reason="No public functions take dicts")
+def test_dict_subclass_support():
+    pass
