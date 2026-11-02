@@ -93,3 +93,7 @@ def test_wrap_features_geojson():
     fc = wrap_features(features)
     assert fc["type"] == "FeatureCollection"
     assert len(fc["features"]) == 2
+
+@pytest.mark.skip(reason="skip if none write files")
+def test_readonly_dir_write(tmp_path, mocker):
+    pass
