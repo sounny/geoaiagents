@@ -94,3 +94,11 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+import os
+import sys
+
+@pytest.mark.skipif(sys.platform == "win32" or (hasattr(os, "geteuid") and os.geteuid() == 0), reason="Skip on Windows or when running as root")
+@pytest.mark.skip(reason="no public functions in validation.py write files")
+def test_validation_write_read_only_dir(tmp_path, mocker):
+    pass
