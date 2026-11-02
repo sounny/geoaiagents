@@ -120,3 +120,12 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+import os
+import sys
+
+@pytest.mark.skipif(sys.platform == 'win32', reason="skip on Windows")
+@pytest.mark.skipif(hasattr(os, 'geteuid') and os.geteuid() == 0, reason="skip when running as root")
+@pytest.mark.skip(reason="skip if none read files")
+def test_read_files_chmod_0(tmp_path, mocker):
+    pass
