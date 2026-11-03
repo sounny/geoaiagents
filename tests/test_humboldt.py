@@ -26,3 +26,22 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+import time
+import humboldt
+
+@pytest.mark.xfail(raises=RecursionError, reason="importlib.util.find_spec crashes with RecursionError for deeply nested module paths")
+def test_is_package_installed_long_string():
+    long_str = "a." * 1000000
+    start_time = time.time()
+    humboldt.is_package_installed(long_str)
+    assert time.time() - start_time < 5.0
+
+def test_handle_direct_command_long_string():
+    long_str = "a" * 1000000
+    tool_registry = MagicMock()
+    start_time = time.time()
+    result = humboldt.handle_direct_command("/geocode " + long_str, tool_registry)
+    assert time.time() - start_time < 5.0
+    assert result is True
+    tool_registry.invoke.assert_called_once_with("geocode_locations", {"locations": long_str})
