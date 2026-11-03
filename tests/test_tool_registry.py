@@ -121,3 +121,33 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+@pytest.mark.xfail(reason="Bug: ToolRegistry.has_tool is case-sensitive for tool names")
+def test_has_tool_case_insensitivity():
+    registry = create_registry()
+    if not registry.has_tool("CONVERT_DD_TO_DMS"):
+        pytest.fail("has_tool should be case-insensitive")
+    if not registry.has_tool("Convert_DD_to_DMS"):
+        pytest.fail("has_tool should be case-insensitive")
+
+@pytest.mark.xfail(reason="Bug: ToolRegistry.invoke is case-sensitive for tool names")
+def test_invoke_case_insensitivity_tool_name():
+    registry = create_registry()
+    result = registry.invoke("CONVERT_DD_TO_DMS", {"coordinates": "48.8566,2.3522"})
+    if result is None:
+        pytest.fail("invoke should accept tool names case-insensitively")
+    assert "48°" in result
+
+@pytest.mark.xfail(reason="Bug: ToolRegistry.register_tool does not normalize tool names")
+def test_register_tool_case_insensitivity():
+    registry = ToolRegistry()
+    registry.register_tool(name="My_Tool", description="Test", parameters={}, handler=lambda x: "test")
+    if not registry.has_tool("my_tool"):
+        pytest.fail("register_tool should normalize tool names")
+
+@pytest.mark.xfail(reason="Bug: built-in tool handlers are case-sensitive for dict keys")
+def test_invoke_case_insensitivity_dict_keys():
+    registry = create_registry()
+    result = registry.invoke("convert_dd_to_dms", {"COORDINATES": "48.8566,2.3522"})
+    if result is None or "48°" not in result:
+        pytest.fail("built-in tool handlers should accept dict keys case-insensitively")
