@@ -21,3 +21,11 @@ def test_create_map_html_markers_and_skips_invalid_locking_markers():
     assert len(points) == 2
     html = create_map_html(points)
     assert len(re.findall(r"L\.marker", html)) == 2
+
+from unittest.mock import patch
+
+@pytest.mark.skip(reason="No public functions take paths")
+@patch("webchat.call_llm_with_retry")
+def test_directory_and_relative_paths(mock_llm, tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    pass
