@@ -149,3 +149,15 @@ def test_load_geojson_point():
     # Also verify the coordinates are physically present in the result string
     assert "48.8" in result
     assert "2.3" in result
+
+import pytest
+
+@pytest.mark.skip(reason="No public functions take paths")
+def test_path_traversal(mocker, tmp_path):
+    pass
+
+import pytest
+
+@pytest.mark.skip(reason="No public functions take paths")
+def test_path_traversal(mocker, tmp_path):
+    pass
