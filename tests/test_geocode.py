@@ -49,3 +49,7 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+@pytest.mark.skip(reason="No public functions take file paths")
+def test_file_paths_spaces_accents_emoji(mocker, tmp_path):
+    pass
