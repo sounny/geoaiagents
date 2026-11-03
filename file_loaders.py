@@ -149,3 +149,35 @@ def test_load_geojson_point():
     # Also verify the coordinates are physically present in the result string
     assert "48.8" in result
     assert "2.3" in result
+
+import pytest
+from unittest.mock import patch
+
+WHITESPACES = [" ", "\t", "\n", "\xa0"]
+
+@pytest.mark.parametrize("ws", WHITESPACES)
+def test_load_geojson_whitespace(ws):
+    with pytest.raises(ValueError, match="Empty GeoJSON string"):
+        load_geojson(ws)
+
+@pytest.mark.parametrize("ws", WHITESPACES)
+@pytest.mark.xfail(reason="Swallows exceptions and silently returns empty table")
+def test_load_kml_whitespace(ws):
+    # Expect a ValueError to be raised on empty/whitespace input
+    with pytest.raises(ValueError):
+        load_kml(ws)
+
+@pytest.mark.parametrize("ws", WHITESPACES)
+@pytest.mark.xfail(reason="Silently returns error string instead of raising exception")
+def test_load_csv_whitespace(ws):
+    # Expect a ValueError to be raised on empty/whitespace input
+    with pytest.raises(ValueError):
+        load_csv(ws)
+
+@pytest.mark.parametrize("ws", WHITESPACES)
+@pytest.mark.xfail(reason="Does not validate input and makes network request with whitespace")
+@patch("requests.get")
+def test_fetch_geo_boundaries_whitespace(mock_get, ws):
+    # Expect ValueError before network request is made
+    with pytest.raises(ValueError):
+        fetch_geo_boundaries(ws, ws)
