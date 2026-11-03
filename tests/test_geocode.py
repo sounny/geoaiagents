@@ -49,3 +49,7 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+@pytest.mark.skip(reason="None of the public functions take paths")
+def test_paths_out_of_bounds(mocker, tmp_path):
+    pass
