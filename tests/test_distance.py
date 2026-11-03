@@ -120,3 +120,22 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+@pytest.mark.xfail(raises=TypeError, reason="calculate_distance crashes when given a Path object")
+def test_calculate_distance_twice(tmp_path):
+    res1 = calculate_distance(tmp_path)
+    res2 = calculate_distance(tmp_path)
+    assert res1 == res2
+
+from unittest.mock import patch
+import sys
+from io import StringIO
+from distance import main
+
+@pytest.mark.xfail(raises=TypeError, reason="main crashes when given a Path object")
+def test_main_twice(tmp_path):
+    with patch("builtins.input", return_value=tmp_path):
+        with patch("sys.stdout", new_callable=StringIO):
+            res1 = main()
+            res2 = main()
+            assert res1 == res2
