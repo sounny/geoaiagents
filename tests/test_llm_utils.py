@@ -24,3 +24,15 @@ def test_call_llm_with_retry_timeout_then_success(mocker):
 
     assert response == expected_response
     assert client.chat.completions.create.call_count == 2
+
+@pytest.mark.skip(reason="No public functions in llm_utils.py explicitly expect dicts")
+def test_mapping_types(mocker):
+    pass
+
+@pytest.mark.skip(reason="No public functions in llm_utils.py explicitly expect dicts")
+def test_mapping_types(mocker):
+    pass
+
+@pytest.mark.skip(reason="No public functions in llm_utils.py explicitly expect dicts")
+def test_mapping_types(mocker):
+    pass
