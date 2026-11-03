@@ -26,3 +26,14 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+@pytest.mark.parametrize("ws", [" ", "\t", "\n", "\xa0"])
+def test_is_package_installed_whitespace(ws):
+    from humboldt import is_package_installed
+    assert is_package_installed(ws) is False
+
+@pytest.mark.parametrize("ws", [" ", "\t", "\n", "\xa0"])
+def test_handle_direct_command_whitespace(ws):
+    from humboldt import handle_direct_command
+    registry = MagicMock()
+    assert handle_direct_command(ws, registry) is False
