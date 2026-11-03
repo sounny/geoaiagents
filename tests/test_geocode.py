@@ -49,3 +49,27 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+@pytest.mark.xfail(reason="Bug: Invalid large int timeout is accepted instead of rejected")
+def test_get_coordinates_large_int_timeout(mocker):
+    mocker.patch("geopy.adapters.URLLibAdapter.get_text")
+    geocode.get_coordinates("Paris", timeout=10**100)
+    pytest.fail("Should have rejected invalid input")
+
+@pytest.mark.xfail(reason="Bug: Invalid large int timeout is accepted instead of rejected")
+def test_reverse_geocode_large_int_timeout(mocker):
+    mocker.patch("geopy.adapters.URLLibAdapter.get_text")
+    geocode.reverse_geocode_coordinates("48.8, 2.3", timeout=10**100)
+    pytest.fail("Should have rejected invalid input")
+
+@pytest.mark.xfail(reason="Bug: Invalid bool timeout is accepted instead of rejected")
+def test_get_coordinates_bool_timeout(mocker):
+    mocker.patch("geopy.adapters.URLLibAdapter.get_text")
+    geocode.get_coordinates("Paris", timeout=True)
+    pytest.fail("Should have rejected invalid input")
+
+@pytest.mark.xfail(reason="Bug: Invalid bool timeout is accepted instead of rejected")
+def test_reverse_geocode_bool_timeout(mocker):
+    mocker.patch("geopy.adapters.URLLibAdapter.get_text")
+    geocode.reverse_geocode_coordinates("48.8, 2.3", timeout=True)
+    pytest.fail("Should have rejected invalid input")
