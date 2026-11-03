@@ -120,3 +120,7 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+@pytest.mark.skip(reason="No functions take datetimes")
+def test_datetime_skip():
+    pass
