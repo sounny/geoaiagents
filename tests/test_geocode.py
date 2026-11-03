@@ -49,3 +49,27 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+@pytest.mark.xfail(reason="Bug: language option is not normalized to lowercase")
+def test_get_coordinates_language_casing(mocker):
+    import geocode
+    mock_limiter = mocker.patch("geocode._geocode_limiter", return_value=None)
+    get_coordinates("Paris", language="EN")
+    mock_limiter.assert_called_with(
+        "Paris",
+        language="en",
+        viewbox=None,
+        bounded=False,
+        timeout=1
+    )
+
+@pytest.mark.xfail(reason="Bug: language option is not normalized to lowercase")
+def test_reverse_geocode_coordinates_language_casing(mocker):
+    import geocode
+    mock_limiter = mocker.patch("geocode._reverse_limiter", return_value=None)
+    reverse_geocode_coordinates("40.0, -70.0", language="Fr")
+    mock_limiter.assert_called_with(
+        (40.0, -70.0),
+        language="fr",
+        timeout=1
+    )
