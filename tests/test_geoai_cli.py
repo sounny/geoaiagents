@@ -41,3 +41,7 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+@pytest.mark.skip(reason="no public functions take datetimes")
+def test_geoai_cli_datetimes_dummy(mocker):
+    pass
