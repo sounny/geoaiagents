@@ -94,3 +94,7 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+@pytest.mark.skip(reason="No public functions take dict keys, option names, or enum-like string values")
+def test_case_insensitive_enum_values(monkeypatch):
+    pass
