@@ -49,3 +49,45 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+import time
+from geocode import geocode_locations
+
+@pytest.fixture
+def long_str():
+    return "a" * 1000000
+
+@pytest.mark.xfail(reason="Bug: does not reject excessively long strings")
+def test_get_coordinates_long_string(mocker, long_str):
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+    start = time.time()
+    result = get_coordinates(long_str)
+    assert time.time() - start < 3
+    if result == (None, None, None):
+        pytest.fail("Should have rejected excessively long input")
+
+@pytest.mark.xfail(reason="Bug: does not reject excessively long strings")
+def test_parse_locations_long_string(long_str):
+    start = time.time()
+    result = parse_locations(long_str)
+    assert time.time() - start < 3
+    if result:
+        pytest.fail("Should have rejected excessively long input")
+
+@pytest.mark.xfail(reason="Bug: does not reject excessively long strings")
+def test_reverse_geocode_coordinates_long_string(mocker, long_str):
+    mocker.patch("geocode._reverse_limiter", return_value=None)
+    start = time.time()
+    result = reverse_geocode_coordinates(long_str)
+    assert time.time() - start < 3
+    if result:
+        pytest.fail("Should have rejected excessively long input")
+
+@pytest.mark.xfail(reason="Bug: does not reject excessively long strings")
+def test_geocode_locations_long_string(mocker, long_str):
+    mocker.patch("geocode._geocode_limiter", return_value=None)
+    start = time.time()
+    result = geocode_locations(long_str)
+    assert time.time() - start < 3
+    if result:
+        pytest.fail("Should have rejected excessively long input")
