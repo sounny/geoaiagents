@@ -149,3 +149,48 @@ def test_load_geojson_point():
     # Also verify the coordinates are physically present in the result string
     assert "48.8" in result
     assert "2.3" in result
+
+import pytest
+
+def test_load_geojson_large_string():
+    import time
+    long_str = "A" * 1000000
+    t0 = time.time()
+    try:
+        load_geojson(long_str)
+    except ValueError:
+        pass
+    assert time.time() - t0 < 5.0
+
+def test_load_kml_large_string():
+    import time
+    long_str = "A" * 1000000
+    t0 = time.time()
+    result = load_kml(long_str)
+    assert time.time() - t0 < 5.0
+    assert result == _table([])
+
+@pytest.mark.xfail(raises=csv.Error, reason="Unhandled csv.Error on very long string")
+def test_load_csv_large_string():
+    import time
+    long_str = "A" * 1000000
+    t0 = time.time()
+    load_csv(long_str)
+
+def test_fetch_geo_boundaries_large_string_iso(requests_mock):
+    import time
+    import requests_mock as rm
+    long_str = "A" * 1000000
+    requests_mock.get(rm.ANY, status_code=200, json={"simplifiedGeometryGeoJSON": "http://example.com/geo"})
+    t0 = time.time()
+    result = fetch_geo_boundaries(long_str, "ADM0")
+    assert time.time() - t0 < 5.0
+
+def test_fetch_geo_boundaries_large_string_adm(requests_mock):
+    import time
+    import requests_mock as rm
+    long_str = "A" * 1000000
+    requests_mock.get(rm.ANY, status_code=200, json={"simplifiedGeometryGeoJSON": "http://example.com/geo"})
+    t0 = time.time()
+    result = fetch_geo_boundaries("USA", long_str)
+    assert time.time() - t0 < 5.0
