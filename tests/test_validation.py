@@ -94,3 +94,10 @@ def test_swap_axis_order():
     # Assert extra dimensions are preserved
     assert swap_axis_order((10.0, 20.0, 30.0)) == (20.0, 10.0, 30.0)
     assert swap_axis_order((10.0, 20.0, 30.0, 40.0)) == (20.0, 10.0, 30.0, 40.0)
+
+@pytest.mark.skip(reason="none take paths")
+def test_paths_trailing_slash_and_relative(tmp_path, monkeypatch):
+    from unittest.mock import patch
+    monkeypatch.chdir(tmp_path)
+    with patch("urllib.request.urlopen"):
+        pass
