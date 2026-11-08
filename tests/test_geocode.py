@@ -49,3 +49,37 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+def test_geocode_public_callables_have_docstrings(mocker):
+    import inspect
+    import pytest
+    import geocode
+    mocker.patch('geocode.OpenAI')
+    mocker.patch('geocode.Nominatim')
+    mocker.patch('geocode._geocode_limiter')
+    mocker.patch('geocode._reverse_limiter')
+
+    public_callables = []
+
+    if hasattr(geocode, "__all__"):
+        names = geocode.__all__
+        for name in names:
+            public_callables.append((name, getattr(geocode, name)))
+    else:
+        for name, obj in inspect.getmembers(geocode):
+            if callable(obj) and not name.startswith('_'):
+                public_callables.append((name, obj))
+
+    allowlist = ["Nominatim", "RateLimiter", "GeocoderServiceError", "GeocoderTimedOut", "lru_cache", "call_llm_with_retry", "format_invalid_notes", "parse_coordinate_pairs"]
+
+    for name, obj in public_callables:
+        assert callable(obj)
+
+        has_docstring = bool(getattr(obj, "__doc__", None))
+        in_allowlist = name in allowlist
+
+        if not (has_docstring or in_allowlist):
+            if name == "OpenAI":
+                pytest.xfail("Bug: OpenAI is missing a docstring but is imported from openai")
+            else:
+                pytest.fail(f"Bug: {name} is missing a docstring and is not in the allowlist")
