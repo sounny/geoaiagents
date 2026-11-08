@@ -6,16 +6,16 @@ import importlib
 import json
 import logging
 import os
-from collections.abc import Callable
+from typing import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Dict
 
 from dd2dms import convert_dd_to_dms
 from distance import calculate_distance
 from file_loaders import fetch_geo_boundaries, load_csv, load_geojson, load_kml
 from geocode import geocode_locations, reverse_geocode_coordinates
 
-ToolHandler = Callable[[dict[str, Any]], str]
+ToolHandler = Callable[[Dict[str, Any]], str]
 
 
 @dataclass
@@ -24,7 +24,7 @@ class ToolDefinition:
 
     name: str
     description: str
-    parameters: dict[str, Any]
+    parameters: Dict[str, Any]
     handler: ToolHandler
 
 
@@ -39,7 +39,7 @@ class ToolRegistry:
         *,
         name: str,
         description: str,
-        parameters: dict[str, Any],
+        parameters: Dict[str, Any],
         handler: ToolHandler,
     ) -> None:
         if not isinstance(name, str):
@@ -56,7 +56,7 @@ class ToolRegistry:
             handler=handler,
         )
 
-    def openai_functions(self) -> list[dict[str, Any]]:
+    def openai_functions(self) -> list[Dict[str, Any]]:
         return [
             {
                 "name": tool.name,
@@ -104,7 +104,7 @@ DEFAULT_TOOL_COORD_PARSERS = {
 }
 
 
-def parse_tool_args(raw_args: Any) -> dict[str, Any]:
+def parse_tool_args(raw_args: Any) -> Dict[str, Any]:
     """Parse tool call args from JSON string or dict."""
     if isinstance(raw_args, dict):
         return raw_args
