@@ -26,3 +26,25 @@ def test_humboldt_empty_input(mocker, capsys):
 
     out, err = capsys.readouterr()
     # It should print some informative message or no-op. If it calls the LLM, mock_call_llm.call_count is non-zero.
+
+import humboldt
+
+@pytest.mark.xfail(reason="Some callables are missing docstrings")
+def test_humboldt_callables_have_docstrings():
+    module = humboldt
+    if hasattr(module, '__all__'):
+        names = module.__all__
+    else:
+        names = [n for n in dir(module) if not n.startswith('_')]
+
+    allowlist = []
+
+    missing = []
+    for name in names:
+        obj = getattr(module, name)
+        if callable(obj):
+            if not obj.__doc__ and name not in allowlist:
+                missing.append(name)
+
+    if missing:
+        pytest.fail(f"Missing docstrings for: {', '.join(missing)}")

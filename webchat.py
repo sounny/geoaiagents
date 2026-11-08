@@ -4,6 +4,7 @@ from llm_utils import call_llm_with_retry
 import os
 import re
 
+from typing import List, Optional, Tuple, Dict
 import folium
 import gradio as gr
 from openai import OpenAI
@@ -26,10 +27,10 @@ logging.basicConfig(
 )
 
 # Store log entries for display in the UI
-log_history: list[str] = []
+log_history: List[str] = []
 
 
-def infer_location(message: str) -> str | None:
+def infer_location(message: str) -> Optional[str]:
     """Return a location string if message looks like a map request."""
     m = re.search(r"for ([A-Za-z0-9, ]+)", message, re.IGNORECASE)
     if m:
@@ -39,7 +40,7 @@ def infer_location(message: str) -> str | None:
     return None
 
 
-def create_map_html(points: list[tuple[float, float]]) -> str:
+def create_map_html(points: List[Tuple[float, float]]) -> str:
     """Return HTML for a folium map with given points."""
     if not points:
         return ""
@@ -55,9 +56,9 @@ LAST_MAP_HTML = create_map_html([(0.0, 0.0)])
 
 def parse_table_coordinates(
     table: str, lat_index: int, lon_index: int
-) -> list[tuple[float, float]]:
+) -> List[Tuple[float, float]]:
     """Parse coordinate pairs from a markdown table."""
-    coords: list[tuple[float, float]] = []
+    coords: List[Tuple[float, float]] = []
     lines = table.splitlines()[2:]
     for line in lines:
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
@@ -72,9 +73,9 @@ def parse_table_coordinates(
     return coords
 
 
-def parse_distance_table(table: str) -> list[tuple[float, float]]:
+def parse_distance_table(table: str) -> List[Tuple[float, float]]:
     """Parse point A/B coordinate pairs from a distance markdown table."""
-    coords: list[tuple[float, float]] = []
+    coords: List[Tuple[float, float]] = []
     lines = table.splitlines()[2:]
     for line in lines:
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
@@ -91,7 +92,7 @@ def parse_distance_table(table: str) -> list[tuple[float, float]]:
     return coords
 
 
-def extract_map_coords(tool_name: str, table: str) -> list[tuple[float, float]]:
+def extract_map_coords(tool_name: str, table: str) -> List[Tuple[float, float]]:
     parser = DEFAULT_TOOL_COORD_PARSERS.get(tool_name)
     if parser == "distance":
         return parse_distance_table(table)
@@ -128,7 +129,7 @@ registry = create_registry()
 functions = registry.openai_functions()
 
 
-def run_tool(function_call) -> tuple[str, str]:
+def run_tool(function_call) -> Tuple[str, str]:
     args = parse_tool_args(function_call.arguments)
     tool_name = function_call.name
     logging.info("Invoking %s...", tool_name)
@@ -136,7 +137,7 @@ def run_tool(function_call) -> tuple[str, str]:
     return tool_name, table
 
 
-def respond(message: str, history: list[dict], upload_file=None):
+def respond(message: str, history: List[Dict], upload_file=None):
     """Handle a chat message and return the agent's reply."""
     if upload_file is not None:
         try:
