@@ -49,3 +49,57 @@ def test_get_coordinates_first_result_on_multiple_candidates(mocker):
     assert addr == "First Place"
     assert lat == 40.0
     assert lon == -70.0
+
+
+@pytest.mark.xfail(reason="Bug: get_coordinates silently catches ValueError internally when timeout is True and incorrectly returns (None, None, None)")
+def test_get_coordinates_bool_true_bug():
+    from unittest.mock import patch
+    import urllib3
+    import pytest
+    from geocode import get_coordinates
+    with patch('urllib3.PoolManager.request') as mock_req, patch('time.sleep'):
+        # Mock network so if it succeeds, we get a valid result.
+        mock_req.return_value = urllib3.HTTPResponse(status=200, body=b'[{"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "First Place", "importance": 0.9, "class": "place", "type": "city"}]')
+        get_coordinates.cache_clear()
+        res = get_coordinates("London", timeout=True)
+        # Because we passed timeout=True, urllib3 validation throws ValueError which is swallowed by the generic except.
+        # This causes the valid mock response to never be reached and (None, None, None) is returned.
+        if res == (None, None, None):
+            pytest.fail("Bug: silently returns None instead of raising ValueError or returning results")
+
+@pytest.mark.xfail(reason="Bug: get_coordinates silently catches ValueError internally when timeout is False and incorrectly returns (None, None, None)")
+def test_get_coordinates_bool_false_bug():
+    from unittest.mock import patch
+    import urllib3
+    import pytest
+    from geocode import get_coordinates
+    with patch('urllib3.PoolManager.request') as mock_req, patch('time.sleep'):
+        mock_req.return_value = urllib3.HTTPResponse(status=200, body=b'[{"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "First Place", "importance": 0.9, "class": "place", "type": "city"}]')
+        get_coordinates.cache_clear()
+        res = get_coordinates("London", timeout=False)
+        if res == (None, None, None):
+            pytest.fail("Bug: silently returns None instead of raising ValueError or returning results")
+
+@pytest.mark.xfail(reason="Bug: reverse_geocode_coordinates silently catches ValueError internally when timeout is True and incorrectly returns 'Not found'")
+def test_reverse_geocode_coordinates_bool_true_bug():
+    from unittest.mock import patch
+    import urllib3
+    import pytest
+    from geocode import reverse_geocode_coordinates
+    with patch('urllib3.PoolManager.request') as mock_req, patch('time.sleep'):
+        mock_req.return_value = urllib3.HTTPResponse(status=200, body=b'{"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "Mocked Address", "importance": 0.9, "class": "place", "type": "city"}')
+        res = reverse_geocode_coordinates("0,0", timeout=True)
+        if "| 0.0 | 0.0 | Not found |" in res:
+            pytest.fail("Bug: silently catches ValueError and returns 'Not found'")
+
+@pytest.mark.xfail(reason="Bug: reverse_geocode_coordinates silently catches ValueError internally when timeout is False and incorrectly returns 'Not found'")
+def test_reverse_geocode_coordinates_bool_false_bug():
+    from unittest.mock import patch
+    import urllib3
+    import pytest
+    from geocode import reverse_geocode_coordinates
+    with patch('urllib3.PoolManager.request') as mock_req, patch('time.sleep'):
+        mock_req.return_value = urllib3.HTTPResponse(status=200, body=b'{"place_id": 1, "lat": "40.0", "lon": "-70.0", "display_name": "Mocked Address", "importance": 0.9, "class": "place", "type": "city"}')
+        res = reverse_geocode_coordinates("0,0", timeout=False)
+        if "| 0.0 | 0.0 | Not found |" in res:
+            pytest.fail("Bug: silently catches ValueError and returns 'Not found'")
