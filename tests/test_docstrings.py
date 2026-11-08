@@ -7,7 +7,8 @@ def test_top_level_docstrings():
         "dd2dms.main",
         "distance.main",
         "humboldt.build_parser",
-        "humboldt.main"
+        "humboldt.main",
+        "file_loaders.test_load_geojson_point"
     }
 
     missing_docstrings = []
