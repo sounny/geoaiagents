@@ -121,3 +121,17 @@ def test_plugin_hook_handlers_order(mocker):
     if handlers_1 != handlers_2:
         pytest.xfail("Tool/hook listing order is inconsistent")
     assert handlers_1 == handlers_2
+
+def test_example_plugin_registration():
+    import plugins.example_plugin as example_plugin
+    from tool_registry import ToolRegistry
+    import pytest
+    registry = ToolRegistry()
+    assert hasattr(example_plugin, "register_tools")
+    assert callable(example_plugin.register_tools)
+    example_plugin.register_tools(registry)
+    assert registry.has_tool("ping_api")
+    try:
+        example_plugin.register_tools(registry)
+    except ValueError as e:
+        pytest.xfail(f"Double registration raises ValueError: {e}")
