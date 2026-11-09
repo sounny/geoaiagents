@@ -131,3 +131,10 @@ def test_dd_to_dms_value_negative_longitudes():
     assert 0 <= m2 <= 59
     assert 0 <= s2 < 60
     assert math.copysign(1, d2) == -1.0
+
+@pytest.mark.parametrize("val", [45.123456, -45.123456, 0.0, 179.999999, -179.999])
+def test_dd_to_dms_roundtrip(val):
+    d, m, s = dd_to_dms_value(val)
+    sign = -1.0 if math.copysign(1.0, d) < 0 else 1.0
+    reconstructed = sign * (abs(d) + m / 60.0 + s / 3600.0)
+    assert abs(val - reconstructed) <= 1e-6
