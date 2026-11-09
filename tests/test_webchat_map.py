@@ -39,3 +39,27 @@ def test_create_map_html_non_empty_points(mocker):
     mock_folium_marker.assert_any_call([51.5074, -0.1278])
     assert mock_marker_instance.add_to.call_count == 2
     mock_marker_instance.add_to.assert_called_with(mock_map_instance)
+
+@pytest.mark.xfail(reason="Bug: out-of-range or missing coordinates are not skipped")
+def test_create_map_html_skips_invalid_coordinates(mocker):
+    mock_map = mocker.patch("webchat.folium.Map")
+    mock_marker = mocker.patch("webchat.folium.Marker")
+
+    points = [
+        (48.8, 2.3),
+        (None, None),
+        (91.0, 0.0),
+        (-91.0, 0.0),
+        (0.0, 181.0),
+        (0.0, -181.0),
+        (None, 0.0),
+        (0.0, None),
+    ]
+
+    try:
+        webchat.create_map_html(points)
+    except Exception as e:
+        pytest.fail(f"Should not raise exception: {e}")
+
+    assert mock_marker.call_count == 1
+    mock_marker.assert_called_once_with([48.8, 2.3])
