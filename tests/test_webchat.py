@@ -21,3 +21,39 @@ def test_create_map_html_markers_and_skips_invalid_locking_markers():
     assert len(points) == 2
     html = create_map_html(points)
     assert len(re.findall(r"L\.marker", html)) == 2
+
+def test_parse_table_coordinates_with_fences():
+    table_with_nested = """```markdown
+Some text
+```json
+{ "foo": "bar" }
+```
+| Lat1 | Lon1 |
+|---|---|
+| 48.8 | 2.3 |
+```"""
+    assert parse_table_coordinates(table_with_nested, 0, 1) == [(48.8, 2.3)]
+
+    table_with_unclosed = """```markdown
+| Lat1 | Lon1 |
+|---|---|
+| 48.8 | 2.3 |"""
+    assert parse_table_coordinates(table_with_unclosed, 0, 1) == [(48.8, 2.3)]
+
+def test_parse_distance_table_with_fences():
+    table_with_nested = """```markdown
+Some text
+```json
+{ "foo": "bar" }
+```
+| Lat1 | Lon1 | Lat2 | Lon2 |
+|---|---|---|---|
+| 48.8 | 2.3 | 51.5 | -0.1 |
+```"""
+    assert parse_distance_table(table_with_nested) == [(48.8, 2.3), (51.5, -0.1)]
+
+    table_with_unclosed = """```markdown
+| Lat1 | Lon1 | Lat2 | Lon2 |
+|---|---|---|---|
+| 48.8 | 2.3 | 51.5 | -0.1 |"""
+    assert parse_distance_table(table_with_unclosed) == [(48.8, 2.3), (51.5, -0.1)]
