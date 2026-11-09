@@ -56,7 +56,9 @@ def test_call_llm_with_retry_happy_path_fast():
     """
     client = MagicMock()
     mock_response = MagicMock()
-    mock_response.choices = ["happy_choice"]
+    mock_choice = MagicMock()
+    mock_choice.message = "some_message"
+    mock_response.choices = [mock_choice]
     client.chat.completions.create.return_value = mock_response
 
     with patch('time.sleep') as mock_sleep:
@@ -120,3 +122,14 @@ def test_call_llm_missing_api_key(monkeypatch, mocker):
     # The application currently raises ValueError("...: {e}") from e.
     # The `from e` attaches the raw traceback via `__cause__`.
     assert exc_info.value.__cause__ is None, "A raw traceback was preserved via __cause__"
+
+@patch("time.sleep")
+def test_call_llm_with_retry_all_fail(mock_sleep):
+    client = MagicMock()
+    client.chat.completions.create.side_effect = Exception("Test Error")
+
+    with pytest.raises(ValueError, match="LLM call failed after 3 attempts"):
+        call_llm_with_retry(client, max_retries=3)
+
+    assert client.chat.completions.create.call_count == 3
+    assert mock_sleep.call_count == 2
