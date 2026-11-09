@@ -69,6 +69,13 @@ def test_format_dms():
     assert format_dms(0.0, 30, 0.0, True) == "0°30'00.00\" N"
     assert format_dms(0.0, 30, 0.0, False) == "0°30'00.00\" E"
 
+    assert format_dms(10, 20, 30.5, True, -10.5) == "10°20'30.50\" S"
+    assert format_dms(10, 20, 30.5, True, -0.5) == "10°20'30.50\" S"
+    assert format_dms(10, 20, 30.5, True, -45.0) == "10°20'30.50\" S"
+    assert format_dms(10, 20, 30.5, False, -10.5) == "10°20'30.50\" W"
+    assert format_dms(10, 20, 30.5, False, -0.5) == "10°20'30.50\" W"
+    assert format_dms(10, 20, 30.5, False, -45.0) == "10°20'30.50\" W"
+
 
 def test_convert_dd_to_dms():
     text = "40.7128,-74.0060"
