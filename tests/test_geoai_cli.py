@@ -41,3 +41,12 @@ def test_cli_help(mocker, capsys):
     captured = capsys.readouterr()
     assert 'usage: geoai_cli.py' in captured.out or 'GeoAI CLI' in captured.out, "Usage text not found in stdout"
     assert 'list-tools' in captured.out, "Available commands list not found in stdout"
+
+def test_unknown_subcommand():
+    result = subprocess.run(
+        [sys.executable, "geoai_cli.py", "unknown-command"],
+        capture_output=True,
+        text=True
+    )
+    assert result.returncode != 0
+    assert "usage:" in result.stderr or "invalid choice" in result.stderr
