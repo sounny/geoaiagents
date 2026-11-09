@@ -120,3 +120,10 @@ def test_azimuth_to_cardinal():
     assert azimuth_to_cardinal(90) == 'E'
     assert azimuth_to_cardinal(180) == 'S'
     assert azimuth_to_cardinal(270) == 'W'
+
+def test_haversine_km_monotonic_increase():
+    prev_d = -1
+    for lon in range(0, 100, 10):
+        d = _haversine_km(0, 0, 0, lon)
+        assert d > prev_d
+        prev_d = d
