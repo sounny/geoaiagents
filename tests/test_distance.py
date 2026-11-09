@@ -61,11 +61,17 @@ def test_haversine_km():
     assert abs(distance_poles - 20004) / 20004 <= 0.005
 
 def test_calculate_distance():
+    import re
     text = "40.7128,-74.0060,51.5074,-0.1278"
     result = calculate_distance(text)
     assert "40.7128" in result
     assert "51.5074" in result
     assert "Distance (km)" in result
+    match = re.search(r'\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|$', result.strip())
+    assert match is not None
+    km = float(match.group(1))
+    mi = float(match.group(2))
+    assert abs(mi - km * 0.621371) < 0.01
 
 def test_calculate_distance_malformed():
     result = calculate_distance("invalid\n10,20,30,400\n10,20,30,foo")
