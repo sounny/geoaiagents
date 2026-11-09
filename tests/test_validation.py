@@ -1,4 +1,5 @@
 import pytest
+import math
 from validation import is_valid_lat_lon, parse_coordinate_pairs, format_invalid_notes
 
 def test_is_valid_lat_lon():
@@ -16,9 +17,15 @@ def test_is_valid_lat_lon_locked_boundaries():
     assert is_valid_lat_lon(90.0, 0.0) is True
     assert is_valid_lat_lon(-90.0, 180.0) is True
     assert is_valid_lat_lon(0.0, -180.0) is True
+    assert is_valid_lat_lon(90.0, 180.0) is True
+    assert is_valid_lat_lon(-90.0, -180.0) is True
     assert is_valid_lat_lon(90.001, 0.0) is False
     assert is_valid_lat_lon(0.0, -180.0001) is False
     assert is_valid_lat_lon(12.5, -180.0001) is False
+    assert is_valid_lat_lon(math.nextafter(90, 91), 0) is False
+    assert is_valid_lat_lon(math.nextafter(-90, -91), 0) is False
+    assert is_valid_lat_lon(0, math.nextafter(180, 181)) is False
+    assert is_valid_lat_lon(0, math.nextafter(-180, -181)) is False
 
 def test_is_valid_lat_lon_nan_inf():
     assert is_valid_lat_lon(float("nan"), 0) is False
