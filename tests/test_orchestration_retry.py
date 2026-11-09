@@ -120,3 +120,34 @@ def test_call_llm_missing_api_key(monkeypatch, mocker):
     # The application currently raises ValueError("...: {e}") from e.
     # The `from e` attaches the raw traceback via `__cause__`.
     assert exc_info.value.__cause__ is None, "A raw traceback was preserved via __cause__"
+
+@pytest.mark.xfail(reason="API key value is leaked in the error message and variable name is not mentioned")
+def test_call_llm_api_key_not_in_error(mocker):
+    client = OpenAI(api_key="fake-key-secret-123", max_retries=0)
+    mock_response = httpx.Response(
+        status_code=401,
+        json={
+            "error": {
+                "message": "Incorrect API key provided: fake-key-secret-123.",
+                "type": "invalid_request_error",
+                "param": None,
+                "code": "invalid_api_key"
+            }
+        },
+        request=httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+    )
+    mocker.patch("httpx.Client.send", return_value=mock_response)
+    mocker.patch("time.sleep")
+
+    with pytest.raises(Exception) as exc_info:
+        call_llm_with_retry(
+            client,
+            max_retries=1,
+            model="test-model",
+            messages=[{"role": "user", "content": "hi"}]
+        )
+
+    error_msg = str(exc_info.value)
+
+    assert "OPENAI_API_KEY" in error_msg
+    assert "fake-key-secret-123" not in error_msg
