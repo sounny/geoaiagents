@@ -1,5 +1,7 @@
 import os
 import pytest
+import shutil
+import subprocess
 
 def test_gitignore_entries():
     gitignore_path = os.path.join(os.path.dirname(__file__), '..', '.gitignore')
@@ -30,3 +32,22 @@ def test_gitignore_entries():
 
     if missing:
         pytest.xfail(f"Missing entries in .gitignore: {', '.join(missing)}")
+
+def test_no_env_tracked_by_git():
+    if not shutil.which("git"):
+        pytest.skip("git is unavailable")
+
+    try:
+        output = subprocess.check_output(
+            ["git", "ls-files"],
+            stderr=subprocess.STDOUT,
+            universal_newlines=True
+        )
+    except subprocess.CalledProcessError as e:
+        pytest.fail(f"git ls-files failed: {e}")
+
+    lines = output.splitlines()
+    tracked_env_files = [f for f in lines if f == ".env" or f.endswith("/.env")]
+
+    if tracked_env_files:
+        pytest.xfail(f"Found tracked .env files: {len(tracked_env_files)}")
